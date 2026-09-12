@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Sign in · CREW{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block body %}
+<main class="login-shell auth-shell">
+    <section class="login-brand-panel auth-brand-panel">
+        <div class="brand-lockup">
+            <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
+            <span class="crew-mark">CREW</span>
+        </div>
+
+        <div class="login-story auth-story">
+            <span class="eyebrow">WEEKLY GAMES</span>
+            <h1>Four days.<br><span>One CREW.</span></h1>
+            <p>Mystery Monday. Trivia Tuesday. Wordle Wednesday. Tick-Tock Thursday. Play the week and climb the leaderboard.</p>
+        </div>
+
+        <div class="auth-weekline" aria-label="CREW weekly games">
+            <div><b>M</b><span>Mystery</span></div>
+            <div><b>T</b><span>Trivia</span></div>
+            <div><b>W</b><span>Wordle</span></div>
+            <div><b>T</b><span>Tick-Tock</span></div>
+        </div>
+
+        <div class="world-orbit" aria-hidden="true">
+            <div class="orbit orbit-a"></div>
+            <div class="orbit orbit-b"></div>
+            <div class="orbit-core"><span>C</span></div>
+            <span class="orbit-dot dot-one"></span>
+            <span class="orbit-dot dot-two"></span>
+            <span class="orbit-dot dot-three"></span>
+        </div>
+    </section>
+
+    <section class="login-form-wrap auth-form-wrap">
+        <div class="glass-card login-card auth-card">
+            <div class="auth-card-topline">
+                <span class="mini-crew">CREW</span>
+                <span class="auth-status"><i></i> MON–THU</span>
+            </div>
+
+            <div class="login-card-heading auth-card-heading">
+                <span class="eyebrow auth-mobile-eyebrow">WEEKLY GAMES</span>
+                <h2>Welcome back.</h2>
+                <p>Your next challenge is waiting.</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="post" class="login-form auth-form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <label class="auth-field">
+                    <span>CREW name</span>
+                    <div class="auth-input-wrap">
+                        <input type="text" name="username" placeholder="Your CREW name" autocomplete="username" maxlength="24" required autofocus>
+                    </div>
+                </label>
+
+                <label class="auth-field">
+                    <span>Password</span>
+                    <div class="auth-input-wrap has-action">
+                        <input id="loginPassword" type="password" name="password" placeholder="Your password" autocomplete="current-password" required>
+                        <button class="password-toggle" type="button" data-password-toggle="loginPassword" aria-label="Show password">Show</button>
+                    </div>
+                </label>
+
+                <div class="auth-form-meta">
+                    <a class="account-link inline-link" href="{{ url_for('auth.recover') }}">Forgot password?</a>
+                </div>
+
+                <button class="primary-button auth-primary" type="submit">
+                    <span>Enter CREW</span>
+                    <span class="button-arrow" aria-hidden="true">→</span>
+                </button>
+            </form>
+
+            <div class="auth-signup">
+                <span>New to CREW?</span>
+                <a href="{{ url_for('auth.create_profile_view') }}">Create your profile</a>
+            </div>
+
+            <p class="auth-footnote">No real name or work email required.</p>
+        </div>
+    </section>
+</main>
+{% endblock %}

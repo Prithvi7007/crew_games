@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Wordle Wednesday · CREW{% endblock %}
+{% block body_class %}word-page{% endblock %}
+
+{% block body %}
+<div class="app-shell word-shell">
+    <header class="glass-nav">
+        <a class="nav-brand" href="{{ url_for('main.home') }}" aria-label="CREW home">
+            <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
+            <span class="crew-mark small">CREW</span>
+        </a>
+
+        <nav class="desktop-nav" aria-label="Primary navigation">
+            <a href="{{ url_for('main.home') }}">Home</a>
+            <a class="active" href="{{ url_for('word.play') }}">Wordle Wednesday</a>
+            <a href="{{ url_for('main.home') }}#leaderboard">Leaderboard</a>
+        </nav>
+
+        <div class="profile-menu">
+            <div class="profile-copy"><strong>{{ user.username }}</strong><span>CREW Player</span></div>
+            <div class="avatar">{{ user.avatar }}</div>
+            <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="icon-button" title="Sign out" aria-label="Sign out">↗</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="word-main">
+        <section class="word-heading">
+            <div>
+                <a class="back-link" href="{{ url_for('main.home') }}">← Back to home</a>
+                <span class="eyebrow">{{ today.strftime('%A · %B %d')|upper }}</span>
+                <h1>Wordle Wednesday</h1>
+                {% if state.theme %}<span class="game-theme word-theme">{{ state.theme }}</span>{% endif %}
+                <p>One shared five-letter puzzle. Six attempts. Up to 100 points.</p>
+            </div>
+            <div class="word-score glass-stat">
+                <span class="stat-icon">✦</span>
+                <div><strong id="scoreLabel">{{ state.potential_score }}</strong><span>{% if state.completed %}points earned{% else %}points available{% endif %}</span></div>
+            </div>
+        </section>
+
+        <section class="word-layout">
+            <article class="glass-card word-game-panel">
+                <div class="word-panel-top">
+                    <div><span class="game-kicker">CREW WORD #{{ today.toordinal() }}</span><span class="word-attempt-label" id="attemptLabel">{{ state.guess_count }} / 6 guesses</span></div>
+                    <button class="help-chip" type="button" id="helpButton" aria-expanded="false" aria-controls="helpPanel">How to play</button>
+                </div>
+
+                <div class="word-help" id="helpPanel" hidden>
+                    Guess the five-letter word in six tries. Cyan-green means the letter is in the right spot, amber means it is elsewhere in the word, and slate means it is not in the word.
+                </div>
+
+                <div class="word-message" id="wordMessage" role="status" aria-live="polite"></div>
+
+                <div class="word-board" id="wordBoard" aria-label="Wordle Wednesday board">
+                    {% for row in range(6) %}
+                    <div class="word-row" data-row="{{ row }}">
+                        {% for col in range(5) %}
+                        <div class="word-tile" data-col="{{ col }}" aria-label="Row {{ row + 1 }}, letter {{ col + 1 }}"></div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="keyboard-legend" aria-label="Keyboard status legend">
+                    <span><i class="legend-swatch available"></i>Available</span>
+                    <span><i class="legend-swatch absent"></i>Not in word</span>
+                    <span><i class="legend-swatch present"></i>In word</span>
+                    <span><i class="legend-swatch correct"></i>Correct spot</span>
+                </div>
+
+                <div class="word-keyboard" id="wordKeyboard" aria-label="On-screen keyboard">
+                    <div class="keyboard-row">
+                        {% for key in ['Q','W','E','R','T','Y','U','I','O','P'] %}<button type="button" class="key" data-key="{{ key }}">{{ key }}</button>{% endfor %}
+                    </div>
+                    <div class="keyboard-row">
+                        {% for key in ['A','S','D','F','G','H','J','K','L'] %}<button type="button" class="key" data-key="{{ key }}">{{ key }}</button>{% endfor %}
+                    </div>
+                    <div class="keyboard-row">
+                        <button type="button" class="key key-wide" data-key="ENTER">ENTER</button>
+                        {% for key in ['Z','X','C','V','B','N','M'] %}<button type="button" class="key" data-key="{{ key }}">{{ key }}</button>{% endfor %}
+                        <button type="button" class="key key-wide key-delete" data-key="BACKSPACE" aria-label="Delete last letter">DELETE</button>
+                    </div>
+                </div>
+            </article>
+
+            <aside class="word-side-stack">
+                <article class="glass-card word-side-card">
+                    <span class="eyebrow">SCORING</span>
+                    <h2>Fewer guesses. More points.</h2>
+                    <div class="score-scale">
+                        <div><span>1</span><strong>100</strong></div>
+                        <div><span>2</span><strong>80</strong></div>
+                        <div><span>3</span><strong>65</strong></div>
+                        <div><span>4</span><strong>50</strong></div>
+                        <div><span>5</span><strong>40</strong></div>
+                        <div><span>6</span><strong>30</strong></div>
+                    </div>
+                    <p>Complete today's game to protect your CREW streak. An unsolved board still earns 10 participation points.</p>
+                </article>
+
+                <article class="glass-card word-side-card result-card" id="resultCard" {% if not state.completed %}hidden{% endif %}>
+                    <span class="eyebrow">TODAY'S RESULT</span>
+                    <div class="result-icon" id="resultIcon">{% if state.won %}✓{% else %}◇{% endif %}</div>
+                    <h2 id="resultTitle">{% if state.won %}Nice work.{% else %}Tomorrow's another round.{% endif %}</h2>
+                    <p id="resultCopy">The word was <strong id="solutionLabel">{{ state.solution if state.completed else '' }}</strong>.</p>
+                    <div class="result-points"><strong id="resultPoints">{{ state.score }}</strong><span>PTS</span></div>
+                    <a class="primary-button result-home" href="{{ url_for('main.home') }}"><span>Back to CREW home</span><span>→</span></a>
+                </article>
+            </aside>
+        </section>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.CREW_WORD_STATE = {{ state|tojson }};
+window.CREW_WORD_GUESS_URL = {{ url_for('word.submit_guess')|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/word-game.js') }}"></script>
+{% endblock %}

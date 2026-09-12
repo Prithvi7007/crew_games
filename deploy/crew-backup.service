@@ -1,0 +1,8 @@
+[Unit]
+Description=Backup CREW PostgreSQL database
+
+[Service]
+Type=oneshot
+User=crew
+Group=www-data
+ExecStart=/opt/crew/deploy/backup-postgres.sh

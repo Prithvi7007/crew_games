@@ -1,0 +1,36 @@
+[Unit]
+Description=CREW Weekly Games (Gunicorn)
+After=network.target postgresql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=crew
+Group=www-data
+WorkingDirectory=/opt/crew
+EnvironmentFile=/etc/crew/crew.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+RuntimeDirectory=crew
+RuntimeDirectoryMode=0750
+ExecStart=/opt/crew/.venv/bin/gunicorn --workers 2 --threads 2 --timeout 45 --graceful-timeout 30 --keep-alive 5 --bind unix:/run/crew/crew.sock --umask 007 --access-logfile - --error-logfile - run:app
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=35
+KillSignal=SIGQUIT
+
+# Isolation / hardening
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/run/crew
+
+[Install]
+WantedBy=multi-user.target

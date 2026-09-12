@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Create profile · CREW{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block body %}
+<main class="login-shell profile-create-shell">
+    <section class="login-brand-panel create-brand-panel">
+        <div class="brand-lockup">
+            <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
+            <span class="crew-mark">CREW</span>
+        </div>
+        <div class="login-story create-story">
+            <span class="eyebrow">YOUR CREW PROFILE</span>
+            <h1>Make it <span>yours.</span></h1>
+            <p>Pick a CREW name, choose your avatar, and jump into the weekly games.</p>
+        </div>
+        <div class="privacy-stack">
+            <div><span>01</span><strong>Choose a CREW name</strong></div>
+            <div><span>02</span><strong>Pick an avatar</strong></div>
+            <div><span>03</span><strong>Save your recovery code</strong></div>
+        </div>
+    </section>
+
+    <section class="login-form-wrap create-form-wrap">
+        <div class="glass-card login-card create-profile-card">
+            <div class="login-card-heading">
+                <span class="mini-crew">JOIN CREW</span>
+                <h2>Create your profile.</h2>
+                <p>Start with your invite code, then choose how you show up in CREW.</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="post" class="login-form create-profile-form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <label>
+                    <span>Invitation code</span>
+                    <input type="password" name="invite_code" placeholder="Enter CREW invite code" autocomplete="off" required>
+                </label>
+                <label>
+                    <span>CREW name</span>
+                    <input type="text" name="username" value="{{ entered_username }}" placeholder="CoasterChris" autocomplete="username" minlength="3" maxlength="24" pattern="[A-Za-z0-9_-]{3,24}" required>
+                    <small>3–24 characters · letters, numbers, _ or -</small>
+                </label>
+
+                <fieldset class="avatar-fieldset">
+                    <legend>Choose your avatar</legend>
+                    <div class="avatar-picker">
+                        {% for avatar in avatars %}
+                        <label class="avatar-choice" title="{{ avatar.label }}">
+                            <input type="radio" name="avatar" value="{{ avatar.value }}" {% if avatar.value == selected_avatar %}checked{% endif %}>
+                            <span aria-hidden="true">{{ avatar.value }}</span>
+                            <em class="sr-only">{{ avatar.label }}</em>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+
+                <label>
+                    <span>Password</span>
+                    <input type="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required>
+                </label>
+                <label>
+                    <span>Confirm password</span>
+                    <input type="password" name="password_confirm" placeholder="Enter it again" autocomplete="new-password" minlength="8" required>
+                </label>
+
+                <button class="primary-button" type="submit"><span>Create profile</span><span aria-hidden="true">→</span></button>
+            </form>
+
+            <p class="privacy-note">No real name or work email required.</p>
+            <a class="account-link centered" href="{{ url_for('auth.login') }}">Already have a profile? Sign in.</a>
+        </div>
+    </section>
+</main>
+{% endblock %}

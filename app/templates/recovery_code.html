@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Save recovery code · CREW{% endblock %}
+{% block body_class %}login-page recovery-code-page{% endblock %}
+
+{% block body %}
+<main class="recovery-code-shell">
+    <section class="glass-card recovery-code-card">
+        <span class="mini-crew">CREW</span>
+        {% if recovery_context == 'reset' %}
+            <span class="eyebrow">NEW RECOVERY CODE</span>
+            <h1>Password updated.</h1>
+            <p>Your old recovery code has been retired. Save this new one somewhere private.</p>
+        {% else %}
+            <span class="eyebrow">PROFILE CREATED</span>
+            <h1>Save your recovery code.</h1>
+            <p>CREW doesn't collect an email address, so this code is how you recover your profile if you forget your password.</p>
+        {% endif %}
+
+        <div class="recovery-code-value" id="recoveryCode">{{ recovery_code }}</div>
+        <button class="secondary-button copy-code" id="copyRecoveryCode" type="button">Copy recovery code</button>
+
+        <div class="recovery-warning">
+            <strong>Shown only during this recovery step.</strong>
+            <span>CREW stores a secure hash of the code, not this readable version.</span>
+        </div>
+
+        <form method="post" action="{{ url_for('auth.recovery_code_continue') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="primary-button" type="submit"><span>I've saved it — enter CREW</span><span>→</span></button>
+        </form>
+    </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+    const button = document.getElementById('copyRecoveryCode');
+    const code = document.getElementById('recoveryCode');
+    if (!button || !code) return;
+    button.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(code.textContent.trim());
+            button.textContent = 'Copied';
+        } catch (_) {
+            window.getSelection()?.selectAllChildren(code);
+            button.textContent = 'Select and copy the code';
+        }
+    });
+})();
+</script>
+{% endblock %}

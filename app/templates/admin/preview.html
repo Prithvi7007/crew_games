@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Preview {{ definition.title }} · CREW Admin{% endblock %}
+{% block body_class %}admin-page admin-preview-page{% endblock %}
+{% block body %}
+<div class="admin-shell">
+  <header class="glass-nav admin-nav">
+    <a class="nav-brand" href="{{ edit_url }}"><span class="brand-parent">CREW CONTENT STUDIO</span><span class="crew-mark small">PREVIEW</span></a>
+    <span class="admin-preview-badge">ADMIN PREVIEW · {{ payload.status|upper }}</span>
+    <a class="admin-quiet-button" href="{{ edit_url }}">Back to editor</a>
+  </header>
+  <main class="admin-main preview-main">
+    <section class="preview-title">
+      <span class="eyebrow">{{ game_day.strftime('%A · %B %d, %Y')|upper }}</span>
+      <h1>{{ definition.title }}</h1>
+      {% if payload.theme_label %}<span class="preview-theme">{{ payload.theme_label }}</span>{% endif %}
+      <p>This is a content preview. It does not create a player attempt or affect scores.</p>
+    </section>
+
+    {% if definition.key == 'mystery' %}
+    <article class="glass-card preview-stage game-tone-mystery">
+      <div class="preview-stage-top"><span>CLUE PROGRESSION</span><strong>100 → 20 PTS</strong></div>
+      <div class="preview-clues">{% for clue in payload.content.clues %}<div><span>{{ loop.index }}</span><p>{{ clue }}</p></div>{% endfor %}</div>
+      <div class="preview-answer"><span>ANSWER</span><strong>{{ payload.content.answer }}</strong><small>Accepted: {{ payload.content.accepted|join(', ') }}</small></div>
+    </article>
+    {% elif definition.key == 'trivia' %}
+    <div class="preview-question-grid">
+      {% for question in payload.content.questions %}<article class="glass-card preview-question"><span>{{ "%02d"|format(loop.index) }}</span><h2>{{ question.prompt }}</h2><div>{% for option in question.options %}<p class="{% if loop.index0 == question.answer %}correct{% endif %}"><b>{{ ['A','B','C','D'][loop.index0] }}</b>{{ option }}</p>{% endfor %}</div></article>{% endfor %}
+    </div>
+    {% elif definition.key == 'word' %}
+    <article class="glass-card preview-stage preview-word game-tone-word"><span class="eyebrow">SOLUTION PREVIEW</span><div class="preview-word-tiles">{% for letter in payload.content.solution %}<i>{{ letter }}</i>{% endfor %}</div><p>The answer remains hidden from players until their game is complete.</p></article>
+    {% elif definition.key == 'tick_tock' %}
+    <article class="glass-card preview-stage preview-timer game-tone-tick_tock"><span class="eyebrow">TARGET PREVIEW</span><div class="preview-target">{{ '%.2f'|format(payload.content.target_seconds) }}<small>SEC</small></div><p>Players will see this target, start the round, then the live time disappears.</p></article>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

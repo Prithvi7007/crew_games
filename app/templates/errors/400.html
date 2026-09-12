@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}400 · CREW{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+{% block body %}
+<main class="auth-shell">
+  <section class="login-card glass-panel" style="max-width:620px;margin:auto;text-align:center;">
+    <div class="auth-kicker">CREW</div>
+    <h1>That request expired.</h1>
+    <p class="auth-subtitle">Refresh the page and try that action again.</p>
+    <a class="primary-button" href="{{ url_for('main.home') if session.get('user') else url_for('auth.login') }}">Back to CREW</a>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}CREW Admin · Sign in{% endblock %}
+{% block body_class %}admin-page admin-login-page{% endblock %}
+{% block body %}
+<div class="admin-login-shell">
+  <section class="admin-login-brand">
+    <a class="admin-brand" href="{{ url_for('main.index') }}">
+      <span>UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
+      <strong>CREW</strong>
+    </a>
+    <div class="admin-login-story">
+      <span class="eyebrow">CONTENT STUDIO</span>
+      <h1>Run the week.</h1>
+      <p>Schedule, preview and publish the four CREW challenges from one place.</p>
+      <div class="admin-week-mini" aria-hidden="true">
+        <span>M<br><b>?</b></span><i></i><span>T<br><b>✦</b></span><i></i><span>W<br><b>W</b></span><i></i><span>T<br><b>◷</b></span>
+      </div>
+    </div>
+  </section>
+  <section class="admin-login-form-wrap">
+    <form class="glass-card admin-login-card" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <span class="eyebrow">ADMIN ACCESS</span>
+      <h2>Content Studio</h2>
+      <p>Use the CREW admin passphrase configured for this environment.</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}<div class="admin-flash {{ category }}">{{ message }}</div>{% endfor %}
+      {% endwith %}
+      <label class="admin-field">
+        <span>Admin passphrase</span>
+        <input type="password" name="password" autocomplete="current-password" required autofocus placeholder="Enter passphrase">
+      </label>
+      <button class="primary-button admin-primary" type="submit"><span>Open Content Studio</span><span>→</span></button>
+      <a class="admin-text-link" href="{{ url_for('auth.login') }}">← Back to CREW player sign in</a>
+    </form>
+  </section>
+</div>
+{% endblock %}

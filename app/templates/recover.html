@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Recover profile · CREW{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block body %}
+<main class="login-shell recovery-shell">
+    <section class="login-brand-panel recovery-brand-panel">
+        <div class="brand-lockup">
+            <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
+            <span class="crew-mark">CREW</span>
+        </div>
+        <div class="login-story">
+            <span class="eyebrow">PROFILE RECOVERY</span>
+            <h1>No email <span>needed.</span></h1>
+            <p>Use the recovery code CREW gave you when your profile was created. A successful reset generates a new recovery code and retires the old one.</p>
+        </div>
+    </section>
+
+    <section class="login-form-wrap">
+        <div class="glass-card login-card">
+            <div class="login-card-heading">
+                <span class="mini-crew">RECOVER</span>
+                <h2>Reset password</h2>
+                <p>Enter your CREW name and recovery code.</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}<div class="alert {{ category }}">{{ message }}</div>{% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="post" class="login-form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <label>
+                    <span>CREW name</span>
+                    <input type="text" name="username" value="{{ entered_username }}" autocomplete="username" maxlength="24" required>
+                </label>
+                <label>
+                    <span>Recovery code</span>
+                    <input type="text" name="recovery_code" placeholder="ORBIT-NOVA-..." autocomplete="off" required>
+                </label>
+                <label>
+                    <span>New password</span>
+                    <input type="password" name="password" autocomplete="new-password" minlength="8" required>
+                </label>
+                <label>
+                    <span>Confirm new password</span>
+                    <input type="password" name="password_confirm" autocomplete="new-password" minlength="8" required>
+                </label>
+                <button class="primary-button" type="submit"><span>Reset password</span><span>→</span></button>
+            </form>
+            <a class="account-link centered" href="{{ url_for('auth.login') }}">Back to sign in</a>
+        </div>
+    </section>
+</main>
+{% endblock %}

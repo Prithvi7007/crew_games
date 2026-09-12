@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Home · CREW{% endblock %}
+{% block body_class %}home-page flow-home{% endblock %}
+{% block body %}
+<div class="app-shell">
+  <header class="glass-nav">
+    <a class="nav-brand" href="{{ url_for('main.home') }}">
+      <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
+      <span class="crew-mark small">CREW</span>
+    </a>
+    <nav class="desktop-nav" aria-label="Primary navigation">
+      <a class="active" href="{{ url_for('main.home') }}">Home</a>
+      <a href="#week">Games</a>
+      <a href="#leaderboard">Leaderboard</a>
+    </nav>
+    <div class="profile-menu">
+      <div class="profile-copy"><strong>{{ user.username }}</strong><span>CREW Player</span></div>
+      <div class="avatar" aria-hidden="true">{{ user.avatar }}</div>
+      <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="icon-button" aria-label="Sign out">↗</button></form>
+    </div>
+  </header>
+
+  <main class="flow-main">
+    <section class="flow-intro">
+      <span class="eyebrow">{{ today.strftime('%A · %B %d')|upper }}</span>
+      {% if home_phase == 'play' %}
+        <h1>Ready to play, {{ user.username }}?</h1>
+        <p>One challenge today. Four chances to score this week.</p>
+      {% elif home_phase == 'recap' %}
+        <h1>Week complete, {{ user.username }}.</h1>
+        <p>Your Monday-through-Thursday run is in. Here’s how the week landed.</p>
+      {% else %}
+        <h1>Recharge, {{ user.username }}.</h1>
+        <p>CREW is between rounds. The next weekly run starts Monday.</p>
+      {% endif %}
+    </section>
+
+    {% if todays_game %}
+    <section class="glass-card flow-feature game-tone-{{ todays_game.key }}" aria-labelledby="today-title">
+      <div class="flow-feature-copy">
+        <div class="feature-kicker-row">
+          <span class="eyebrow">TODAY'S CHALLENGE</span>
+          <span class="feature-day">{{ todays_game.day|upper }}</span>
+        </div>
+        {% if todays_game.theme_label %}<span class="feature-theme-label">{{ todays_game.theme_label }}</span>{% endif %}
+        <h2 id="today-title">{{ todays_game.title }}</h2>
+        <p>{{ todays_game.description }}</p>
+        <div class="feature-meta">
+          <span>Up to {{ todays_game.points }} points</span>
+          {% if todays_game.completed %}
+            <span class="meta-success">Completed · {{ todays_game.score }} pts</span>
+          {% elif todays_game.started %}
+            <span>In progress</span>
+          {% else %}
+            <span>{{ 4 - stats.games_completed }} challenges remaining this week</span>
+          {% endif %}
+        </div>
+        <a class="primary-button compact feature-cta" href="{{ todays_game.url }}"><span>{{ todays_game.cta }}</span><span>→</span></a>
+      </div>
+      <div class="feature-visual" aria-hidden="true">
+        <div class="feature-orbit"></div>
+        <div class="feature-glyph">{{ todays_game.glyph }}</div>
+        <span>{{ todays_game.short_title|upper }}</span>
+      </div>
+    </section>
+    {% elif home_phase == 'recap' %}
+    <section class="glass-card flow-feature recap-feature" aria-labelledby="recap-title">
+      <div class="flow-feature-copy">
+        <span class="eyebrow">WEEKLY RECAP</span>
+        <h2 id="recap-title">That’s a wrap.</h2>
+        <p>Four CREW days are in the books. Review your run, catch up on anything you missed, and see where your score sits.</p>
+        <div class="feature-meta">
+          <span>{{ stats.games_completed }} / 4 complete</span>
+          <span>{{ stats.weekly_points }} / 400 pts</span>
+          <span>{% if stats.rank %}#{{ stats.rank }} this week{% else %}Play to rank{% endif %}</span>
+        </div>
+        <a class="primary-button compact feature-cta" href="#week"><span>Review your week</span><span>↓</span></a>
+      </div>
+      <div class="feature-visual recap-visual" aria-hidden="true">
+        <div class="feature-orbit"></div>
+        <div class="recap-score">{{ stats.games_completed }}<small>/4</small></div>
+        <span>CHALLENGES</span>
+      </div>
+    </section>
+    {% else %}
+    <section class="glass-card flow-feature weekend-feature" aria-labelledby="weekend-title">
+      <div class="flow-feature-copy">
+        <span class="eyebrow">NEXT UP</span>
+        <h2 id="weekend-title">Next week starts Monday.</h2>
+        <p>New challenges are on the way. Your latest weekly score stays below so you can see where you finished.</p>
+        <div class="feature-meta">
+          <span>{{ next_week_start.strftime('%B %d') }}</span>
+          <span>{{ stats.weekly_points }} / 400 pts this week</span>
+        </div>
+        <a class="primary-button compact feature-cta" href="#leaderboard"><span>See weekly results</span><span>↓</span></a>
+      </div>
+      <div class="feature-visual weekend-visual" aria-hidden="true">
+        <div class="feature-orbit"></div>
+        <div class="feature-glyph">M</div>
+        <span>MONDAY</span>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="flow-section week-flow" id="week">
+      <div class="flow-heading">
+        <div><span class="eyebrow">YOUR WEEK</span><h2>Four days. One run.</h2></div>
+        <span class="progress-pill">{{ stats.games_completed }} / 4 COMPLETE</span>
+      </div>
+
+      <div class="journey-track" aria-label="CREW weekly game progress">
+        {% for game in games %}
+        <a class="journey-card {{ game.status }} game-tone-{{ game.key }}" href="{{ game.url }}">
+          <div class="journey-topline">
+            <span>{{ game.day|upper }}</span>
+            <span>{{ game.journey_label }}</span>
+          </div>
+          <div class="journey-node" aria-hidden="true">{{ game.glyph }}</div>
+          <div class="journey-copy">
+            {% if game.theme_label %}<span class="journey-theme-label">{{ game.theme_label }}</span>{% endif %}
+            <h3>{{ game.title }}</h3>
+            <p>{{ game.description }}</p>
+          </div>
+          <div class="journey-action">
+            {% if game.completed %}<strong>{{ game.score }} pts</strong>{% elif game.status == 'live' %}<strong>Play now</strong>{% elif game.status == 'available' %}<strong>Catch up</strong>{% else %}<strong>{{ game.date.strftime('%b %d') }}</strong>{% endif %}
+            <span>→</span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="flow-section performance-section" id="performance">
+      <div class="flow-heading">
+        <div><span class="eyebrow">YOUR PERFORMANCE</span><h2>This week at a glance.</h2></div>
+      </div>
+      <article class="glass-card performance-card">
+        <div class="performance-progress-copy">
+          <div><span>WEEKLY SCORE</span><strong>{{ stats.weekly_points }}<small>/400</small></strong></div>
+          <span>{{ stats.progress_percent }}%</span>
+        </div>
+        <div class="performance-meter" aria-label="{{ stats.progress_percent }} percent of weekly points earned"><i style="width: {{ stats.progress_percent }}%"></i></div>
+        <div class="performance-stats">
+          <div><span class="performance-icon">◎</span><strong>{{ stats.weekly_points }}</strong><small>POINTS</small></div>
+          <div><span class="performance-icon">🔥</span><strong>{{ stats.streak }}</strong><small>GAME STREAK</small></div>
+          <div><span class="performance-icon">✦</span><strong>{% if stats.rank %}#{{ stats.rank }}{% else %}—{% endif %}</strong><small>{% if stats.rank %}THIS WEEK{% else %}PLAY TO RANK{% endif %}</small></div>
+          <div><span class="performance-icon">✓</span><strong>{{ stats.games_completed }}/4</strong><small>COMPLETE</small></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="flow-section" id="leaderboard">
+      <div class="flow-heading leaderboard-heading">
+        <div><span class="eyebrow">WEEKLY LEADERBOARD</span><h2>See where the CREW stands.</h2></div>
+        <span class="progress-pill">400 PTS MAX</span>
+      </div>
+      <article class="glass-card flow-leaderboard">
+        {% if leaderboard %}
+        <div class="leaderboard-list compact-leaderboard">
+          {% for player in leaderboard %}
+          <div class="leader-row {% if player.me %}is-me{% endif %}">
+            <span class="rank">{{ "%02d"|format(player.rank) }}</span>
+            <div class="player-avatar">{{ player.avatar }}</div>
+            <div class="player-meta"><strong>{{ player.username }}</strong><span>{% if player.me %}Your CREW profile{% else %}CREW player{% endif %}</span></div>
+            {% if player.me %}<span class="you-pill">YOU</span>{% endif %}
+            <strong class="score">{{ player.points }} <small>PTS</small></strong>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="leaderboard-empty">
+          <span class="empty-icon">✦</span>
+          <div><h3>No scores on the board yet.</h3><p>Complete the first challenge to set the pace.</p></div>
+        </div>
+        {% endif %}
+      </article>
+    </section>
+  </main>
+
+  <footer><span>CREW</span><span>Four days. Four challenges. One weekly run.</span></footer>
+</div>
+{% endblock %}

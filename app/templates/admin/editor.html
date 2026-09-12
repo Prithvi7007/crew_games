@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ definition.title }} · CREW Admin{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+{% block body %}
+<div class="admin-shell">
+  <header class="glass-nav admin-nav">
+    <a class="nav-brand" href="{{ dashboard_url }}"><span class="brand-parent">CREW CONTENT STUDIO</span><span class="crew-mark small">{{ definition.title }}</span></a>
+    <nav class="desktop-nav"><a href="{{ dashboard_url }}">Schedule</a><a class="active" href="#">Editor</a><a href="{{ preview_url }}">Preview</a></nav>
+    <a class="admin-quiet-button" href="{{ dashboard_url }}">Done</a>
+  </header>
+
+  <main class="admin-main admin-editor-main">
+    <section class="admin-editor-heading">
+      <div>
+        <a class="back-link" href="{{ dashboard_url }}">← Back to weekly schedule</a>
+        <span class="eyebrow">{{ game_day.strftime('%A · %B %d, %Y')|upper }}</span>
+        <h1>{{ definition.title }}</h1>
+        <p>Prepare the content players will receive on this date.</p>
+      </div>
+      <div class="admin-editor-state glass-card">
+        <span>STATUS</span>
+        <strong class="admin-status {{ payload.status }}">{{ payload.status|upper }}</strong>
+        {% if locked %}<small>🔒 Locked · {{ attempts }} player{% if attempts != 1 %}s{% endif %} started</small>{% elif payload.status == 'published' %}<small>Live for players</small>{% elif payload.status == 'draft' %}<small>Not visible to players yet</small>{% else %}<small>Using built-in fallback content</small>{% endif %}
+      </div>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}<div class="admin-flash {{ category }}">{{ message }}</div>{% endfor %}
+    {% endwith %}
+
+    {% if locked %}<div class="admin-lock-banner"><strong>Content locked.</strong><span>This challenge has already been opened by a player, so editing is disabled for score consistency.</span></div>{% endif %}
+
+    <form class="admin-editor-form" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <section class="glass-card admin-form-section">
+        <div class="admin-form-heading"><div><span class="eyebrow">OPTIONAL</span><h2>Theme treatment</h2></div><p>Only add an IP/theme when the actual game content is intentionally themed.</p></div>
+        <label class="admin-field wide"><span>Theme / IP label</span><input name="theme_label" maxlength="80" value="{{ payload.theme_label }}" placeholder="Leave blank for standard CREW" {% if locked %}disabled{% endif %}></label>
+      </section>
+
+      {% if definition.key == 'mystery' %}
+      <section class="glass-card admin-form-section">
+        <div class="admin-form-heading"><div><span class="eyebrow">MYSTERY</span><h2>Answer &amp; clues</h2></div><p>Clue one should be hardest. Clue five should make the answer approachable.</p></div>
+        <div class="admin-form-grid two">
+          <label class="admin-field"><span>Answer</span><input name="answer" maxlength="80" value="{{ payload.content.answer }}" required {% if locked %}disabled{% endif %}></label>
+          <label class="admin-field"><span>Accepted answers</span><input name="accepted" value="{{ payload.content.accepted|join(', ') }}" placeholder="Comma-separated variants" {% if locked %}disabled{% endif %}></label>
+        </div>
+        <div class="admin-clue-stack">
+          {% for clue in payload.content.clues %}<label class="admin-field clue-field"><span>Clue {{ loop.index }} <em>{{ [100,80,60,40,20][loop.index0] }} pts</em></span><textarea name="clue_{{ loop.index }}" rows="2" required {% if locked %}disabled{% endif %}>{{ clue }}</textarea></label>{% endfor %}
+        </div>
+      </section>
+
+      {% elif definition.key == 'trivia' %}
+      <section class="glass-card admin-form-section">
+        <div class="admin-form-heading"><div><span class="eyebrow">TRIVIA</span><h2>Ten questions</h2></div><p>Each correct answer is worth 10 points.</p></div>
+        <div class="admin-question-stack">
+          {% for question in payload.content.questions %}
+          {% set q = loop.index %}
+          <article class="admin-question-card">
+            <div class="admin-question-number">{{ "%02d"|format(q) }}</div>
+            <div class="admin-question-fields">
+              <label class="admin-field wide"><span>Question</span><input name="q{{ q }}_prompt" value="{{ question.prompt }}" required {% if locked %}disabled{% endif %}></label>
+              <div class="admin-option-grid">
+                {% for option in question.options %}{% set letter = ['a','b','c','d'][loop.index0] %}<label class="admin-field"><span>{{ letter|upper }}</span><input name="q{{ q }}_{{ letter }}" value="{{ option }}" required {% if locked %}disabled{% endif %}></label>{% endfor %}
+              </div>
+              <label class="admin-field answer-select"><span>Correct answer</span><select name="q{{ q }}_answer" {% if locked %}disabled{% endif %}>{% for i in range(4) %}<option value="{{ i }}" {% if question.answer == i %}selected{% endif %}>{{ ['A','B','C','D'][i] }}</option>{% endfor %}</select></label>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      {% elif definition.key == 'word' %}
+      <section class="glass-card admin-form-section admin-word-editor">
+        <div class="admin-form-heading"><div><span class="eyebrow">WORDLE WEDNESDAY</span><h2>Five-letter answer</h2></div><p>The solution stays server-side during play.</p></div>
+        <label class="admin-field word-answer-field"><span>Solution</span><input name="solution" maxlength="5" value="{{ payload.content.solution }}" pattern="[A-Za-z]{5}" required {% if locked %}disabled{% endif %}></label>
+        <p class="admin-helper">CREW accepts a broad English guess dictionary. A scheduled five-letter answer is always accepted as the solution even if it is not in that dictionary.</p>
+      </section>
+
+      {% elif definition.key == 'tick_tock' %}
+      <section class="glass-card admin-form-section admin-timer-editor">
+        <div class="admin-form-heading"><div><span class="eyebrow">TICK-TOCK</span><h2>Hidden timer target</h2></div><p>Players see the target before the timer starts, then rely on their internal clock.</p></div>
+        <label class="admin-field timer-target-field"><span>Target seconds</span><div class="admin-unit-input"><input type="number" name="target_seconds" min="2" max="30" step="0.01" value="{{ payload.content.target_seconds }}" required {% if locked %}disabled{% endif %}><b>SEC</b></div></label>
+      </section>
+      {% endif %}
+
+      <div class="admin-editor-actions glass-card">
+        <div><strong>{% if payload.status == 'published' %}Published content{% elif payload.status == 'draft' %}Draft saved{% else %}Not scheduled yet{% endif %}</strong><span>Preview uses your last saved version.</span></div>
+        <div class="admin-action-buttons">
+          <a class="admin-card-button" href="{{ preview_url }}">Preview</a>
+          {% if not locked %}
+            <button class="admin-card-button" type="submit" name="action" value="draft">Save draft</button>
+            <button class="admin-card-button primary" type="submit" name="action" value="publish">Publish →</button>
+            {% if payload.status == 'published' %}<button class="admin-card-button danger" type="submit" name="action" value="unpublish">Unpublish</button>{% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  </main>
+</div>
+{% endblock %}
