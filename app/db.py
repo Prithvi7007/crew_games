@@ -133,25 +133,43 @@ def ping_db():
 
 
 def _integrity_issues():
-    db = get_db()
-    tables = set(inspect(_engine()).get_table_names())
-    profile_ids = {int(row["id"]) for row in db.execute("SELECT id FROM profiles").fetchall()} if "profiles" in tables else set()
-    issues = []
-    for table in ("word_attempts", "mystery_attempts", "trivia_attempts", "tick_tock_attempts", "game_completions", "user_stats"):
-        if table not in tables:
-            continue
-        bad = 0
-        for row in db.execute(f"SELECT user_key FROM {table}").fetchall():
-            try:
-                profile_id = _profile_id_from_user_key(row["user_key"])
-            except ValueError:
-                bad += 1
+    # Migration preflights must not use the request-scoped get_db() connection.
+    # Flask keeps that connection in ``g`` until the CLI app context exits, which
+    # means its read transaction can remain open while Alembic starts DDL on a
+    # second connection. PostgreSQL then correctly blocks the ALTER TABLE behind
+    # the preflight transaction. Keep the preflight fully self-contained instead.
+    engine = _engine()
+    with engine.connect() as connection:
+        db = _Connection(connection)
+        tables = set(inspect(connection).get_table_names())
+        profile_ids = (
+            {int(row["id"]) for row in db.execute("SELECT id FROM profiles").fetchall()}
+            if "profiles" in tables
+            else set()
+        )
+        issues = []
+        for table in (
+            "word_attempts",
+            "mystery_attempts",
+            "trivia_attempts",
+            "tick_tock_attempts",
+            "game_completions",
+            "user_stats",
+        ):
+            if table not in tables:
                 continue
-            if profile_id not in profile_ids:
-                bad += 1
-        if bad:
-            issues.append(f"{table}: {bad} row(s) are not linked to an existing profile")
-    return issues
+            bad = 0
+            for row in db.execute(f"SELECT user_key FROM {table}").fetchall():
+                try:
+                    profile_id = _profile_id_from_user_key(row["user_key"])
+                except ValueError:
+                    bad += 1
+                    continue
+                if profile_id not in profile_ids:
+                    bad += 1
+            if bad:
+                issues.append(f"{table}: {bad} row(s) are not linked to an existing profile")
+        return issues
 
 
 def init_app(app):
