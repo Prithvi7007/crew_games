@@ -151,3 +151,19 @@ def test_global_account_menu_exposes_profile_and_sign_out():
     for name in ["home.html", "games.html", "leaderboard.html", "profile.html", "mystery.html", "trivia.html", "tick_tock.html", "word.html"]:
         template = (root / "app" / "templates" / name).read_text(encoding="utf-8")
         assert '{% include "_account_menu.html" %}' in template
+
+def test_db_upgrade_releases_preflight_connection_before_alembic(app, monkeypatch):
+    import app.db as db_module
+    from flask import g
+
+    observed = {}
+
+    def fake_upgrade(_database_url):
+        observed["request_scoped_connection_open"] = "db" in g
+
+    monkeypatch.setattr(db_module, "upgrade_database", fake_upgrade)
+    runner = app.test_cli_runner()
+    result = runner.invoke(args=["db-upgrade"])
+
+    assert result.exit_code == 0, result.output
+    assert observed["request_scoped_connection_open"] is False
