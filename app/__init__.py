@@ -6,6 +6,7 @@ import sys
 import click
 from flask import Flask, g, jsonify, render_template, request
 from dotenv import load_dotenv
+from werkzeug.exceptions import BadHost, SecurityError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
@@ -99,6 +100,14 @@ def create_app():
         click.echo(f"CREW_ADMIN_TOTP_SECRET={secret}")
         click.echo(totp_provisioning_uri(secret))
         click.echo("Store the secret securely. Do not commit it to Git.")
+
+    # Host validation can fail before Flask creates a URL adapter. Error pages that
+    # extend base.html call url_for(), which is unavailable in that state, so keep
+    # host-validation failures deliberately minimal and dependency-free.
+    @app.errorhandler(SecurityError)
+    @app.errorhandler(BadHost)
+    def invalid_host(_error):
+        return "Bad Request", 400, {"Content-Type": "text/plain; charset=utf-8"}
 
     @app.errorhandler(400)
     def bad_request(_error):

@@ -25,6 +25,15 @@ def login(client, username="Tester", password="correct horse battery staple"):
     )
 
 
+def test_untrusted_host_returns_clean_400(app):
+    app.config["TRUSTED_HOSTS"] = ["crew.test"]
+    client = app.test_client()
+    response = client.get("/login", base_url="http://evil.example")
+    assert response.status_code == 400
+    assert response.mimetype == "text/plain"
+    assert response.get_data(as_text=True) == "Bad Request"
+
+
 def test_security_headers_include_csp(client):
     response = client.get("/login")
     csp = response.headers["Content-Security-Policy"]
