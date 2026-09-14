@@ -1,4 +1,4 @@
-# CREW v10 — History, Leaderboards & Profiles
+# CREW v11 — Security & Integrity
 
 CREW is a privacy-first Flask games portal with a Monday–Thursday weekly cadence:
 
@@ -7,52 +7,66 @@ CREW is a privacy-first Flask games portal with a Monday–Thursday weekly caden
 - **Wordle Wednesday** — one shared five-letter puzzle
 - **Tick-Tock Thursday** — stop a hidden timer close to the target
 
-Each live-week game is worth up to 100 points for a 400-point weekly maximum.
+Each live-week game is worth up to 100 points for a 400-point weekly maximum. v11 keeps the v10 leaderboard, game archive and profile experience and hardens the account/content platform underneath them.
 
-## New in v10
+## New in v11
 
-### Functional leaderboard
+### Authentication and account integrity
 
-`/leaderboard` now supports instant filters for:
+- database-backed failure rate limiting shared across Gunicorn workers
+- separate limits for player login, recovery, profile creation, profile password changes and Content Studio login
+- constant-work password/recovery checks reduce account-enumeration timing differences
+- password/passphrase minimum increased to 12 characters by default
+- password changes and account recovery increment a server-side `session_version`, revoking older signed-in sessions
+- successful password changes automatically refresh the current browser into the new session version
+- security-sensitive pages send `Cache-Control: no-store`
+- security audit events store keyed hashes rather than raw usernames/IP addresses
 
-- This Week
-- Last Week
-- This Month
-- All Time
-- All Games
-- Mystery Monday
-- Trivia Tuesday
-- Wordle Wednesday
-- Tick-Tock Thursday
+### Content Studio hardening
 
-The leaderboard includes a top-three podium, full standings, a pinned current-player row, completion counts, and game-specific context such as Mystery clue efficiency, Trivia accuracy, Wordle win/guess averages, and Tick-Tock timing deviation.
+- admin sessions are now cryptographically tied to the current admin password; rotating the password revokes old admin sessions
+- admin sessions expire independently after 4 hours by default
+- database-backed admin login rate limiting
+- optional RFC 6238 TOTP second factor with no additional runtime package
+- stricter plain-text length validation for Mystery/Trivia editor content
 
-### Game archive
+Enable admin TOTP with:
 
-`/games` is now a week-by-week game archive. Players can review completed challenges and play games they missed.
+```bash
+flask --app run.py generate-admin-totp
+```
 
-Historical fairness rule:
+Add the printed secret to `CREW_ADMIN_TOTP_SECRET` in the production environment, add the secret to an authenticator/password manager, then restart CREW.
 
-> A game completed after its competitive week is saved to personal history, but never changes that old week's leaderboard, competitive points, or streak.
+### Browser security
 
-The database migration adds a `competitive` flag to `game_completions` to preserve this distinction. CREW game-day boundaries use `America/New_York` by default so the weekly cadence follows Orlando/Eastern time rather than the VPS UTC clock.
+- nonce-based Content Security Policy for scripts
+- `frame-ancestors 'none'`, `object-src 'none'`, restrictive `form-action`, `connect-src` and `base-uri`
+- Cross-Origin-Opener-Policy and Cross-Origin-Resource-Policy headers
+- stricter Permissions-Policy
+- Mystery, Trivia, Tick-Tock and Leaderboard clients no longer render dynamic content with `innerHTML`
+- production requires explicit `TRUSTED_HOSTS`
 
-### Profile management
+### Security schema
 
-Clicking the player name/avatar opens `/profile`.
+`db-upgrade` adds:
 
-Players can:
+- `profiles.session_version`
+- `security_rate_limits`
+- `security_events`
 
-- change their preset avatar
-- change their password
-- regenerate their recovery code
-- see live vs archive completion totals
+No player email, real name, employee ID, phone number or Microsoft identity is introduced.
 
-The **CREW name remains unique and permanent** after account creation.
+## Existing v10 product features
 
-## Privacy-first profiles
-
-Player accounts require only a CREW name, preset avatar, password, and registration invitation code. CREW does not ask for a real name, work email, employee ID, phone number, department, job title, or Microsoft identity.
+- filtered leaderboard: week/month/all-time + per-game rankings
+- game-specific leaderboard statistics
+- week-by-week historical game archive
+- archive plays that cannot rewrite historical competitive results
+- profile management for avatar/password/recovery code
+- immutable unique CREW names
+- America/New_York game-day boundaries
+- Content Studio Draft → Preview → Publish workflow
 
 ## Local development
 
@@ -79,18 +93,24 @@ pip install -r requirements.txt
 python run.py
 ```
 
-Local development defaults to SQLite.
+Local development defaults to SQLite and auto-upgrades the local schema.
 
-## Content Studio
+## Security test suite
 
-Open `/admin` and use the configured `CREW_ADMIN_PASSWORD`. The editor supports Draft → Preview → Publish for all four games.
+```bash
+pip install -r requirements-dev.txt
+pytest -q
+pip-audit -r requirements.txt
+```
+
+The v11 suite includes rate-limit, CSP, session-revocation, legacy-admin-session and DOM-injection regression checks.
 
 ## Production
 
-CREW is designed for the isolated VPS stack already in use:
+CREW remains designed for the isolated VPS stack:
 
 `Nginx → /run/crew/crew.sock → Gunicorn → Flask → crew_prod PostgreSQL`
 
-The production deployment remains isolated from other apps through its own Linux user, app directory, database/role, systemd service, socket, Nginx host, and secrets file.
+The production deployment stays isolated through its own Linux user, app directory, PostgreSQL role/database, systemd service, Unix socket, Nginx host and secrets file.
 
-For an existing v9 production install, use **`deploy/V10_UPGRADE.md`**.
+For the live v9/v10 install on `cadacrew.fun`, follow **`deploy/V11_UPGRADE.md`** before restarting the service. The database upgrade is backward-compatible with the currently deployed v9 schema.

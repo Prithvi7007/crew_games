@@ -1,0 +1,10 @@
+[Unit]
+Description=Run CREW security cleanup daily
+
+[Timer]
+OnCalendar=*-*-* 04:35:00
+Persistent=true
+RandomizedDelaySec=900
+
+[Install]
+WantedBy=timers.target

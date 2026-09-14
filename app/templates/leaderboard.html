@@ -36,6 +36,6 @@
     </section>
   </main>
 </div>
-<script id="leaderboard-initial" type="application/json">{{ board|tojson }}</script>
+<script nonce="{{ csp_nonce }}" id="leaderboard-initial" type="application/json">{{ board|tojson }}</script>
 {% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/leaderboard.js', v='10') }}"></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/leaderboard.js', v='11') }}"></script>{% endblock %}

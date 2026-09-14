@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     password_hash TEXT NOT NULL,
     avatar TEXT NOT NULL,
     recovery_code_hash TEXT NOT NULL,
+    session_version INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL,
     last_login_at TEXT
 );
@@ -105,6 +106,20 @@ CREATE TABLE IF NOT EXISTS game_content (
     published_at TEXT,
     UNIQUE(game_key, game_date)
 );
+CREATE TABLE IF NOT EXISTS security_rate_limits (
+    limiter_key TEXT PRIMARY KEY,
+    window_started_at INTEGER NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS security_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_type TEXT NOT NULL,
+    subject_hash TEXT NOT NULL DEFAULT '',
+    ip_hash TEXT NOT NULL DEFAULT '',
+    occurred_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}'
+);
+CREATE INDEX IF NOT EXISTS ix_security_events_occurred_at ON security_events (occurred_at);
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version INTEGER PRIMARY KEY,
     applied_at TEXT NOT NULL
@@ -118,6 +133,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     password_hash TEXT NOT NULL,
     avatar TEXT NOT NULL,
     recovery_code_hash TEXT NOT NULL,
+    session_version INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL,
     last_login_at TEXT
 );
@@ -207,6 +223,20 @@ CREATE TABLE IF NOT EXISTS game_content (
     published_at TEXT,
     UNIQUE(game_key, game_date)
 );
+CREATE TABLE IF NOT EXISTS security_rate_limits (
+    limiter_key TEXT PRIMARY KEY,
+    window_started_at BIGINT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS security_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    subject_hash TEXT NOT NULL DEFAULT '',
+    ip_hash TEXT NOT NULL DEFAULT '',
+    occurred_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}'
+);
+CREATE INDEX IF NOT EXISTS ix_security_events_occurred_at ON security_events (occurred_at);
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version INTEGER PRIMARY KEY,
     applied_at TEXT NOT NULL
@@ -313,6 +343,14 @@ def _migrate_game_completion_columns(db):
         db.execute("ALTER TABLE game_completions ADD COLUMN competitive INTEGER NOT NULL DEFAULT 1")
 
 
+def _migrate_profile_security_columns(db):
+    if "profiles" not in set(inspect(_engine()).get_table_names()):
+        return
+    columns = _table_columns(db, "profiles")
+    if "session_version" not in columns:
+        db.execute("ALTER TABLE profiles ADD COLUMN session_version INTEGER NOT NULL DEFAULT 1")
+
+
 def _migrate_legacy_user_stats(db):
     if "user_stats" not in set(inspect(_engine()).get_table_names()):
         return
@@ -393,11 +431,12 @@ def init_db():
     _execute_schema(db, schema)
     _migrate_identity_columns(db)
     _migrate_game_completion_columns(db)
+    _migrate_profile_security_columns(db)
     _migrate_legacy_user_stats(db)
     _recalculate_existing_streaks(db)
     db.execute(
         "INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?) ON CONFLICT (version) DO NOTHING",
-        (2, datetime.utcnow().isoformat(timespec="seconds")),
+        (3, datetime.utcnow().isoformat(timespec="seconds")),
     )
     db.commit()
 
@@ -431,6 +470,13 @@ def init_app(app):
         """Create/upgrade the CREW database schema."""
         init_db()
         click.echo("CREW database schema is up to date.")
+
+    @app.cli.command("security-cleanup")
+    @click.option("--event-days", default=90, type=click.IntRange(7, 3650), show_default=True)
+    def security_cleanup_command(event_days):
+        """Purge expired rate-limit buckets and old pseudonymous security audit events."""
+        purge_security_state(event_age_days=event_days)
+        click.echo("CREW security state cleaned.")
 
     if app.config.get("AUTO_DB_MIGRATE"):
         with app.app_context():
@@ -503,12 +549,13 @@ def update_profile_credentials(profile_id, password_hash, recovery_code_hash):
     db.execute(
         """
         UPDATE profiles
-        SET password_hash = ?, recovery_code_hash = ?
+        SET password_hash = ?, recovery_code_hash = ?, session_version = session_version + 1
         WHERE id = ?
         """,
         (password_hash, recovery_code_hash, profile_id),
     )
     db.commit()
+    return get_profile_by_id(profile_id)
 
 
 def update_profile_avatar(profile_id, avatar):
@@ -520,8 +567,12 @@ def update_profile_avatar(profile_id, avatar):
 
 def update_profile_password(profile_id, password_hash):
     db = get_db()
-    db.execute("UPDATE profiles SET password_hash = ? WHERE id = ?", (password_hash, profile_id))
+    db.execute(
+        "UPDATE profiles SET password_hash = ?, session_version = session_version + 1 WHERE id = ?",
+        (password_hash, profile_id),
+    )
     db.commit()
+    return get_profile_by_id(profile_id)
 
 
 def update_profile_recovery_code(profile_id, recovery_code_hash):
@@ -532,6 +583,82 @@ def update_profile_recovery_code(profile_id, recovery_code_hash):
 
 def profile_user_key(profile_id):
     return f"profile:{int(profile_id)}"
+
+
+# ---------- Security state ----------
+
+def get_rate_limit(limiter_key, window_seconds, now=None):
+    now = int(now or time.time())
+    row = get_db().execute(
+        "SELECT window_started_at, attempts FROM security_rate_limits WHERE limiter_key = ?",
+        (limiter_key,),
+    ).fetchone()
+    if not row or now - int(row["window_started_at"]) >= int(window_seconds):
+        return {"attempts": 0, "limited": False, "retry_after": 0}
+    attempts = int(row["attempts"])
+    retry_after = max(1, int(window_seconds) - (now - int(row["window_started_at"])))
+    return {"attempts": attempts, "limited": False, "retry_after": retry_after}
+
+
+def record_rate_limit_failure(limiter_key, window_seconds, now=None):
+    now = int(now or time.time())
+    cutoff = now - int(window_seconds)
+    db = get_db()
+    # SQLite and PostgreSQL both support this UPSERT form. Keeping the increment
+    # in one statement avoids a cross-worker select/insert race in Gunicorn.
+    db.execute(
+        """
+        INSERT INTO security_rate_limits (limiter_key, window_started_at, attempts)
+        VALUES (?, ?, 1)
+        ON CONFLICT (limiter_key) DO UPDATE SET
+            attempts = CASE
+                WHEN security_rate_limits.window_started_at <= ? THEN 1
+                ELSE security_rate_limits.attempts + 1
+            END,
+            window_started_at = CASE
+                WHEN security_rate_limits.window_started_at <= ? THEN ?
+                ELSE security_rate_limits.window_started_at
+            END
+        """,
+        (limiter_key, now, cutoff, cutoff, now),
+    )
+    db.commit()
+    row = db.execute(
+        "SELECT attempts FROM security_rate_limits WHERE limiter_key = ?",
+        (limiter_key,),
+    ).fetchone()
+    return int(row["attempts"]) if row else 0
+
+
+def clear_rate_limit(limiter_key):
+    db = get_db()
+    db.execute("DELETE FROM security_rate_limits WHERE limiter_key = ?", (limiter_key,))
+    db.commit()
+
+
+def log_security_event(event_type, subject_hash="", ip_hash="", metadata=None):
+    db = get_db()
+    db.execute(
+        "INSERT INTO security_events (event_type, subject_hash, ip_hash, occurred_at, metadata_json) VALUES (?, ?, ?, ?, ?)",
+        (
+            str(event_type)[:80],
+            str(subject_hash)[:128],
+            str(ip_hash)[:128],
+            datetime.utcnow().isoformat(timespec="seconds"),
+            json.dumps(metadata or {}, separators=(",", ":")),
+        ),
+    )
+    db.commit()
+
+
+def purge_security_state(rate_limit_age_seconds=86400, event_age_days=90):
+    db = get_db()
+    now = int(time.time())
+    cutoff = (datetime.utcnow() - timedelta(days=event_age_days)).isoformat(timespec="seconds")
+    db.execute("DELETE FROM security_rate_limits WHERE window_started_at < ?", (now - rate_limit_age_seconds,))
+    db.execute("DELETE FROM security_events WHERE occurred_at < ?", (cutoff,))
+    db.commit()
+
 
 def load_json_list(row, column):
     try:

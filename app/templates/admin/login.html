@@ -30,6 +30,12 @@
         <span>Admin passphrase</span>
         <input type="password" name="password" autocomplete="current-password" required autofocus placeholder="Enter passphrase">
       </label>
+      {% if totp_enabled %}
+      <label class="admin-field">
+        <span>Authenticator code</span>
+        <input type="text" name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required placeholder="6-digit code">
+      </label>
+      {% endif %}
       <button class="primary-button admin-primary" type="submit"><span>Open Content Studio</span><span>→</span></button>
       <a class="admin-text-link" href="{{ url_for('auth.login') }}">← Back to CREW player sign in</a>
     </form>

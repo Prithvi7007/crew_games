@@ -32,7 +32,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (() => {
     const button = document.getElementById('copyRecoveryCode');
     const code = document.getElementById('recoveryCode');

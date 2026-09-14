@@ -112,9 +112,9 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 window.CREW_WORD_STATE = {{ state|tojson }};
 window.CREW_WORD_GUESS_URL = {{ url_for('word.submit_guess', date=state.date)|tojson }};
 </script>
-<script src="{{ url_for('static', filename='js/word-game.js', v='10') }}"></script>
+<script src="{{ url_for('static', filename='js/word-game.js', v='11') }}"></script>
 {% endblock %}

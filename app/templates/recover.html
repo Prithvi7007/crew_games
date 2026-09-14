@@ -41,11 +41,11 @@
                 </label>
                 <label>
                     <span>New password</span>
-                    <input type="password" name="password" autocomplete="new-password" minlength="8" required>
+                    <input type="password" name="password" autocomplete="new-password" minlength="{{ password_min_length }}" required>
                 </label>
                 <label>
                     <span>Confirm new password</span>
-                    <input type="password" name="password_confirm" autocomplete="new-password" minlength="8" required>
+                    <input type="password" name="password_confirm" autocomplete="new-password" minlength="{{ password_min_length }}" required>
                 </label>
                 <button class="primary-button" type="submit"><span>Reset password</span><span>→</span></button>
             </form>

@@ -63,11 +63,11 @@
 
                 <label>
                     <span>Password</span>
-                    <input type="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required>
+                    <input type="password" name="password" placeholder="Use a strong passphrase" autocomplete="new-password" minlength="{{ password_min_length }}" required>
                 </label>
                 <label>
                     <span>Confirm password</span>
-                    <input type="password" name="password_confirm" placeholder="Enter it again" autocomplete="new-password" minlength="8" required>
+                    <input type="password" name="password_confirm" placeholder="Enter it again" autocomplete="new-password" minlength="{{ password_min_length }}" required>
                 </label>
 
                 <button class="primary-button" type="submit"><span>Create profile</span><span aria-hidden="true">→</span></button>

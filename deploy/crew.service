@@ -1,7 +1,7 @@
 [Unit]
 Description=CREW Weekly Games (Gunicorn)
 After=network.target postgresql.service
-Wants=network.target
+Wants=network.target postgresql.service
 
 [Service]
 Type=simple
@@ -28,7 +28,13 @@ ProtectHome=true
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectClock=true
 LockPersonality=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 ReadWritePaths=/run/crew
 

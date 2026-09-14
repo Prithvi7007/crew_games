@@ -1,5 +1,6 @@
 import hmac
 import re
+import time
 from datetime import date, timedelta
 from functools import wraps
 
@@ -25,6 +26,15 @@ from app.schedule import crew_today, GAME_DEFINITIONS, get_game_definition, get_
 from app.tick_tock.game import get_target
 from app.trivia.game import get_quiz
 from app.word.game import get_daily_solution
+from app.security import (
+    admin_session_fingerprint,
+    audit_security_event,
+    clear_rate_limits,
+    enforce_rate_limits,
+    limit_policy,
+    record_rate_limit_failures,
+    verify_totp,
+)
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -33,7 +43,18 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 def admin_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        if not session.get("crew_admin"):
+        fingerprint = session.get("crew_admin")
+        authenticated_at = float(session.get("crew_admin_at", 0) or 0)
+        max_age = current_app.config["ADMIN_SESSION_HOURS"] * 3600
+        valid = (
+            fingerprint
+            and hmac.compare_digest(str(fingerprint), admin_session_fingerprint())
+            and authenticated_at > 0
+            and time.time() - authenticated_at <= max_age
+        )
+        if not valid:
+            session.pop("crew_admin", None)
+            session.pop("crew_admin_at", None)
             return redirect(url_for("admin.login", next=request.path))
         return view(*args, **kwargs)
 
@@ -122,18 +143,24 @@ def _editor_payload(game_key, game_day):
     }
 
 
+def _plain_text(value, max_length):
+    value = str(value or "").replace("\x00", "").strip()
+    value = " ".join(value.split())
+    return value[:max_length]
+
+
 def _split_accepted(raw):
     parts = re.split(r"[,\n]", raw or "")
-    return [part.strip() for part in parts if part.strip()]
+    return [_plain_text(part, 80) for part in parts if part.strip()][:20]
 
 
 def _parse_content_form(game_key):
-    theme_label = request.form.get("theme_label", "").strip()[:80]
+    theme_label = _plain_text(request.form.get("theme_label", ""), 80)
 
     if game_key == "mystery":
-        answer = request.form.get("answer", "").strip()
+        answer = _plain_text(request.form.get("answer", ""), 80)
         accepted = _split_accepted(request.form.get("accepted", ""))
-        clues = [request.form.get(f"clue_{i}", "").strip() for i in range(1, 6)]
+        clues = [_plain_text(request.form.get(f"clue_{i}", ""), 280) for i in range(1, 6)]
         if not answer or len(answer) > 80:
             return None, None, "Enter a mystery answer of 80 characters or fewer."
         if any(not clue for clue in clues):
@@ -147,8 +174,8 @@ def _parse_content_form(game_key):
     if game_key == "trivia":
         questions = []
         for i in range(1, 11):
-            prompt = request.form.get(f"q{i}_prompt", "").strip()
-            options = [request.form.get(f"q{i}_{letter}", "").strip() for letter in "abcd"]
+            prompt = _plain_text(request.form.get(f"q{i}_prompt", ""), 500)
+            options = [_plain_text(request.form.get(f"q{i}_{letter}", ""), 240) for letter in "abcd"]
             answer_raw = request.form.get(f"q{i}_answer", "")
             try:
                 answer = int(answer_raw)
@@ -195,20 +222,39 @@ def _content_summary(game_key, payload):
 
 @admin_bp.route("/login", methods=["GET", "POST"])
 def login():
+    policy = limit_policy(
+        "admin-login",
+        "content-studio",
+        current_app.config["ADMIN_RATE_LIMIT_ATTEMPTS"],
+        current_app.config["ADMIN_RATE_LIMIT_WINDOW"],
+    )
+    totp_enabled = bool(current_app.config.get("CREW_ADMIN_TOTP_SECRET"))
     if request.method == "POST":
+        if blocked := enforce_rate_limits(policy):
+            return blocked
         password = request.form.get("password", "")
-        if hmac.compare_digest(password, current_app.config["CREW_ADMIN_PASSWORD"]):
+        otp = request.form.get("otp", "")
+        password_ok = hmac.compare_digest(password, current_app.config["CREW_ADMIN_PASSWORD"])
+        totp_ok = (not totp_enabled) or verify_totp(current_app.config["CREW_ADMIN_TOTP_SECRET"], otp)
+        if password_ok and totp_ok:
+            clear_rate_limits(policy)
             session.permanent = True
-            session["crew_admin"] = True
+            session["crew_admin"] = admin_session_fingerprint()
+            session["crew_admin_at"] = time.time()
+            audit_security_event("admin_login_success", "content-studio", {"totp": totp_enabled})
             return redirect(url_for("admin.dashboard"))
-        flash("That admin passphrase isn't valid.", "error")
-    return render_template("admin/login.html")
+        record_rate_limit_failures(policy)
+        audit_security_event("admin_login_failure", "content-studio", {"totp": totp_enabled})
+        flash("That admin sign-in isn't valid.", "error")
+    return render_template("admin/login.html", totp_enabled=totp_enabled)
 
 
 @admin_bp.post("/logout")
 @admin_required
 def logout():
+    audit_security_event("admin_logout", "content-studio")
     session.pop("crew_admin", None)
+    session.pop("crew_admin_at", None)
     return redirect(url_for("admin.login"))
 
 
@@ -262,6 +308,7 @@ def edit_game(game_key, game_date):
             action = request.form.get("action", "draft")
             if action == "unpublish":
                 if set_game_content_status(game_key, game_date, "draft"):
+                    audit_security_event("admin_content_unpublished", f"{game_key}:{game_date}")
                     flash("Game returned to draft. Players will use the fallback until you publish again.", "success")
                 else:
                     flash("There isn't scheduled content to unpublish yet.", "error")
@@ -273,6 +320,7 @@ def edit_game(game_key, game_date):
             else:
                 status = "published" if action == "publish" else "draft"
                 save_game_content(game_key, game_date, theme_label, content, status=status)
+                audit_security_event(f"admin_content_{status}", f"{game_key}:{game_date}")
                 if status == "published":
                     flash("Published. This content is now live for that CREW game date.", "success")
                 else:

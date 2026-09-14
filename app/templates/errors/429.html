@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Try again shortly · CREW{% endblock %}
+{% block body_class %}login-page{% endblock %}
+{% block body %}
+<main class="login-shell error-shell">
+  <section class="login-card glass-panel error-card">
+    <span class="mini-crew">CREW</span>
+    <span class="eyebrow">TOO MANY ATTEMPTS</span>
+    <h1>Give it a moment.</h1>
+    <p>We temporarily slowed this action down to protect CREW accounts. Try again shortly.</p>
+    <a class="primary-button" href="{{ request.path }}">Try again</a>
+  </section>
+</main>
+{% endblock %}
