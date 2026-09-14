@@ -6,10 +6,10 @@
   <header class="glass-nav">
     <a class="nav-brand" href="{{ url_for('main.home') }}"><span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span><span class="crew-mark small">CREW</span></a>
     <nav class="desktop-nav"><a href="{{ url_for('main.home') }}">Home</a><a href="{{ url_for('main.games') }}">Games</a><a href="{{ url_for('main.leaderboard') }}">Leaderboard</a></nav>
-    <a class="profile-menu profile-link active-profile" href="{{ url_for('auth.profile') }}"><div class="profile-copy"><strong>{{ user.username }}</strong><span>Your profile</span></div><div class="avatar">{{ user.avatar }}</div></a>
+    {% include "_account_menu.html" %}
   </header>
   <main class="profile-main">
-    <section class="profile-hero"><div class="profile-avatar-xl">{{ user.avatar }}</div><div><span class="eyebrow">YOUR CREW PROFILE</span><h1>{{ user.username }}</h1><p>Your CREW name is permanent. Your look and security settings are yours to manage.</p></div></section>
+    <section class="profile-hero"><div class="profile-avatar-xl">{{ user.avatar }}</div><div class="profile-hero-copy"><span class="eyebrow">YOUR CREW PROFILE</span><h1>{{ user.username }}</h1><p>Your CREW name is permanent. Your look and security settings are yours to manage.</p></div></section>
     {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="profile-flashes">{% for category,message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}{% endwith %}
     <section class="profile-stats-grid">
       <article class="glass-card"><span>GAME STREAK</span><strong>{{ stats.current_streak }}</strong></article>
@@ -23,7 +23,6 @@
       <article class="glass-card profile-setting-card"><span class="eyebrow">PASSWORD</span><h2>Change password.</h2><form class="profile-form" method="post" action="{{ url_for('auth.profile_password') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><label><span>Current password</span><input type="password" name="current_password" required autocomplete="current-password"></label><label><span>New password</span><input type="password" name="new_password" required minlength="{{ password_min_length }}" autocomplete="new-password"></label><label><span>Confirm new password</span><input type="password" name="new_password_confirm" required minlength="{{ password_min_length }}" autocomplete="new-password"></label><button class="primary-button compact" type="submit">Update password →</button></form></article>
       <article class="glass-card profile-setting-card"><span class="eyebrow">RECOVERY</span><h2>Generate a new recovery code.</h2><p>Your current code stops working immediately when you generate a replacement.</p><form class="profile-form" method="post" action="{{ url_for('auth.profile_recovery') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><label><span>Current password</span><input type="password" name="current_password" required autocomplete="current-password"></label><button class="secondary-button" type="submit">Generate new code</button></form></article>
     </section>
-    <form class="profile-signout" method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="secondary-button" type="submit">Sign out of CREW</button></form>
   </main>
 </div>
 {% endblock %}

@@ -1,247 +1,14 @@
 import json
 import os
 import time
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import click
 from flask import current_app, g
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, event, inspect, text
 
+from app.migrations import current_revision, upgrade_database
 from app.schedule import crew_today, get_week_start, previous_scheduled_game_day
-
-
-SQLITE_SCHEMA = """
-CREATE TABLE IF NOT EXISTS profiles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
-    password_hash TEXT NOT NULL,
-    avatar TEXT NOT NULL,
-    recovery_code_hash TEXT NOT NULL,
-    session_version INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL,
-    last_login_at TEXT
-);
-CREATE TABLE IF NOT EXISTS word_games (
-    game_date TEXT PRIMARY KEY,
-    solution TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS word_attempts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    guesses_json TEXT NOT NULL DEFAULT '[]',
-    completed INTEGER NOT NULL DEFAULT 0,
-    won INTEGER NOT NULL DEFAULT 0,
-    score INTEGER NOT NULL DEFAULT 0,
-    completed_at TEXT,
-    UNIQUE(user_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS mystery_attempts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    revealed_count INTEGER NOT NULL DEFAULT 1,
-    guesses_json TEXT NOT NULL DEFAULT '[]',
-    completed INTEGER NOT NULL DEFAULT 0,
-    won INTEGER NOT NULL DEFAULT 0,
-    score INTEGER NOT NULL DEFAULT 0,
-    completed_at TEXT,
-    UNIQUE(user_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS trivia_attempts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    answers_json TEXT NOT NULL DEFAULT '[]',
-    completed INTEGER NOT NULL DEFAULT 0,
-    score INTEGER NOT NULL DEFAULT 0,
-    completed_at TEXT,
-    UNIQUE(user_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS tick_tock_attempts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    target_seconds REAL NOT NULL,
-    started_at REAL,
-    stopped_at REAL,
-    elapsed_seconds REAL,
-    difference_seconds REAL,
-    completed INTEGER NOT NULL DEFAULT 0,
-    score INTEGER NOT NULL DEFAULT 0,
-    completed_at TEXT,
-    UNIQUE(user_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS game_completions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_key TEXT NOT NULL,
-    game_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    score INTEGER NOT NULL DEFAULT 0,
-    won INTEGER NOT NULL DEFAULT 1,
-    completed_at TEXT NOT NULL,
-    competitive INTEGER NOT NULL DEFAULT 1,
-    UNIQUE(user_key, game_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS user_stats (
-    user_key TEXT PRIMARY KEY,
-    current_streak INTEGER NOT NULL DEFAULT 0,
-    longest_streak INTEGER NOT NULL DEFAULT 0,
-    total_word_points INTEGER NOT NULL DEFAULT 0,
-    word_games_completed INTEGER NOT NULL DEFAULT 0,
-    word_games_won INTEGER NOT NULL DEFAULT 0,
-    last_completed_date TEXT,
-    total_points INTEGER NOT NULL DEFAULT 0,
-    games_completed INTEGER NOT NULL DEFAULT 0
-);
-CREATE TABLE IF NOT EXISTS game_content (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    game_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'draft',
-    theme_label TEXT NOT NULL DEFAULT '',
-    content_json TEXT NOT NULL DEFAULT '{}',
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL,
-    published_at TEXT,
-    UNIQUE(game_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS security_rate_limits (
-    limiter_key TEXT PRIMARY KEY,
-    window_started_at INTEGER NOT NULL,
-    attempts INTEGER NOT NULL DEFAULT 0
-);
-CREATE TABLE IF NOT EXISTS security_events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    event_type TEXT NOT NULL,
-    subject_hash TEXT NOT NULL DEFAULT '',
-    ip_hash TEXT NOT NULL DEFAULT '',
-    occurred_at TEXT NOT NULL,
-    metadata_json TEXT NOT NULL DEFAULT '{}'
-);
-CREATE INDEX IF NOT EXISTS ix_security_events_occurred_at ON security_events (occurred_at);
-CREATE TABLE IF NOT EXISTS schema_migrations (
-    version INTEGER PRIMARY KEY,
-    applied_at TEXT NOT NULL
-);
-"""
-
-POSTGRES_SCHEMA = """
-CREATE TABLE IF NOT EXISTS profiles (
-    id BIGSERIAL PRIMARY KEY,
-    username TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
-    avatar TEXT NOT NULL,
-    recovery_code_hash TEXT NOT NULL,
-    session_version INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL,
-    last_login_at TEXT
-);
-CREATE UNIQUE INDEX IF NOT EXISTS ux_profiles_username_lower ON profiles (LOWER(username));
-CREATE TABLE IF NOT EXISTS word_games (
-    game_date TEXT PRIMARY KEY,
-    solution TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS word_attempts (
-    id BIGSERIAL PRIMARY KEY,
-    user_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    guesses_json TEXT NOT NULL DEFAULT '[]',
-    completed INTEGER NOT NULL DEFAULT 0,
-    won INTEGER NOT NULL DEFAULT 0,
-    score INTEGER NOT NULL DEFAULT 0,
-    completed_at TEXT,
-    UNIQUE(user_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS mystery_attempts (
-    id BIGSERIAL PRIMARY KEY,
-    user_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    revealed_count INTEGER NOT NULL DEFAULT 1,
-    guesses_json TEXT NOT NULL DEFAULT '[]',
-    completed INTEGER NOT NULL DEFAULT 0,
-    won INTEGER NOT NULL DEFAULT 0,
-    score INTEGER NOT NULL DEFAULT 0,
-    completed_at TEXT,
-    UNIQUE(user_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS trivia_attempts (
-    id BIGSERIAL PRIMARY KEY,
-    user_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    answers_json TEXT NOT NULL DEFAULT '[]',
-    completed INTEGER NOT NULL DEFAULT 0,
-    score INTEGER NOT NULL DEFAULT 0,
-    completed_at TEXT,
-    UNIQUE(user_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS tick_tock_attempts (
-    id BIGSERIAL PRIMARY KEY,
-    user_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    target_seconds DOUBLE PRECISION NOT NULL,
-    started_at DOUBLE PRECISION,
-    stopped_at DOUBLE PRECISION,
-    elapsed_seconds DOUBLE PRECISION,
-    difference_seconds DOUBLE PRECISION,
-    completed INTEGER NOT NULL DEFAULT 0,
-    score INTEGER NOT NULL DEFAULT 0,
-    completed_at TEXT,
-    UNIQUE(user_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS game_completions (
-    id BIGSERIAL PRIMARY KEY,
-    user_key TEXT NOT NULL,
-    game_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    score INTEGER NOT NULL DEFAULT 0,
-    won INTEGER NOT NULL DEFAULT 1,
-    completed_at TEXT NOT NULL,
-    competitive INTEGER NOT NULL DEFAULT 1,
-    UNIQUE(user_key, game_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS user_stats (
-    user_key TEXT PRIMARY KEY,
-    current_streak INTEGER NOT NULL DEFAULT 0,
-    longest_streak INTEGER NOT NULL DEFAULT 0,
-    total_word_points INTEGER NOT NULL DEFAULT 0,
-    word_games_completed INTEGER NOT NULL DEFAULT 0,
-    word_games_won INTEGER NOT NULL DEFAULT 0,
-    last_completed_date TEXT,
-    total_points INTEGER NOT NULL DEFAULT 0,
-    games_completed INTEGER NOT NULL DEFAULT 0
-);
-CREATE TABLE IF NOT EXISTS game_content (
-    id BIGSERIAL PRIMARY KEY,
-    game_key TEXT NOT NULL,
-    game_date TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'draft',
-    theme_label TEXT NOT NULL DEFAULT '',
-    content_json TEXT NOT NULL DEFAULT '{}',
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL,
-    published_at TEXT,
-    UNIQUE(game_key, game_date)
-);
-CREATE TABLE IF NOT EXISTS security_rate_limits (
-    limiter_key TEXT PRIMARY KEY,
-    window_started_at BIGINT NOT NULL,
-    attempts INTEGER NOT NULL DEFAULT 0
-);
-CREATE TABLE IF NOT EXISTS security_events (
-    id BIGSERIAL PRIMARY KEY,
-    event_type TEXT NOT NULL,
-    subject_hash TEXT NOT NULL DEFAULT '',
-    ip_hash TEXT NOT NULL DEFAULT '',
-    occurred_at TEXT NOT NULL,
-    metadata_json TEXT NOT NULL DEFAULT '{}'
-);
-CREATE INDEX IF NOT EXISTS ix_security_events_occurred_at ON security_events (occurred_at);
-CREATE TABLE IF NOT EXISTS schema_migrations (
-    version INTEGER PRIMARY KEY,
-    applied_at TEXT NOT NULL
-);
-"""
 
 
 class _Result:
@@ -249,8 +16,7 @@ class _Result:
         self._result = result
 
     def fetchone(self):
-        row = self._result.mappings().fetchone()
-        return row
+        return self._result.mappings().fetchone()
 
     def fetchall(self):
         return self._result.mappings().fetchall()
@@ -310,64 +76,29 @@ def close_db(_error=None):
         db.close()
 
 
-def _table_columns(_db, table):
-    return {column["name"] for column in inspect(_engine()).get_columns(table)}
+def utc_now():
+    return datetime.now(timezone.utc)
 
 
-IDENTITY_TABLES = (
-    "word_attempts",
-    "mystery_attempts",
-    "trivia_attempts",
-    "tick_tock_attempts",
-    "game_completions",
-    "user_stats",
-)
+def _db_timestamp(value=None):
+    """Canonical UTC timestamp text, generated from timezone-aware datetime objects."""
+    value = (value or utc_now()).astimezone(timezone.utc)
+    # Keep the v11 wire/storage format during the v12 expand phase so code rollback
+    # remains safe. A future contract migration can move storage to TIMESTAMPTZ.
+    return value.replace(tzinfo=None).isoformat(timespec="seconds")
 
 
-def _migrate_identity_columns(db):
-    inspector = inspect(_engine())
-    tables = set(inspector.get_table_names())
-    for table in IDENTITY_TABLES:
-        if table not in tables:
-            continue
-        columns = _table_columns(db, table)
-        if "user_email" in columns and "user_key" not in columns:
-            db.execute(f"ALTER TABLE {table} RENAME COLUMN user_email TO user_key")
-
-
-def _migrate_game_completion_columns(db):
-    if "game_completions" not in set(inspect(_engine()).get_table_names()):
-        return
-    columns = _table_columns(db, "game_completions")
-    if "competitive" not in columns:
-        db.execute("ALTER TABLE game_completions ADD COLUMN competitive INTEGER NOT NULL DEFAULT 1")
-
-
-def _migrate_profile_security_columns(db):
-    if "profiles" not in set(inspect(_engine()).get_table_names()):
-        return
-    columns = _table_columns(db, "profiles")
-    if "session_version" not in columns:
-        db.execute("ALTER TABLE profiles ADD COLUMN session_version INTEGER NOT NULL DEFAULT 1")
-
-
-def _migrate_legacy_user_stats(db):
-    if "user_stats" not in set(inspect(_engine()).get_table_names()):
-        return
-    columns = _table_columns(db, "user_stats")
-    if "total_points" not in columns:
-        db.execute("ALTER TABLE user_stats ADD COLUMN total_points INTEGER NOT NULL DEFAULT 0")
-    if "games_completed" not in columns:
-        db.execute("ALTER TABLE user_stats ADD COLUMN games_completed INTEGER NOT NULL DEFAULT 0")
-    db.execute(
-        """
-        UPDATE user_stats
-        SET total_points = CASE WHEN total_points = 0 THEN total_word_points ELSE total_points END,
-            games_completed = CASE WHEN games_completed = 0 THEN word_games_completed ELSE games_completed END
-        """
-    )
-
-
+def _profile_id_from_user_key(user_key):
+    value = str(user_key or "")
+    if not value.startswith("profile:"):
+        raise ValueError("CREW data is not linked to a profile")
+    try:
+        profile_id = int(value.split(":", 1)[1])
+    except (TypeError, ValueError) as exc:
+        raise ValueError("CREW profile key is invalid") from exc
+    if profile_id < 1:
+        raise ValueError("CREW profile key is invalid")
+    return profile_id
 
 
 def _calculate_streaks(completion_days):
@@ -396,54 +127,31 @@ def _calculate_streaks(completion_days):
     return current, longest, days[-1].isoformat()
 
 
-def _recalculate_existing_streaks(db):
-    if "game_completions" not in set(inspect(_engine()).get_table_names()):
-        return
-    users = db.execute("SELECT user_key FROM user_stats").fetchall()
-    for user in users:
-        rows = db.execute(
-            "SELECT DISTINCT game_date FROM game_completions WHERE user_key = ? AND competitive = 1 ORDER BY game_date ASC",
-            (user["user_key"],),
-        ).fetchall()
-        days = []
-        for row in rows:
-            try:
-                days.append(date.fromisoformat(row["game_date"]))
-            except (TypeError, ValueError):
-                continue
-        current_streak, longest_streak, last_date = _calculate_streaks(days)
-        db.execute(
-            "UPDATE user_stats SET current_streak = ?, longest_streak = ?, last_completed_date = ? WHERE user_key = ?",
-            (current_streak, longest_streak, last_date, user["user_key"]),
-        )
-
-
-def _execute_schema(db, schema):
-    for statement in schema.split(";"):
-        statement = statement.strip()
-        if statement:
-            db.execute(statement)
-
-
-def init_db():
-    db = get_db()
-    schema = POSTGRES_SCHEMA if _engine().dialect.name == "postgresql" else SQLITE_SCHEMA
-    _execute_schema(db, schema)
-    _migrate_identity_columns(db)
-    _migrate_game_completion_columns(db)
-    _migrate_profile_security_columns(db)
-    _migrate_legacy_user_stats(db)
-    _recalculate_existing_streaks(db)
-    db.execute(
-        "INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?) ON CONFLICT (version) DO NOTHING",
-        (3, datetime.utcnow().isoformat(timespec="seconds")),
-    )
-    db.commit()
-
-
 def ping_db():
     row = get_db().execute("SELECT 1 AS ok").fetchone()
     return bool(row and row["ok"] == 1)
+
+
+def _integrity_issues():
+    db = get_db()
+    tables = set(inspect(_engine()).get_table_names())
+    profile_ids = {int(row["id"]) for row in db.execute("SELECT id FROM profiles").fetchall()} if "profiles" in tables else set()
+    issues = []
+    for table in ("word_attempts", "mystery_attempts", "trivia_attempts", "tick_tock_attempts", "game_completions", "user_stats"):
+        if table not in tables:
+            continue
+        bad = 0
+        for row in db.execute(f"SELECT user_key FROM {table}").fetchall():
+            try:
+                profile_id = _profile_id_from_user_key(row["user_key"])
+            except ValueError:
+                bad += 1
+                continue
+            if profile_id not in profile_ids:
+                bad += 1
+        if bad:
+            issues.append(f"{table}: {bad} row(s) are not linked to an existing profile")
+    return issues
 
 
 def init_app(app):
@@ -455,21 +163,47 @@ def init_app(app):
             pool_pre_ping=True,
             connect_args={"check_same_thread": False},
         )
+
+        @event.listens_for(engine, "connect")
+        def _sqlite_pragmas(dbapi_connection, _connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.execute("PRAGMA busy_timeout=5000")
+            cursor.close()
     else:
         engine = create_engine(
             app.config["DATABASE_URL"],
             future=True,
             pool_pre_ping=True,
             pool_recycle=1800,
+            pool_size=app.config.get("DB_POOL_SIZE", 5),
+            max_overflow=app.config.get("DB_MAX_OVERFLOW", 5),
+            pool_timeout=app.config.get("DB_POOL_TIMEOUT", 10),
         )
     app.extensions["crew_db_engine"] = engine
     app.teardown_appcontext(close_db)
 
     @app.cli.command("db-upgrade")
     def db_upgrade_command():
-        """Create/upgrade the CREW database schema."""
-        init_db()
-        click.echo("CREW database schema is up to date.")
+        """Upgrade the CREW database to the latest Alembic revision."""
+        issues = _integrity_issues() if inspect(engine).has_table("profiles") else []
+        if issues:
+            raise click.ClickException("Database integrity preflight failed: " + "; ".join(issues))
+        upgrade_database(app.config["DATABASE_URL"])
+        click.echo(f"CREW database upgraded to {current_revision(app.config['DATABASE_URL'])}.")
+
+    @app.cli.command("db-revision")
+    def db_revision_command():
+        """Print the active Alembic revision."""
+        click.echo(current_revision(app.config["DATABASE_URL"]) or "unversioned")
+
+    @app.cli.command("db-integrity-check")
+    def db_integrity_check_command():
+        """Validate legacy profile links before a platform migration."""
+        issues = _integrity_issues()
+        if issues:
+            raise click.ClickException("; ".join(issues))
+        click.echo("CREW database integrity preflight passed.")
 
     @app.cli.command("security-cleanup")
     @click.option("--event-days", default=90, type=click.IntRange(7, 3650), show_default=True)
@@ -479,14 +213,14 @@ def init_app(app):
         click.echo("CREW security state cleaned.")
 
     if app.config.get("AUTO_DB_MIGRATE"):
-        with app.app_context():
-            init_db()
+        upgrade_database(app.config["DATABASE_URL"])
 
 
 def ensure_user_stats(user_key):
     db = get_db()
+    profile_id = _profile_id_from_user_key(user_key)
     row = db.execute(
-        "SELECT * FROM user_stats WHERE user_key = ?", (user_key,)
+        "SELECT * FROM user_stats WHERE profile_id = ?", (profile_id,)
     ).fetchone()
     if row:
         return row
@@ -494,16 +228,17 @@ def ensure_user_stats(user_key):
     db.execute(
         """
         INSERT INTO user_stats (
-            user_key, current_streak, longest_streak, total_word_points,
+            user_key, profile_id, current_streak, longest_streak, total_word_points,
             word_games_completed, word_games_won, last_completed_date,
             total_points, games_completed
-        ) VALUES (?, 0, 0, 0, 0, 0, NULL, 0, 0)
+        ) VALUES (?, ?, 0, 0, 0, 0, 0, NULL, 0, 0)
+        ON CONFLICT (profile_id) DO NOTHING
         """,
-        (user_key,),
+        (user_key, profile_id),
     )
     db.commit()
     return db.execute(
-        "SELECT * FROM user_stats WHERE user_key = ?", (user_key,)
+        "SELECT * FROM user_stats WHERE profile_id = ?", (profile_id,)
     ).fetchone()
 
 
@@ -511,7 +246,7 @@ def ensure_user_stats(user_key):
 
 def create_profile(username, password_hash, avatar, recovery_code_hash):
     db = get_db()
-    created_at = datetime.utcnow().isoformat(timespec="seconds")
+    created_at = _db_timestamp()
     db.execute(
         """
         INSERT INTO profiles (username, password_hash, avatar, recovery_code_hash, created_at)
@@ -539,7 +274,7 @@ def touch_profile_login(profile_id):
     db = get_db()
     db.execute(
         "UPDATE profiles SET last_login_at = ? WHERE id = ?",
-        (datetime.utcnow().isoformat(timespec="seconds"), profile_id),
+        (_db_timestamp(), profile_id),
     )
     db.commit()
 
@@ -644,7 +379,7 @@ def log_security_event(event_type, subject_hash="", ip_hash="", metadata=None):
             str(event_type)[:80],
             str(subject_hash)[:128],
             str(ip_hash)[:128],
-            datetime.utcnow().isoformat(timespec="seconds"),
+            _db_timestamp(),
             json.dumps(metadata or {}, separators=(",", ":")),
         ),
     )
@@ -654,7 +389,7 @@ def log_security_event(event_type, subject_hash="", ip_hash="", metadata=None):
 def purge_security_state(rate_limit_age_seconds=86400, event_age_days=90):
     db = get_db()
     now = int(time.time())
-    cutoff = (datetime.utcnow() - timedelta(days=event_age_days)).isoformat(timespec="seconds")
+    cutoff = _db_timestamp(utc_now() - timedelta(days=event_age_days))
     db.execute("DELETE FROM security_rate_limits WHERE window_started_at < ?", (now - rate_limit_age_seconds,))
     db.execute("DELETE FROM security_events WHERE occurred_at < ?", (cutoff,))
     db.commit()
@@ -672,23 +407,22 @@ def load_json_list(row, column):
 
 def get_or_create_word_attempt(user_key, game_date):
     db = get_db()
+    profile_id = _profile_id_from_user_key(user_key)
     row = db.execute(
-        "SELECT * FROM word_attempts WHERE user_key = ? AND game_date = ?",
-        (user_key, game_date),
+        "SELECT * FROM word_attempts WHERE profile_id = ? AND game_date = ?",
+        (profile_id, game_date),
     ).fetchone()
     if row:
         return row
-
     db.execute(
-        "INSERT INTO word_attempts (user_key, game_date) VALUES (?, ?)",
-        (user_key, game_date),
+        "INSERT INTO word_attempts (user_key, profile_id, game_date) VALUES (?, ?, ?) ON CONFLICT (profile_id, game_date) DO NOTHING",
+        (user_key, profile_id, game_date),
     )
     db.commit()
     return db.execute(
-        "SELECT * FROM word_attempts WHERE user_key = ? AND game_date = ?",
-        (user_key, game_date),
+        "SELECT * FROM word_attempts WHERE profile_id = ? AND game_date = ?",
+        (profile_id, game_date),
     ).fetchone()
-
 
 def load_guesses(attempt_row):
     return load_json_list(attempt_row, "guesses_json")
@@ -696,167 +430,160 @@ def load_guesses(attempt_row):
 
 def save_word_attempt(user_key, game_date, guesses, completed, won, score):
     db = get_db()
-    completed_at = datetime.utcnow().isoformat(timespec="seconds") if completed else None
+    profile_id = _profile_id_from_user_key(user_key)
+    completed_at = _db_timestamp() if completed else None
     db.execute(
         """
         UPDATE word_attempts
         SET guesses_json = ?, completed = ?, won = ?, score = ?, completed_at = ?
-        WHERE user_key = ? AND game_date = ?
+        WHERE profile_id = ? AND game_date = ?
         """,
-        (
-            json.dumps(guesses), int(completed), int(won), score, completed_at,
-            user_key, game_date,
-        ),
+        (json.dumps(guesses), int(completed), int(won), score, completed_at, profile_id, game_date),
     )
     db.commit()
-
 
 # ---------- Mystery ----------
 
 def get_or_create_mystery_attempt(user_key, game_date):
     db = get_db()
+    profile_id = _profile_id_from_user_key(user_key)
     row = db.execute(
-        "SELECT * FROM mystery_attempts WHERE user_key = ? AND game_date = ?",
-        (user_key, game_date),
+        "SELECT * FROM mystery_attempts WHERE profile_id = ? AND game_date = ?",
+        (profile_id, game_date),
     ).fetchone()
     if row:
         return row
     db.execute(
-        "INSERT INTO mystery_attempts (user_key, game_date) VALUES (?, ?)",
-        (user_key, game_date),
+        "INSERT INTO mystery_attempts (user_key, profile_id, game_date) VALUES (?, ?, ?) ON CONFLICT (profile_id, game_date) DO NOTHING",
+        (user_key, profile_id, game_date),
     )
     db.commit()
     return db.execute(
-        "SELECT * FROM mystery_attempts WHERE user_key = ? AND game_date = ?",
-        (user_key, game_date),
+        "SELECT * FROM mystery_attempts WHERE profile_id = ? AND game_date = ?",
+        (profile_id, game_date),
     ).fetchone()
-
 
 def save_mystery_attempt(user_key, game_date, revealed_count, guesses, completed, won, score):
     db = get_db()
-    completed_at = datetime.utcnow().isoformat(timespec="seconds") if completed else None
+    profile_id = _profile_id_from_user_key(user_key)
+    completed_at = _db_timestamp() if completed else None
     db.execute(
         """
         UPDATE mystery_attempts
         SET revealed_count = ?, guesses_json = ?, completed = ?, won = ?, score = ?, completed_at = ?
-        WHERE user_key = ? AND game_date = ?
+        WHERE profile_id = ? AND game_date = ?
         """,
-        (
-            revealed_count, json.dumps(guesses), int(completed), int(won), score,
-            completed_at, user_key, game_date,
-        ),
+        (revealed_count, json.dumps(guesses), int(completed), int(won), score, completed_at, profile_id, game_date),
     )
     db.commit()
-
 
 # ---------- Trivia ----------
 
 def get_or_create_trivia_attempt(user_key, game_date):
     db = get_db()
+    profile_id = _profile_id_from_user_key(user_key)
     row = db.execute(
-        "SELECT * FROM trivia_attempts WHERE user_key = ? AND game_date = ?",
-        (user_key, game_date),
+        "SELECT * FROM trivia_attempts WHERE profile_id = ? AND game_date = ?",
+        (profile_id, game_date),
     ).fetchone()
     if row:
         return row
     db.execute(
-        "INSERT INTO trivia_attempts (user_key, game_date) VALUES (?, ?)",
-        (user_key, game_date),
+        "INSERT INTO trivia_attempts (user_key, profile_id, game_date) VALUES (?, ?, ?) ON CONFLICT (profile_id, game_date) DO NOTHING",
+        (user_key, profile_id, game_date),
     )
     db.commit()
     return db.execute(
-        "SELECT * FROM trivia_attempts WHERE user_key = ? AND game_date = ?",
-        (user_key, game_date),
+        "SELECT * FROM trivia_attempts WHERE profile_id = ? AND game_date = ?",
+        (profile_id, game_date),
     ).fetchone()
-
 
 def save_trivia_attempt(user_key, game_date, answers, completed, score):
     db = get_db()
-    completed_at = datetime.utcnow().isoformat(timespec="seconds") if completed else None
+    profile_id = _profile_id_from_user_key(user_key)
+    completed_at = _db_timestamp() if completed else None
     db.execute(
         """
         UPDATE trivia_attempts
         SET answers_json = ?, completed = ?, score = ?, completed_at = ?
-        WHERE user_key = ? AND game_date = ?
+        WHERE profile_id = ? AND game_date = ?
         """,
-        (json.dumps(answers), int(completed), score, completed_at, user_key, game_date),
+        (json.dumps(answers), int(completed), score, completed_at, profile_id, game_date),
     )
     db.commit()
-
 
 # ---------- Tick-Tock ----------
 
 def get_or_create_tick_tock_attempt(user_key, game_date, target_seconds):
     db = get_db()
+    profile_id = _profile_id_from_user_key(user_key)
     row = db.execute(
-        "SELECT * FROM tick_tock_attempts WHERE user_key = ? AND game_date = ?",
-        (user_key, game_date),
+        "SELECT * FROM tick_tock_attempts WHERE profile_id = ? AND game_date = ?",
+        (profile_id, game_date),
     ).fetchone()
     if row:
         return row
     db.execute(
         """
-        INSERT INTO tick_tock_attempts (user_key, game_date, target_seconds)
-        VALUES (?, ?, ?)
+        INSERT INTO tick_tock_attempts (user_key, profile_id, game_date, target_seconds)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT (profile_id, game_date) DO NOTHING
         """,
-        (user_key, game_date, target_seconds),
+        (user_key, profile_id, game_date, target_seconds),
     )
     db.commit()
     return db.execute(
-        "SELECT * FROM tick_tock_attempts WHERE user_key = ? AND game_date = ?",
-        (user_key, game_date),
+        "SELECT * FROM tick_tock_attempts WHERE profile_id = ? AND game_date = ?",
+        (profile_id, game_date),
     ).fetchone()
-
 
 def start_tick_tock_attempt(user_key, game_date):
     db = get_db()
+    profile_id = _profile_id_from_user_key(user_key)
     started_at = time.time()
     db.execute(
         """
         UPDATE tick_tock_attempts
         SET started_at = ?, stopped_at = NULL, elapsed_seconds = NULL, difference_seconds = NULL
-        WHERE user_key = ? AND game_date = ? AND completed = 0
+        WHERE profile_id = ? AND game_date = ? AND completed = 0
         """,
-        (started_at, user_key, game_date),
+        (started_at, profile_id, game_date),
     )
     db.commit()
     return started_at
 
-
 def finish_tick_tock_attempt(user_key, game_date, elapsed_seconds, difference_seconds, score):
     db = get_db()
+    profile_id = _profile_id_from_user_key(user_key)
     stopped_at = time.time()
-    completed_at = datetime.utcnow().isoformat(timespec="seconds")
+    completed_at = _db_timestamp()
     db.execute(
         """
         UPDATE tick_tock_attempts
         SET stopped_at = ?, elapsed_seconds = ?, difference_seconds = ?,
             completed = 1, score = ?, completed_at = ?
-        WHERE user_key = ? AND game_date = ?
+        WHERE profile_id = ? AND game_date = ?
         """,
-        (
-            stopped_at, elapsed_seconds, difference_seconds, score, completed_at,
-            user_key, game_date,
-        ),
+        (stopped_at, elapsed_seconds, difference_seconds, score, completed_at, profile_id, game_date),
     )
     db.commit()
-
 
 # ---------- Shared progress / scoring ----------
 
 def finalize_game_stats(user_key, game_key, game_date, score, won=True, competitive=True):
     """Record a game completion once. Archive completions never alter competitive totals/streaks."""
     db = get_db()
+    profile_id = _profile_id_from_user_key(user_key)
     stats = ensure_user_stats(user_key)
-    completed_at = datetime.utcnow().isoformat(timespec="seconds")
+    completed_at = _db_timestamp()
     cursor = db.execute(
         """
         INSERT INTO game_completions (
-            user_key, game_key, game_date, score, won, completed_at, competitive
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT (user_key, game_key, game_date) DO NOTHING
+            user_key, profile_id, game_key, game_date, score, won, completed_at, competitive
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (profile_id, game_key, game_date) DO NOTHING
         """,
-        (user_key, game_key, game_date, score, int(won), completed_at, int(bool(competitive))),
+        (user_key, profile_id, game_key, game_date, score, int(won), completed_at, int(bool(competitive))),
     )
 
     if cursor.rowcount == 0:
@@ -867,8 +594,8 @@ def finalize_game_stats(user_key, game_key, game_date, score, won=True, competit
         return ensure_user_stats(user_key)
 
     completion_rows = db.execute(
-        "SELECT DISTINCT game_date FROM game_completions WHERE user_key = ? AND competitive = 1 ORDER BY game_date ASC",
-        (user_key,),
+        "SELECT DISTINCT game_date FROM game_completions WHERE profile_id = ? AND competitive = 1 ORDER BY game_date ASC",
+        (profile_id,),
     ).fetchall()
     completion_days = []
     for item in completion_rows:
@@ -894,47 +621,43 @@ def finalize_game_stats(user_key, game_key, game_date, score, won=True, competit
             word_games_completed = word_games_completed + ?,
             word_games_won = word_games_won + ?,
             last_completed_date = ?
-        WHERE user_key = ?
+        WHERE profile_id = ?
         """,
-        (
-            current_streak, longest_streak, score, word_points, word_completed,
-            word_won, last_completed_date, user_key,
-        ),
+        (current_streak, longest_streak, score, word_points, word_completed, word_won, last_completed_date, profile_id),
     )
     db.commit()
     return ensure_user_stats(user_key)
-
 
 def finalize_word_stats(user_key, game_date, won, score, competitive=True):
     return finalize_game_stats(user_key, "word", game_date, score, won, competitive=competitive)
 
 
 def get_game_completion(user_key, game_key, game_date):
+    profile_id = _profile_id_from_user_key(user_key)
     return get_db().execute(
-        "SELECT * FROM game_completions WHERE user_key = ? AND game_key = ? AND game_date = ?",
-        (user_key, game_key, game_date),
+        "SELECT * FROM game_completions WHERE profile_id = ? AND game_key = ? AND game_date = ?",
+        (profile_id, game_key, game_date),
     ).fetchone()
 
-
 def get_weekly_points(user_key, reference_day=None):
+    profile_id = _profile_id_from_user_key(user_key)
     reference_day = reference_day or crew_today()
     monday = get_week_start(reference_day)
-    thursday = monday.fromordinal(monday.toordinal() + 3)
+    thursday = monday + timedelta(days=3)
     row = get_db().execute(
         """
         SELECT COALESCE(SUM(score), 0) AS points, COUNT(*) AS completed
         FROM game_completions
-        WHERE user_key = ? AND competitive = 1 AND game_date BETWEEN ? AND ?
+        WHERE profile_id = ? AND competitive = 1 AND game_date BETWEEN ? AND ?
         """,
-        (user_key, monday.isoformat(), thursday.isoformat()),
+        (profile_id, monday.isoformat(), thursday.isoformat()),
     ).fetchone()
     return {"points": int(row["points"]), "completed": int(row["completed"])}
-
 
 def get_weekly_leaderboard(reference_day=None, limit=25):
     reference_day = reference_day or crew_today()
     monday = get_week_start(reference_day)
-    thursday = monday.fromordinal(monday.toordinal() + 3)
+    thursday = monday + timedelta(days=3)
     rows = get_db().execute(
         """
         SELECT
@@ -943,7 +666,7 @@ def get_weekly_leaderboard(reference_day=None, limit=25):
             COUNT(gc.id) AS completed
         FROM profiles p
         LEFT JOIN game_completions gc
-            ON gc.user_key = ('profile:' || CAST(p.id AS TEXT))
+            ON gc.profile_id = p.id
             AND gc.competitive = 1
             AND gc.game_date BETWEEN ? AND ?
         GROUP BY p.id, p.username, p.avatar
@@ -959,6 +682,56 @@ def get_weekly_leaderboard(reference_day=None, limit=25):
         }
         for row in rows
     ]
+
+def get_home_leaderboard(reference_day=None, current_profile_id=None):
+    """Return the top three plus the current player's exact weekly rank in one query."""
+    reference_day = reference_day or crew_today()
+    monday = get_week_start(reference_day)
+    thursday = monday + timedelta(days=3)
+    current_profile_id = int(current_profile_id or 0)
+    rows = get_db().execute(
+        """
+        WITH scores AS (
+            SELECT
+                p.id AS profile_id,
+                p.username,
+                p.avatar,
+                COALESCE(SUM(gc.score), 0) AS points,
+                COUNT(gc.id) AS completed
+            FROM profiles p
+            LEFT JOIN game_completions gc
+                ON gc.profile_id = p.id
+                AND gc.competitive = 1
+                AND gc.game_date BETWEEN ? AND ?
+            GROUP BY p.id, p.username, p.avatar
+        ), ranked AS (
+            SELECT
+                profile_id, username, avatar, points, completed,
+                ROW_NUMBER() OVER (
+                    ORDER BY points DESC, completed DESC, LOWER(username) ASC
+                ) AS rank
+            FROM scores
+            WHERE points > 0
+        )
+        SELECT profile_id, username, avatar, points, completed, rank
+        FROM ranked
+        WHERE rank <= 3 OR profile_id = ?
+        ORDER BY rank ASC
+        """,
+        (monday.isoformat(), thursday.isoformat(), current_profile_id),
+    ).fetchall()
+    result = []
+    for row in rows:
+        result.append({
+            "profile_id": int(row["profile_id"]),
+            "username": row["username"],
+            "avatar": row["avatar"],
+            "points": int(row["points"]),
+            "completed": int(row["completed"]),
+            "rank": int(row["rank"]),
+            "me": int(row["profile_id"]) == current_profile_id,
+        })
+    return result
 
 
 def _period_bounds(period, reference_day=None):
@@ -984,145 +757,211 @@ def _date_clause(start, end, prefix="game_date"):
 
 
 def get_leaderboard(period="this_week", game_key="all", reference_day=None, current_profile_id=None):
-    """Return ranked competitive standings plus game-specific performance context."""
+    """Return competitive standings using indexed SQL aggregation for the scoring path."""
     if game_key not in {"all", "mystery", "trivia", "word", "tick_tock"}:
         game_key = "all"
     start, end, period_label = _period_bounds(period, reference_day)
     db = get_db()
-    profiles = db.execute("SELECT id, username, avatar FROM profiles ORDER BY LOWER(username)").fetchall()
+
+    join_conditions = ["gc.profile_id = p.id", "gc.competitive = 1"]
+    params = []
+    if game_key != "all":
+        join_conditions.append("gc.game_key = ?")
+        params.append(game_key)
+    if start and end:
+        join_conditions.append("gc.game_date BETWEEN ? AND ?")
+        params.extend((start.isoformat(), end.isoformat()))
+
+    profiles = db.execute(
+        f"""
+        SELECT p.id, p.username, p.avatar,
+               COALESCE(SUM(gc.score), 0) AS points,
+               COUNT(gc.id) AS completed
+        FROM profiles p
+        LEFT JOIN game_completions gc ON {' AND '.join(join_conditions)}
+        GROUP BY p.id, p.username, p.avatar
+        ORDER BY LOWER(p.username)
+        """,
+        params,
+    ).fetchall()
     players = {
-        f"profile:{int(row['id'])}": {
-            "profile_id": int(row["id"]), "username": row["username"], "avatar": row["avatar"],
-            "points": 0, "completed": 0, "detail": "", "secondary": None,
+        int(row["id"]): {
+            "profile_id": int(row["id"]),
+            "username": row["username"],
+            "avatar": row["avatar"],
+            "points": int(row["points"]),
+            "completed": int(row["completed"]),
+            "detail": "",
+            "secondary": None,
         }
         for row in profiles
     }
 
-    params = []
-    sql = "SELECT user_key, game_key, game_date, score, won FROM game_completions WHERE competitive = 1"
-    if game_key != "all":
-        sql += " AND game_key = ?"
-        params.append(game_key)
-    clause, date_params = _date_clause(start, end)
-    sql += clause
-    params.extend(date_params)
-    for row in db.execute(sql, params).fetchall():
-        player = players.get(row["user_key"])
-        if not player:
-            continue
-        player["points"] += int(row["score"])
-        player["completed"] += 1
-
     if game_key == "mystery":
-        sql = """SELECT a.user_key, a.revealed_count, a.won, a.game_date FROM mystery_attempts a
-                 JOIN game_completions gc ON gc.user_key = a.user_key AND gc.game_date = a.game_date
+        sql = """SELECT a.profile_id, a.revealed_count, a.won, a.game_date
+                 FROM mystery_attempts a
+                 JOIN game_completions gc ON gc.profile_id = a.profile_id AND gc.game_date = a.game_date
                    AND gc.game_key = 'mystery' AND gc.competitive = 1
                  WHERE a.completed = 1"""
-        clause, params = _date_clause(start, end, prefix="a.game_date")
-        for row in db.execute(sql + clause, params).fetchall():
-            p = players.get(row["user_key"]);
-            if not p: continue
-            p.setdefault("clues_total", 0); p.setdefault("solved", 0); p.setdefault("metric_count", 0)
-            p["clues_total"] += int(row["revealed_count"]); p["metric_count"] += 1; p["solved"] += int(row["won"])
-        for p in players.values():
-            if p.get("metric_count"):
-                avg = p["clues_total"] / p["metric_count"]; p["secondary"] = avg
-                p["detail"] = f"{p['solved']} solved · {avg:.1f} avg clues"
+        clause, metric_params = _date_clause(start, end, prefix="a.game_date")
+        for row in db.execute(sql + clause, metric_params).fetchall():
+            player = players.get(int(row["profile_id"]))
+            if not player:
+                continue
+            player.setdefault("clues_total", 0)
+            player.setdefault("solved", 0)
+            player.setdefault("metric_count", 0)
+            player["clues_total"] += int(row["revealed_count"])
+            player["metric_count"] += 1
+            player["solved"] += int(row["won"])
+        for player in players.values():
+            if player.get("metric_count"):
+                avg = player["clues_total"] / player["metric_count"]
+                player["secondary"] = avg
+                player["detail"] = f"{player['solved']} solved · {avg:.1f} avg clues"
+
     elif game_key == "trivia":
-        sql = """SELECT a.user_key, a.answers_json, a.game_date FROM trivia_attempts a
-                 JOIN game_completions gc ON gc.user_key = a.user_key AND gc.game_date = a.game_date
+        sql = """SELECT a.profile_id, a.answers_json, a.game_date
+                 FROM trivia_attempts a
+                 JOIN game_completions gc ON gc.profile_id = a.profile_id AND gc.game_date = a.game_date
                    AND gc.game_key = 'trivia' AND gc.competitive = 1
                  WHERE a.completed = 1"""
-        clause, params = _date_clause(start, end, prefix="a.game_date")
-        for row in db.execute(sql + clause, params).fetchall():
-            p = players.get(row["user_key"]);
-            if not p: continue
-            try: answers = json.loads(row["answers_json"] or "[]")
-            except json.JSONDecodeError: answers = []
-            p.setdefault("correct", 0); p.setdefault("questions", 0)
-            p["correct"] += sum(1 for a in answers if a.get("correct")); p["questions"] += len(answers)
-        for p in players.values():
-            if p.get("questions"):
-                accuracy = (p["correct"] / p["questions"]) * 100; p["secondary"] = -accuracy
-                p["detail"] = f"{accuracy:.0f}% · {p['correct']}/{p['questions']} correct"
+        clause, metric_params = _date_clause(start, end, prefix="a.game_date")
+        for row in db.execute(sql + clause, metric_params).fetchall():
+            player = players.get(int(row["profile_id"]))
+            if not player:
+                continue
+            try:
+                answers = json.loads(row["answers_json"] or "[]")
+            except json.JSONDecodeError:
+                answers = []
+            player.setdefault("correct", 0)
+            player.setdefault("questions", 0)
+            player["correct"] += sum(1 for answer in answers if answer.get("correct"))
+            player["questions"] += len(answers)
+        for player in players.values():
+            if player.get("questions"):
+                accuracy = (player["correct"] / player["questions"]) * 100
+                player["secondary"] = -accuracy
+                player["detail"] = f"{accuracy:.0f}% · {player['correct']}/{player['questions']} correct"
+
     elif game_key == "word":
-        sql = """SELECT a.user_key, a.guesses_json, a.won, a.game_date FROM word_attempts a
-                 JOIN game_completions gc ON gc.user_key = a.user_key AND gc.game_date = a.game_date
+        sql = """SELECT a.profile_id, a.guesses_json, a.won, a.game_date
+                 FROM word_attempts a
+                 JOIN game_completions gc ON gc.profile_id = a.profile_id AND gc.game_date = a.game_date
                    AND gc.game_key = 'word' AND gc.competitive = 1
                  WHERE a.completed = 1"""
-        clause, params = _date_clause(start, end, prefix="a.game_date")
-        for row in db.execute(sql + clause, params).fetchall():
-            p = players.get(row["user_key"]);
-            if not p: continue
-            try: guesses = json.loads(row["guesses_json"] or "[]")
-            except json.JSONDecodeError: guesses = []
-            p.setdefault("guess_total", 0); p.setdefault("wins", 0); p.setdefault("word_count", 0)
-            p["guess_total"] += len(guesses); p["wins"] += int(row["won"]); p["word_count"] += 1
-        for p in players.values():
-            if p.get("word_count"):
-                avg = p["guess_total"] / p["word_count"]; winrate = (p["wins"] / p["word_count"]) * 100; p["secondary"] = avg
-                p["detail"] = f"{winrate:.0f}% win · {avg:.1f} avg guesses"
+        clause, metric_params = _date_clause(start, end, prefix="a.game_date")
+        for row in db.execute(sql + clause, metric_params).fetchall():
+            player = players.get(int(row["profile_id"]))
+            if not player:
+                continue
+            try:
+                guesses = json.loads(row["guesses_json"] or "[]")
+            except json.JSONDecodeError:
+                guesses = []
+            player.setdefault("guess_total", 0)
+            player.setdefault("wins", 0)
+            player.setdefault("word_count", 0)
+            player["guess_total"] += len(guesses)
+            player["wins"] += int(row["won"])
+            player["word_count"] += 1
+        for player in players.values():
+            if player.get("word_count"):
+                avg = player["guess_total"] / player["word_count"]
+                winrate = (player["wins"] / player["word_count"]) * 100
+                player["secondary"] = avg
+                player["detail"] = f"{winrate:.0f}% win · {avg:.1f} avg guesses"
+
     elif game_key == "tick_tock":
-        sql = """SELECT a.user_key, a.target_seconds, a.elapsed_seconds, a.difference_seconds, a.game_date FROM tick_tock_attempts a
-                 JOIN game_completions gc ON gc.user_key = a.user_key AND gc.game_date = a.game_date
+        sql = """SELECT a.profile_id, a.target_seconds, a.elapsed_seconds, a.difference_seconds, a.game_date
+                 FROM tick_tock_attempts a
+                 JOIN game_completions gc ON gc.profile_id = a.profile_id AND gc.game_date = a.game_date
                    AND gc.game_key = 'tick_tock' AND gc.competitive = 1
                  WHERE a.completed = 1"""
-        clause, params = _date_clause(start, end, prefix="a.game_date")
-        for row in db.execute(sql + clause, params).fetchall():
-            p = players.get(row["user_key"]);
-            if not p: continue
-            diff = float(row["difference_seconds"] or 0); signed = float(row["elapsed_seconds"] or 0) - float(row["target_seconds"] or 0)
-            p.setdefault("diff_total", 0.0); p.setdefault("timer_count", 0); p.setdefault("best_abs", None); p.setdefault("best_signed", 0.0)
-            p["diff_total"] += diff; p["timer_count"] += 1
-            if p["best_abs"] is None or diff < p["best_abs"]: p["best_abs"] = diff; p["best_signed"] = signed
-        for p in players.values():
-            if p.get("timer_count"):
-                avg = p["diff_total"] / p["timer_count"]; p["secondary"] = avg
-                sign = "+" if p["best_signed"] >= 0 else "−"
-                p["detail"] = f"{avg:.2f}s avg off · best {sign}{abs(p['best_signed']):.2f}s"
+        clause, metric_params = _date_clause(start, end, prefix="a.game_date")
+        for row in db.execute(sql + clause, metric_params).fetchall():
+            player = players.get(int(row["profile_id"]))
+            if not player:
+                continue
+            diff = float(row["difference_seconds"] or 0)
+            signed = float(row["elapsed_seconds"] or 0) - float(row["target_seconds"] or 0)
+            player.setdefault("diff_total", 0.0)
+            player.setdefault("timer_count", 0)
+            player.setdefault("best_abs", None)
+            player.setdefault("best_signed", 0.0)
+            player["diff_total"] += diff
+            player["timer_count"] += 1
+            if player["best_abs"] is None or diff < player["best_abs"]:
+                player["best_abs"] = diff
+                player["best_signed"] = signed
+        for player in players.values():
+            if player.get("timer_count"):
+                avg = player["diff_total"] / player["timer_count"]
+                player["secondary"] = avg
+                sign = "+" if player["best_signed"] >= 0 else "−"
+                player["detail"] = f"{avg:.2f}s avg off · best {sign}{abs(player['best_signed']):.2f}s"
     else:
-        for p in players.values():
-            if p["completed"]:
-                p["detail"] = f"{p['completed']} game{'s' if p['completed'] != 1 else ''} complete"
+        for player in players.values():
+            if player["completed"]:
+                player["detail"] = f"{player['completed']} game{'s' if player['completed'] != 1 else ''} complete"
 
-    ranked = [p for p in players.values() if p["points"] > 0]
+    ranked = [player for player in players.values() if player["points"] > 0]
     if game_key in {"mystery", "word", "tick_tock"}:
-        ranked.sort(key=lambda p: (-p["points"], p["secondary"] if p["secondary"] is not None else 999999, p["username"].lower()))
+        ranked.sort(key=lambda player: (-player["points"], player["secondary"] if player["secondary"] is not None else 999999, player["username"].lower()))
     elif game_key == "trivia":
-        ranked.sort(key=lambda p: (-p["points"], p["secondary"] if p["secondary"] is not None else 0, p["username"].lower()))
+        ranked.sort(key=lambda player: (-player["points"], player["secondary"] if player["secondary"] is not None else 0, player["username"].lower()))
     else:
-        ranked.sort(key=lambda p: (-p["points"], -p["completed"], p["username"].lower()))
-    for idx, p in enumerate(ranked, 1):
-        p["rank"] = idx; p["me"] = p["profile_id"] == current_profile_id
+        ranked.sort(key=lambda player: (-player["points"], -player["completed"], player["username"].lower()))
+
+    for index, player in enumerate(ranked, 1):
+        player["rank"] = index
+        player["me"] = player["profile_id"] == current_profile_id
         for key in ("clues_total", "solved", "metric_count", "correct", "questions", "guess_total", "wins", "word_count", "diff_total", "timer_count", "best_abs", "best_signed", "secondary"):
-            p.pop(key, None)
-    me = next((p for p in ranked if p["me"]), None)
+            player.pop(key, None)
+
+    me = next((player for player in ranked if player["me"]), None)
     if me is None and current_profile_id is not None:
-        candidate = players.get(f"profile:{int(current_profile_id)}")
+        candidate = players.get(int(current_profile_id))
         if candidate:
             me = {
-                "profile_id": candidate["profile_id"], "username": candidate["username"], "avatar": candidate["avatar"],
-                "points": 0, "completed": 0, "detail": "No score in this view yet", "rank": None, "me": True,
+                "profile_id": candidate["profile_id"],
+                "username": candidate["username"],
+                "avatar": candidate["avatar"],
+                "points": 0,
+                "completed": 0,
+                "detail": "No score in this view yet",
+                "rank": None,
+                "me": True,
             }
     return {
-        "period": period, "period_label": period_label, "game": game_key,
-        "players": ranked, "me": me,
-        "top": ranked[:3], "total_ranked": len(ranked),
+        "period": period,
+        "period_label": period_label,
+        "game": game_key,
+        "players": ranked,
+        "me": me,
+        "top": ranked[:3],
+        "total_ranked": len(ranked),
     }
 
-
 def get_profile_history_summary(user_key):
-    db = get_db()
-    row = db.execute(
-        """SELECT COUNT(*) AS completed, COALESCE(SUM(CASE WHEN competitive = 1 THEN 1 ELSE 0 END), 0) AS live_completed,
+    profile_id = _profile_id_from_user_key(user_key)
+    row = get_db().execute(
+        """SELECT COUNT(*) AS completed,
+                  COALESCE(SUM(CASE WHEN competitive = 1 THEN 1 ELSE 0 END), 0) AS live_completed,
                   COALESCE(SUM(CASE WHEN competitive = 0 THEN 1 ELSE 0 END), 0) AS archive_completed
-           FROM game_completions WHERE user_key = ?""", (user_key,)
+           FROM game_completions WHERE profile_id = ?""",
+        (profile_id,),
     ).fetchone()
-    return {"completed": int(row["completed"]), "live_completed": int(row["live_completed"]), "archive_completed": int(row["archive_completed"])}
-
+    return {
+        "completed": int(row["completed"]),
+        "live_completed": int(row["live_completed"]),
+        "archive_completed": int(row["archive_completed"]),
+    }
 
 def get_game_attempt_summary(user_key, game_key, game_date):
     db = get_db()
+    profile_id = _profile_id_from_user_key(user_key)
     table_by_key = {
         "mystery": "mystery_attempts",
         "trivia": "trivia_attempts",
@@ -1131,8 +970,8 @@ def get_game_attempt_summary(user_key, game_key, game_date):
     }
     table = table_by_key[game_key]
     row = db.execute(
-        f"SELECT * FROM {table} WHERE user_key = ? AND game_date = ?",
-        (user_key, game_date),
+        f"SELECT * FROM {table} WHERE profile_id = ? AND game_date = ?",
+        (profile_id, game_date),
     ).fetchone()
     if not row:
         return {"started": False, "completed": False, "score": 0}
@@ -1145,12 +984,7 @@ def get_game_attempt_summary(user_key, game_key, game_date):
     elif game_key in ("word", "mystery"):
         started = bool(load_json_list(row, "guesses_json")) or (game_key == "mystery" and row["revealed_count"] > 1)
 
-    return {
-        "started": started,
-        "completed": bool(row["completed"]),
-        "score": int(row["score"]),
-    }
-
+    return {"started": started, "completed": bool(row["completed"]), "score": int(row["score"])}
 
 # ---------- Admin-managed game content ----------
 
@@ -1189,7 +1023,7 @@ def save_game_content(game_key, game_date, theme_label, content, status="draft")
     if status not in {"draft", "published"}:
         raise ValueError("Invalid content status")
     db = get_db()
-    now = datetime.utcnow().isoformat(timespec="seconds")
+    now = _db_timestamp()
     existing = db.execute(
         "SELECT id, created_at FROM game_content WHERE game_key = ? AND game_date = ?",
         (game_key, game_date),

@@ -1,0 +1,30 @@
+<div class="account-menu" data-account-menu>
+  <button
+    class="profile-menu account-trigger{% if request.endpoint == 'auth.profile' %} active-profile{% endif %}"
+    type="button"
+    aria-haspopup="menu"
+    aria-expanded="false"
+    aria-controls="crew-account-menu"
+    data-account-trigger
+  >
+    <span class="profile-copy"><strong>{{ user.username }}</strong><span>CREW Player</span></span>
+    <span class="avatar" aria-hidden="true">{{ user.avatar }}</span>
+    <span class="account-chevron" aria-hidden="true">⌄</span>
+  </button>
+  <div class="account-dropdown" id="crew-account-menu" role="menu" data-account-panel hidden>
+    <div class="account-identity">
+      <span class="account-avatar" aria-hidden="true">{{ user.avatar }}</span>
+      <span><strong>{{ user.username }}</strong><small>CREW Player</small></span>
+    </div>
+    <div class="account-divider" aria-hidden="true"></div>
+    <a class="account-action" role="menuitem" href="{{ url_for('auth.profile') }}">
+      <span>View profile</span><span aria-hidden="true">→</span>
+    </a>
+    <form class="account-signout" method="post" action="{{ url_for('auth.logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="account-action account-signout-button" role="menuitem" type="submit">
+        <span>Sign out</span><span aria-hidden="true">↗</span>
+      </button>
+    </form>
+  </div>
+</div>

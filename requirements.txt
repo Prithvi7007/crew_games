@@ -5,3 +5,4 @@ SQLAlchemy==2.0.43
 psycopg[binary]==3.2.10
 gunicorn==23.0.0
 cryptography>=43,<47
+Alembic==1.18.4

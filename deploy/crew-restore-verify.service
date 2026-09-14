@@ -1,13 +1,13 @@
 [Unit]
 OnFailure=crew-ops-failure@%n.service
-Description=Backup CREW PostgreSQL database
-After=postgresql.service
+Description=Verify latest CREW backup by restoring to a scratch database
+After=postgresql.service crew-backup.service
 Requires=postgresql.service
 
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/crew/crew.env
-ExecStart=/bin/bash /opt/crew/deploy/backup-postgres.sh
+ExecStart=/bin/bash /opt/crew/deploy/verify-backup-restore.sh
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true

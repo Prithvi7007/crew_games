@@ -1,0 +1,11 @@
+[Unit]
+Description=Probe CREW readiness every five minutes
+
+[Timer]
+OnBootSec=2m
+OnUnitActiveSec=5m
+AccuracySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

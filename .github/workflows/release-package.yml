@@ -1,0 +1,37 @@
+name: CREW release package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install and test
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pytest -q
+      - name: Build immutable source package
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output="dist/crew-${GITHUB_SHA::12}.zip" HEAD
+          sha256sum dist/*.zip > dist/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crew-release-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30

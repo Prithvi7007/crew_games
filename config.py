@@ -35,6 +35,10 @@ class Config:
     CREW_ADMIN_PASSWORD = os.getenv("CREW_ADMIN_PASSWORD", "CREW-ADMIN-2026")
     CREW_ADMIN_TOTP_SECRET = os.getenv("CREW_ADMIN_TOTP_SECRET", "").strip().replace(" ", "")
     DATABASE_URL = _database_url()
+    APP_VERSION = os.getenv("CREW_APP_VERSION", "12.0.0")
+    DB_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "5"))
+    DB_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "5"))
+    DB_POOL_TIMEOUT = int(os.getenv("DB_POOL_TIMEOUT", "10"))
     AUTO_DB_MIGRATE = _env_flag("AUTO_DB_MIGRATE", "false" if IS_PRODUCTION else "true")
 
     PASSWORD_MIN_LENGTH = int(os.getenv("PASSWORD_MIN_LENGTH", "12"))

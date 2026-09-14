@@ -21,6 +21,7 @@ def app(tmp_path):
     Config.CREW_ADMIN_PASSWORD = "test-admin-password-long-enough"
     Config.CREW_ADMIN_TOTP_SECRET = ""
     Config.DATABASE_URL = f"sqlite:///{tmp_path / 'crew-test.db'}"
+    Config.APP_VERSION = "12.0.0"
     Config.AUTO_DB_MIGRATE = True
     Config.SESSION_COOKIE_SECURE = False
     Config.TRUSTED_HOSTS = None

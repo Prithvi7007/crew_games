@@ -8,8 +8,8 @@ from app.db import (
     get_game_attempt_summary,
     get_game_completion,
     get_game_content,
+    get_home_leaderboard,
     get_leaderboard,
-    get_weekly_leaderboard,
     get_weekly_points,
 )
 from app.schedule import ARCHIVE_START_DATE, GAME_DEFINITIONS, crew_today, get_game_date, get_week_start
@@ -77,14 +77,12 @@ def home():
     home_phase = "play" if weekday <= 3 else ("recap" if weekday == 4 else "weekend")
     next_week_start = get_week_start(today) + timedelta(days=7)
 
-    ranked_players = get_weekly_leaderboard(today, limit=100000)
-    scored_players = [player for player in ranked_players if int(player["points"]) > 0]
-    for index, player in enumerate(scored_players, start=1):
-        player["rank"] = index; player["me"] = player["profile_id"] == user["profile_id"]
-    me = next((player for player in scored_players if player["me"]), None)
+    ranked_players = get_home_leaderboard(today, current_profile_id=user["profile_id"])
+    me = next((player for player in ranked_players if player["me"]), None)
     my_rank = me["rank"] if me else None
-    leaderboard = scored_players[:3]
-    if me and all(player["profile_id"] != me["profile_id"] for player in leaderboard): leaderboard = [*leaderboard, me]
+    leaderboard = [player for player in ranked_players if player["rank"] <= 3]
+    if me and all(player["profile_id"] != me["profile_id"] for player in leaderboard):
+        leaderboard = [*leaderboard, me]
 
     stats = {
         "streak": stats_row["current_streak"], "rank": my_rank, "weekly_points": weekly["points"],

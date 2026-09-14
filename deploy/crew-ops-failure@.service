@@ -1,0 +1,10 @@
+[Unit]
+Description=Record CREW operational failure for %i
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/logger --priority daemon.err --tag crew-alert CREW operational unit failed: %i
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict

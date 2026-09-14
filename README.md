@@ -1,4 +1,4 @@
-# CREW v11 — Security & Integrity
+# CREW v12 — Platform Engineering
 
 CREW is a privacy-first Flask games portal with a Monday–Thursday weekly cadence:
 
@@ -7,66 +7,64 @@ CREW is a privacy-first Flask games portal with a Monday–Thursday weekly caden
 - **Wordle Wednesday** — one shared five-letter puzzle
 - **Tick-Tock Thursday** — stop a hidden timer close to the target
 
-Each live-week game is worth up to 100 points for a 400-point weekly maximum. v11 keeps the v10 leaderboard, game archive and profile experience and hardens the account/content platform underneath them.
+Each live game is worth up to 100 points. v12 keeps the v11 security model and v10 product experience while upgrading the engineering underneath them.
 
-## New in v11
+## New in v12
 
-### Authentication and account integrity
+### Database lifecycle and integrity
 
-- database-backed failure rate limiting shared across Gunicorn workers
-- separate limits for player login, recovery, profile creation, profile password changes and Content Studio login
-- constant-work password/recovery checks reduce account-enumeration timing differences
-- password/passphrase minimum increased to 12 characters by default
-- password changes and account recovery increment a server-side `session_version`, revoking older signed-in sessions
-- successful password changes automatically refresh the current browser into the new session version
-- security-sensitive pages send `Cache-Control: no-store`
-- security audit events store keyed hashes rather than raw usernames/IP addresses
+- Alembic becomes the source of truth for schema migrations
+- existing v11 databases are safely stamped at the v11 baseline before upgrading
+- six player-owned data tables gain relational `profile_id` links to `profiles.id`
+- PostgreSQL compatibility triggers keep v11 code rollback-safe while v12 is in the expand phase
+- database checks enforce valid game keys, completion flags, score ranges and Content Studio states
+- leaderboard/game-history indexes are added around competitive/date/game/profile access patterns
+- SQLite enables foreign-key enforcement for local development
+- database connection-pool sizing/timeouts are explicit in production
+- UTC timestamps are now generated from timezone-aware Python datetime values without changing the rollback-compatible storage format
 
-### Content Studio hardening
+### Performance
 
-- admin sessions are now cryptographically tied to the current admin password; rotating the password revokes old admin sessions
-- admin sessions expire independently after 4 hours by default
-- database-backed admin login rate limiting
-- optional RFC 6238 TOTP second factor with no additional runtime package
-- stricter plain-text length validation for Mystery/Trivia editor content
+- leaderboard point/completion aggregation moves into SQL rather than loading every completion into Python
+- joins use indexed relational `profile_id` columns instead of string concatenation such as `profile:12`
+- common game/content/security lookup indexes are included in the migration
 
-Enable admin TOTP with:
+### Observability
 
-```bash
-flask --app run.py generate-admin-totp
-```
+- application logs are single-line structured JSON
+- Nginx `X-Request-ID` values are propagated through Flask responses/logs
+- request status and duration are logged without adding new personal profile data
+- `/health/live` provides liveness
+- `/health/ready` validates database readiness
+- `/health` remains compatible with existing production checks
 
-Add the printed secret to `CREW_ADMIN_TOTP_SECRET` in the production environment, add the secret to an authenticator/password manager, then restart CREW.
+### Reliability and operations
 
-### Browser security
+- daily PostgreSQL backups are written atomically and checksum-verified
+- a weekly job performs a **real restore** into a disposable PostgreSQL database
+- a local readiness systemd timer probes CREW every five minutes
+- an hourly platform check watches service health, disk pressure, backup freshness and TLS expiry
+- failed operational checks emit high-priority `crew-alert` events into journald via a systemd `OnFailure` hook
+- a migration-rehearsal script restores the latest backup into a scratch DB and applies v12 before production is touched
+- a code-only rollback helper can return the application to a recorded known-good commit
 
-- nonce-based Content Security Policy for scripts
-- `frame-ancestors 'none'`, `object-src 'none'`, restrictive `form-action`, `connect-src` and `base-uri`
-- Cross-Origin-Opener-Policy and Cross-Origin-Resource-Policy headers
-- stricter Permissions-Policy
-- Mystery, Trivia, Tick-Tock and Leaderboard clients no longer render dynamic content with `innerHTML`
-- production requires explicit `TRUSTED_HOSTS`
+### CI quality gate
 
-### Security schema
+GitHub Actions now runs:
 
-`db-upgrade` adds:
+- pytest
+- Python compilation
+- critical Ruff checks
+- JavaScript syntax checks
+- shell syntax checks
+- Alembic upgrade/downgrade/upgrade smoke testing
+- `pip-audit` dependency scanning
 
-- `profiles.session_version`
-- `security_rate_limits`
-- `security_events`
+## Preserved v11 security controls
 
-No player email, real name, employee ID, phone number or Microsoft identity is introduced.
+v12 retains database-backed authentication rate limits, session revocation, CSP, Trusted Hosts, admin-session hardening, optional TOTP, security audit events, hardened systemd/Nginx configuration and security-event retention cleanup.
 
-## Existing v10 product features
-
-- filtered leaderboard: week/month/all-time + per-game rankings
-- game-specific leaderboard statistics
-- week-by-week historical game archive
-- archive plays that cannot rewrite historical competitive results
-- profile management for avatar/password/recovery code
-- immutable unique CREW names
-- America/New_York game-day boundaries
-- Content Studio Draft → Preview → Publish workflow
+CREW still stores no employee email, real name, employee ID, phone number or Microsoft identity.
 
 ## Local development
 
@@ -80,37 +78,18 @@ Windows PowerShell:
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -r requirements.txt
-python run.py
-```
-
-Linux/macOS:
-
-```bash
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-python run.py
-```
-
-Local development defaults to SQLite and auto-upgrades the local schema.
-
-## Security test suite
-
-```bash
 pip install -r requirements-dev.txt
+python -m flask --app run.py db-upgrade
 pytest -q
-pip-audit -r requirements.txt
+python run.py
 ```
 
-The v11 suite includes rate-limit, CSP, session-revocation, legacy-admin-session and DOM-injection regression checks.
+Local development uses SQLite by default. Alembic automatically creates/upgrades the local schema when `AUTO_DB_MIGRATE=true`.
 
 ## Production
 
-CREW remains designed for the isolated VPS stack:
+CREW remains isolated as:
 
-`Nginx → /run/crew/crew.sock → Gunicorn → Flask → crew_prod PostgreSQL`
+`cadacrew.fun → Nginx → /run/crew/crew.sock → Gunicorn → Flask → crew_prod PostgreSQL`
 
-The production deployment stays isolated through its own Linux user, app directory, PostgreSQL role/database, systemd service, Unix socket, Nginx host and secrets file.
-
-For the live v9/v10 install on `cadacrew.fun`, follow **`deploy/V11_UPGRADE.md`** before restarting the service. The database upgrade is backward-compatible with the currently deployed v9 schema.
+**Do not migrate production directly after copying v12.** Follow `deploy/V12_UPGRADE.md`. The required sequence includes a fresh backup and a migration rehearsal against a restored clone of `crew_prod` before the live database upgrade.

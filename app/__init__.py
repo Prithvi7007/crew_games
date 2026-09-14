@@ -1,7 +1,5 @@
 import base64
-import logging
 import secrets
-import sys
 
 import click
 from flask import Flask, g, jsonify, render_template, request
@@ -13,6 +11,7 @@ load_dotenv()
 
 from config import Config
 from . import db
+from .observability import init_observability
 from .security import (
     content_security_policy,
     get_csrf_token,
@@ -22,21 +21,13 @@ from .security import (
 )
 
 
-def _configure_logging(app):
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
-    app.logger.handlers.clear()
-    app.logger.addHandler(handler)
-    app.logger.setLevel(logging.INFO)
-
-
 def create_app():
     Config.validate()
     app = Flask(__name__)
     app.config.from_object(Config)
     if app.config["IS_PRODUCTION"]:
         app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
-    _configure_logging(app)
+    init_observability(app)
 
     # CREW sits behind exactly one trusted Nginx reverse proxy on the VPS.
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
@@ -66,14 +57,30 @@ def create_app():
         "csp_nonce": getattr(g, "csp_nonce", ""),
     })
 
-    @app.get("/health", endpoint="health")
-    def health():
+    def _database_ready():
         try:
             db.ping_db()
+            return True
         except Exception:
-            app.logger.exception("Database health check failed")
+            app.logger.exception("Database readiness check failed")
+            return False
+
+    @app.get("/health", endpoint="health")
+    def health():
+        # Preserve the v11 response contract used by existing deployment checks.
+        if not _database_ready():
             return jsonify({"status": "unhealthy"}), 503
         return jsonify({"status": "ok"})
+
+    @app.get("/health/live", endpoint="health_live")
+    def health_live():
+        return jsonify({"status": "ok", "version": app.config["APP_VERSION"]})
+
+    @app.get("/health/ready", endpoint="health_ready")
+    def health_ready():
+        if not _database_ready():
+            return jsonify({"status": "unhealthy", "version": app.config["APP_VERSION"]}), 503
+        return jsonify({"status": "ok", "version": app.config["APP_VERSION"]})
 
     @app.after_request
     def security_headers(response):

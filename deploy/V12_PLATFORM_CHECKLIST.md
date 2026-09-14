@@ -1,0 +1,22 @@
+# CREW v12 platform checklist
+
+- [ ] Local pytest passes
+- [ ] Fresh SQLite Alembic upgrade passes
+- [ ] v11→v12 SQLite migration smoke test passes
+- [ ] Production DB backup created and `pg_restore --list` passes
+- [ ] `/opt/crew` pre-v12 SHA recorded
+- [ ] v12 requirements installed
+- [ ] `db-integrity-check` passes on production data
+- [ ] v12 migration rehearsal passes on restored PostgreSQL clone
+- [ ] production `db-upgrade` reports `v12_platform`
+- [ ] `profile_id` FKs/indexes verified
+- [ ] CREW readiness endpoint returns 200
+- [ ] invalid Host still returns 400
+- [ ] CSP/HSTS/no-store still present
+- [ ] wedding site still returns 200
+- [ ] backup timer enabled
+- [ ] weekly restore-verification timer enabled
+- [ ] readiness timer enabled
+- [ ] platform reliability timer enabled
+- [ ] `crew-ops-failure@.service` installed and operational services reference it
+- [ ] GitHub Actions quality gate green

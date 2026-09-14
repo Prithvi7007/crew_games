@@ -1,0 +1,14 @@
+[Unit]
+OnFailure=crew-ops-failure@%n.service
+Description=CREW local readiness probe
+After=crew.service
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+ExecStart=/bin/bash /opt/crew/deploy/crew-healthcheck.sh
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict

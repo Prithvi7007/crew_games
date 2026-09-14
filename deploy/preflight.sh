@@ -36,3 +36,15 @@ echo
 echo '=== Relevant running services ==='
 systemctl --type=service --state=running --no-pager 2>/dev/null \
   | grep -Ei 'nginx|apache|caddy|gunicorn|uvicorn|postgres|mysql|maria|redis' || true
+
+echo
+echo '=== CREW platform ==='
+if [ -d /opt/crew/.git ]; then
+  git -C /opt/crew rev-parse --short HEAD 2>/dev/null || true
+fi
+systemctl is-active crew 2>/dev/null && echo 'crew: active' || true
+systemctl list-timers --all --no-pager 2>/dev/null | grep -E 'crew-(backup|restore-verify|healthcheck|security-cleanup)' || true
+
+echo
+echo '=== Disk ==='
+df -h / /var/backups 2>/dev/null || true
