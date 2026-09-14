@@ -16,9 +16,14 @@ from app.db import (
     create_profile,
     ensure_user_stats,
     get_profile_by_username,
+    get_profile_by_id,
+    get_profile_history_summary,
     profile_user_key,
     touch_profile_login,
     update_profile_credentials,
+    update_profile_avatar,
+    update_profile_password,
+    update_profile_recovery_code,
 )
 
 
@@ -244,6 +249,9 @@ def recovery_code():
 @auth_bp.post("/recovery-code/continue")
 @login_required
 def recovery_code_continue():
+    target = request.form.get("next", "")
+    if target.startswith("/") and not target.startswith("//"):
+        return redirect(target)
     return redirect(url_for("main.home"))
 
 
@@ -251,3 +259,66 @@ def recovery_code_continue():
 def logout():
     session.clear()
     return redirect(url_for("auth.login"))
+
+
+@auth_bp.get("/profile")
+@login_required
+def profile():
+    profile_row = get_profile_by_id(session["user"]["profile_id"])
+    stats = ensure_user_stats(current_user_key())
+    history = get_profile_history_summary(current_user_key())
+    return render_template(
+        "profile.html",
+        user=session["user"],
+        profile=profile_row,
+        avatars=AVATARS,
+        stats=stats,
+        history=history,
+    )
+
+
+@auth_bp.post("/profile/avatar")
+@login_required
+def profile_avatar():
+    avatar = request.form.get("avatar", "")
+    if avatar not in AVATAR_VALUES:
+        flash("Choose one of the CREW avatars.", "error")
+    else:
+        profile_row = update_profile_avatar(session["user"]["profile_id"], avatar)
+        session["user"]["avatar"] = profile_row["avatar"]
+        session.modified = True
+        flash("Avatar updated.", "success")
+    return redirect(url_for("auth.profile"))
+
+
+@auth_bp.post("/profile/password")
+@login_required
+def profile_password():
+    profile_row = get_profile_by_id(session["user"]["profile_id"])
+    current_password = request.form.get("current_password", "")
+    new_password = request.form.get("new_password", "")
+    confirmation = request.form.get("new_password_confirm", "")
+    if not check_password_hash(profile_row["password_hash"], current_password):
+        flash("Your current password is not correct.", "error")
+    elif (password_error := _validate_password(new_password, confirmation)):
+        flash(password_error, "error")
+    elif check_password_hash(profile_row["password_hash"], new_password):
+        flash("Choose a password different from your current one.", "error")
+    else:
+        update_profile_password(profile_row["id"], generate_password_hash(new_password))
+        flash("Password changed.", "success")
+    return redirect(url_for("auth.profile"))
+
+
+@auth_bp.post("/profile/recovery")
+@login_required
+def profile_recovery():
+    profile_row = get_profile_by_id(session["user"]["profile_id"])
+    current_password = request.form.get("current_password", "")
+    if not check_password_hash(profile_row["password_hash"], current_password):
+        flash("Enter your current password to generate a new recovery code.", "error")
+        return redirect(url_for("auth.profile"))
+    new_code = _generate_recovery_code()
+    update_profile_recovery_code(profile_row["id"], generate_password_hash(new_code))
+    _stash_recovery_display(new_code, "regenerated", profile_row["id"])
+    return redirect(url_for("auth.recovery_code"))

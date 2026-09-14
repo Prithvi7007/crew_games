@@ -10,14 +10,13 @@
     </a>
     <nav class="desktop-nav" aria-label="Primary navigation">
       <a class="active" href="{{ url_for('main.home') }}">Home</a>
-      <a href="#week">Games</a>
-      <a href="#leaderboard">Leaderboard</a>
+      <a href="{{ url_for('main.games') }}">Games</a>
+      <a href="{{ url_for('main.leaderboard') }}">Leaderboard</a>
     </nav>
-    <div class="profile-menu">
+    <a class="profile-menu profile-link" href="{{ url_for('auth.profile') }}" aria-label="Open your CREW profile">
       <div class="profile-copy"><strong>{{ user.username }}</strong><span>CREW Player</span></div>
       <div class="avatar" aria-hidden="true">{{ user.avatar }}</div>
-      <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="icon-button" aria-label="Sign out">↗</button></form>
-    </div>
+    </a>
   </header>
 
   <main class="flow-main">
@@ -152,7 +151,7 @@
     <section class="flow-section" id="leaderboard">
       <div class="flow-heading leaderboard-heading">
         <div><span class="eyebrow">WEEKLY LEADERBOARD</span><h2>See where the CREW stands.</h2></div>
-        <span class="progress-pill">400 PTS MAX</span>
+        <a class="text-button" href="{{ url_for('main.leaderboard') }}">View full leaderboard →</a>
       </div>
       <article class="glass-card flow-leaderboard">
         {% if leaderboard %}

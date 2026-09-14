@@ -18,7 +18,7 @@
 
     let currentRow = state.guess_count;
     let currentGuess = '';
-    let locked = Boolean(state.completed);
+    let locked = Boolean(state.completed || !state.playable);
     const keyboardState = {};
     const stateRank = { absent: 1, present: 2, correct: 3 };
 
@@ -185,10 +185,13 @@
     state.guesses.forEach((entry, index) => fillEvaluatedRow(index, entry.tiles, false));
     updateAttemptLabel();
 
-    if (state.completed) {
+    if (!state.playable && !state.completed) {
+        lockKeyboard();
+        setMessage('This challenge has not opened yet.', 'neutral');
+    } else if (state.completed) {
         lockKeyboard();
         setMessage(
-            state.won ? `Today's word is complete — ${state.score} points earned.` : `Today's word is complete. The word was ${state.solution}.`,
+            state.won ? `${state.archive ? 'Archive word' : 'Today\'s word'} is complete — ${state.score} points earned.` : `Today's word is complete. The word was ${state.solution}.`,
             state.won ? 'success' : 'neutral'
         );
     }

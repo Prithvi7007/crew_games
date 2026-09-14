@@ -21,7 +21,7 @@ from app.db import (
     set_game_content_status,
 )
 from app.mystery.game import get_puzzle
-from app.schedule import GAME_DEFINITIONS, get_game_definition, get_week_start
+from app.schedule import crew_today, GAME_DEFINITIONS, get_game_definition, get_week_start
 from app.tick_tock.game import get_target
 from app.trivia.game import get_quiz
 from app.word.game import get_daily_solution
@@ -49,7 +49,7 @@ def _parse_day(value):
 
 def _week_from_query():
     requested = _parse_day(request.args.get("week"))
-    return get_week_start(requested or date.today())
+    return get_week_start(requested or crew_today())
 
 
 def _validate_slot(game_key, game_day):

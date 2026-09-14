@@ -2,6 +2,7 @@ from collections import Counter
 from datetime import date
 
 from app.db import get_db, get_game_content
+from app.schedule import crew_today
 
 
 SOLUTIONS = (
@@ -38,7 +39,7 @@ POINTS_BY_GUESS = {1: 100, 2: 80, 3: 65, 4: 50, 5: 40, 6: 30}
 
 
 def get_daily_solution(game_date=None):
-    game_date = game_date or date.today()
+    game_date = game_date or crew_today()
     day_key = game_date.isoformat()
     scheduled = get_game_content("word", day_key, published_only=True)
     if scheduled:

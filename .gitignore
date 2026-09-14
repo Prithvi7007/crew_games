@@ -1,13 +1,9 @@
 .venv/
 .env
-instance/
-
 __pycache__/
 *.py[cod]
-
+instance/
 *.db
-*.sqlite
 *.sqlite3
-
 .pytest_cache/
 .DS_Store

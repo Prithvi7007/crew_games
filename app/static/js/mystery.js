@@ -7,8 +7,8 @@
   function render(){
     clues.innerHTML = state.clues.map((c,i)=>`<article class="clue-card"><span>${String(i+1).padStart(2,'0')}</span><p>${c}</p></article>`).join('');
     points.textContent = state.completed ? state.score : state.potential_score; count.textContent = `Clue ${state.revealed_count} of ${state.total_clues}`;
-    const done = state.completed; input.disabled = done; form.querySelector('button').disabled = done; reveal.disabled = done || state.revealed_count >= state.total_clues;
-    if(done){ message.className='game-message success'; message.textContent = state.won ? `Solved: ${state.answer} · ${state.score} points` : `Answer: ${state.answer} · ${state.score} participation points`; }
+    const done = state.completed; const locked = done || !state.playable; input.disabled = locked; form.querySelector('button').disabled = locked; reveal.disabled = locked || state.revealed_count >= state.total_clues;
+    if(!state.playable && !done){ message.className='game-message neutral'; message.textContent='This challenge has not opened yet.'; } else if(done){ message.className='game-message success'; message.textContent = state.won ? `Solved: ${state.answer} · ${state.score} points` : `Answer: ${state.answer} · ${state.score} participation points`; }
   }
   async function post(url, body){ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRFToken':csrfToken},body:body?JSON.stringify(body):null}); const d=await r.json(); if(!r.ok) throw new Error(d.message||'Try again.'); return d; }
   form.addEventListener('submit', async e=>{e.preventDefault(); if(!input.value.trim()) return; message.textContent='Checking…'; try{ const d=await post(root.dataset.guessUrl,{answer:input.value}); state=d.state; input.value=''; message.className=`game-message ${d.correct?'success':'error'}`; message.textContent=d.message; render(); }catch(err){message.className='game-message error';message.textContent=err.message;} });

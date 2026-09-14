@@ -12,23 +12,20 @@
 
         <nav class="desktop-nav" aria-label="Primary navigation">
             <a href="{{ url_for('main.home') }}">Home</a>
-            <a class="active" href="{{ url_for('word.play') }}">Wordle Wednesday</a>
-            <a href="{{ url_for('main.home') }}#leaderboard">Leaderboard</a>
+            <a class="active" href="{{ url_for('main.games') }}">Games</a>
+            <a href="{{ url_for('main.leaderboard') }}">Leaderboard</a>
         </nav>
 
-        <div class="profile-menu">
+        <a class="profile-menu profile-link" href="{{ url_for('auth.profile') }}">
             <div class="profile-copy"><strong>{{ user.username }}</strong><span>CREW Player</span></div>
             <div class="avatar">{{ user.avatar }}</div>
-            <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <button class="icon-button" title="Sign out" aria-label="Sign out">↗</button>
-            </form>
-        </div>
+        </a>
     </header>
 
     <main class="word-main">
         <section class="word-heading">
             <div>
-                <a class="back-link" href="{{ url_for('main.home') }}">← Back to home</a>
+                <a class="back-link" href="{{ return_url }}">← Back to {% if state.archive %}game archive{% else %}home{% endif %}</a>
                 <span class="eyebrow">{{ today.strftime('%A · %B %d')|upper }}</span>
                 <h1>Wordle Wednesday</h1>
                 {% if state.theme %}<span class="game-theme word-theme">{{ state.theme }}</span>{% endif %}
@@ -40,7 +37,7 @@
             </div>
         </section>
 
-        <section class="word-layout">
+        {% if state.archive %}<div class="archive-play-banner"><strong>Archive play</strong><span>Your result is saved to history and will not change the original weekly leaderboard.</span></div>{% elif not state.playable %}<div class="archive-play-banner upcoming"><strong>Coming soon</strong><span>This challenge opens on {{ today.strftime('%A, %B %d') }}.</span></div>{% endif %}<section class="word-layout">
             <article class="glass-card word-game-panel">
                 <div class="word-panel-top">
                     <div><span class="game-kicker">CREW WORD #{{ today.toordinal() }}</span><span class="word-attempt-label" id="attemptLabel">{{ state.guess_count }} / 6 guesses</span></div>
@@ -106,7 +103,7 @@
                     <h2 id="resultTitle">{% if state.won %}Nice work.{% else %}Tomorrow's another round.{% endif %}</h2>
                     <p id="resultCopy">The word was <strong id="solutionLabel">{{ state.solution if state.completed else '' }}</strong>.</p>
                     <div class="result-points"><strong id="resultPoints">{{ state.score }}</strong><span>PTS</span></div>
-                    <a class="primary-button result-home" href="{{ url_for('main.home') }}"><span>Back to CREW home</span><span>→</span></a>
+                    <a class="primary-button result-home" href="{{ return_url }}"><span>Back to {% if state.archive %}game archive{% else %}CREW home{% endif %}</span><span>→</span></a>
                 </article>
             </aside>
         </section>
@@ -117,7 +114,7 @@
 {% block scripts %}
 <script>
 window.CREW_WORD_STATE = {{ state|tojson }};
-window.CREW_WORD_GUESS_URL = {{ url_for('word.submit_guess')|tojson }};
+window.CREW_WORD_GUESS_URL = {{ url_for('word.submit_guess', date=state.date)|tojson }};
 </script>
-<script src="{{ url_for('static', filename='js/word-game.js') }}"></script>
+<script src="{{ url_for('static', filename='js/word-game.js', v='10') }}"></script>
 {% endblock %}

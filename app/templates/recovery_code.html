@@ -6,9 +6,9 @@
 <main class="recovery-code-shell">
     <section class="glass-card recovery-code-card">
         <span class="mini-crew">CREW</span>
-        {% if recovery_context == 'reset' %}
+        {% if recovery_context in ['reset', 'regenerated'] %}
             <span class="eyebrow">NEW RECOVERY CODE</span>
-            <h1>Password updated.</h1>
+            <h1>{% if recovery_context == 'regenerated' %}Recovery code refreshed.{% else %}Password updated.{% endif %}</h1>
             <p>Your old recovery code has been retired. Save this new one somewhere private.</p>
         {% else %}
             <span class="eyebrow">PROFILE CREATED</span>
@@ -24,8 +24,8 @@
             <span>CREW stores a secure hash of the code, not this readable version.</span>
         </div>
 
-        <form method="post" action="{{ url_for('auth.recovery_code_continue') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <button class="primary-button" type="submit"><span>I've saved it — enter CREW</span><span>→</span></button>
+        <form method="post" action="{{ url_for('auth.recovery_code_continue') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="next" value="{% if recovery_context == 'regenerated' %}{{ url_for('auth.profile') }}{% endif %}">
+            <button class="primary-button" type="submit"><span>{% if recovery_context == 'regenerated' %}I've saved it — back to profile{% else %}I've saved it — enter CREW{% endif %}</span><span>→</span></button>
         </form>
     </section>
 </main>

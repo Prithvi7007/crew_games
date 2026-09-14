@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Games · CREW{% endblock %}
+{% block body_class %}games-archive-page{% endblock %}
+{% block body %}
+<div class="app-shell">
+  <header class="glass-nav">
+    <a class="nav-brand" href="{{ url_for('main.home') }}"><span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span><span class="crew-mark small">CREW</span></a>
+    <nav class="desktop-nav" aria-label="Primary navigation"><a href="{{ url_for('main.home') }}">Home</a><a class="active" href="{{ url_for('main.games') }}">Games</a><a href="{{ url_for('main.leaderboard') }}">Leaderboard</a></nav>
+    <a class="profile-menu profile-link" href="{{ url_for('auth.profile') }}"><div class="profile-copy"><strong>{{ user.username }}</strong><span>CREW Player</span></div><div class="avatar">{{ user.avatar }}</div></a>
+  </header>
+  <main class="archive-main">
+    <section class="page-intro compact-page-intro"><span class="eyebrow">CREW GAME ARCHIVE</span><h1>Your games, week by week.</h1><p>Review completed challenges or play something you missed. Archive plays count in your personal history, not past competitive rankings.</p></section>
+    <section class="archive-week-nav glass-card">
+      {% if previous_week %}<a class="secondary-button archive-arrow" href="{{ url_for('main.games', week=previous_week.isoformat()) }}">← Previous week</a>{% else %}<span class="secondary-button archive-arrow disabled">← Previous week</span>{% endif %}
+      <div><span class="eyebrow">{% if is_current %}CURRENT WEEK{% else %}ARCHIVE WEEK{% endif %}</span><strong>{{ week_label }}</strong></div>
+      {% if next_week %}<a class="secondary-button archive-arrow" href="{{ url_for('main.games', week=next_week.isoformat()) }}">Next week →</a>{% else %}<span class="secondary-button archive-arrow disabled">Next week →</span>{% endif %}
+    </section>
+    <section class="archive-grid">
+      {% for game in games %}
+      <article class="glass-card archive-game-card {{ game.status }} game-tone-{{ game.key }}">
+        <div class="archive-card-head"><span>{{ game.day|upper }} · {{ game.date.strftime('%b %d')|upper }}</span><span class="archive-status {{ game.status }}">{{ game.status_label }}</span></div>
+        <div class="journey-node">{{ game.glyph }}</div>
+        {% if game.theme_label %}<span class="game-theme">{{ game.theme_label }}</span>{% endif %}
+        <h2>{{ game.title }}</h2><p>{{ game.description }}</p>
+        {% if game.completed %}<div class="archive-result"><strong>{{ game.score }}</strong><span>POINTS</span></div>{% endif %}
+        <a class="primary-button compact" href="{{ game.url }}"><span>{{ game.action }}</span><span>→</span></a>
+      </article>
+      {% endfor %}
+    </section>
+    <section class="archive-note glass-card"><span class="eyebrow">HOW HISTORY WORKS</span><h2>Past leaderboards stay locked.</h2><p>Finish a missed challenge whenever you like. The result is saved to your CREW history, but the original week's standings never change.</p></section>
+  </main>
+</div>
+{% endblock %}

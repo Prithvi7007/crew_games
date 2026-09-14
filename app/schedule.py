@@ -1,4 +1,17 @@
-from datetime import date, timedelta
+import os
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
+
+
+CREW_TIMEZONE = os.getenv("CREW_TIMEZONE", "America/New_York")
+
+
+def crew_today():
+    return datetime.now(ZoneInfo(CREW_TIMEZONE)).date()
+
+
+# CREW production archive begins with the launch week.
+ARCHIVE_START_DATE = date(2026, 9, 7)
 
 
 GAME_DEFINITIONS = (
@@ -50,7 +63,7 @@ GAME_DEFINITIONS = (
 
 
 def get_week_start(day=None):
-    day = day or date.today()
+    day = day or crew_today()
     return day - timedelta(days=day.weekday())
 
 
@@ -59,7 +72,7 @@ def get_game_definition(game_key):
 
 
 def get_game_date(game_key, reference_day=None):
-    reference_day = reference_day or date.today()
+    reference_day = reference_day or crew_today()
     game = get_game_definition(game_key)
     return get_week_start(reference_day) + timedelta(days=game["weekday"])
 
@@ -70,7 +83,7 @@ def previous_scheduled_game_day(game_day):
     if weekday in (1, 2, 3):
         return game_day - timedelta(days=1)
     if weekday == 0:
-        return game_day - timedelta(days=3)
+        return game_day - timedelta(days=4)
 
     cursor = game_day - timedelta(days=1)
     while cursor.weekday() > 3:
@@ -79,10 +92,44 @@ def previous_scheduled_game_day(game_day):
 
 
 def next_scheduled_game_day(day=None):
-    day = day or date.today()
+    day = day or crew_today()
     cursor = day
     for _ in range(8):
         if cursor.weekday() <= 3 and cursor >= day:
             return cursor
         cursor += timedelta(days=1)
     return cursor
+
+
+def parse_game_day(game_key, raw_date=None, today=None):
+    """Resolve an optional YYYY-MM-DD archive date and ensure it matches the game's weekday."""
+    today = today or crew_today()
+    if not raw_date:
+        return get_game_date(game_key, today)
+    try:
+        candidate = date.fromisoformat(raw_date)
+    except (TypeError, ValueError):
+        return get_game_date(game_key, today)
+    definition = get_game_definition(game_key)
+    if candidate.weekday() != definition["weekday"]:
+        return get_game_date(game_key, today)
+    return candidate
+
+
+def game_is_playable(game_day, today=None):
+    today = today or crew_today()
+    return game_day <= today
+
+
+def game_is_competitive(game_day, today=None):
+    """Competitive scoring is open Monday-Thursday of the current CREW week only."""
+    today = today or crew_today()
+    return (
+        today.weekday() <= 3
+        and game_day <= today
+        and get_week_start(game_day) == get_week_start(today)
+    )
+
+
+def game_is_in_archive(game_day):
+    return game_day >= ARCHIVE_START_DATE

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard · CREW{% endblock %}
+{% block body_class %}leaderboard-page{% endblock %}
+{% block body %}
+<div class="app-shell">
+  <header class="glass-nav">
+    <a class="nav-brand" href="{{ url_for('main.home') }}"><span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span><span class="crew-mark small">CREW</span></a>
+    <nav class="desktop-nav" aria-label="Primary navigation"><a href="{{ url_for('main.home') }}">Home</a><a href="{{ url_for('main.games') }}">Games</a><a class="active" href="{{ url_for('main.leaderboard') }}">Leaderboard</a></nav>
+    <a class="profile-menu profile-link" href="{{ url_for('auth.profile') }}"><div class="profile-copy"><strong>{{ user.username }}</strong><span>CREW Player</span></div><div class="avatar">{{ user.avatar }}</div></a>
+  </header>
+  <main class="leaderboard-main" data-leaderboard data-api-url="{{ url_for('main.leaderboard_api') }}">
+    <section class="page-intro compact-page-intro"><span class="eyebrow">CREW STANDINGS</span><h1>Leaderboard</h1><p>See who is setting the pace — by week, month, or game.</p></section>
+    <section class="leaderboard-toolbar glass-card">
+      <label><span>TIME PERIOD</span><select id="leader-period">
+        {% for value,label in [('this_week','This Week'),('last_week','Last Week'),('this_month','This Month'),('all_time','All Time')] %}<option value="{{ value }}" {% if value==selected_period %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select></label>
+      <label><span>GAME</span><select id="leader-game">
+        {% for value,label in [('all','All Games'),('mystery','Mystery Monday'),('trivia','Trivia Tuesday'),('word','Wordle Wednesday'),('tick_tock','Tick-Tock Thursday')] %}<option value="{{ value }}" {% if value==selected_game %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select></label>
+      <div class="leader-filter-copy"><span id="leader-period-label">{{ board.period_label|upper }}</span><strong id="leader-count">{{ board.total_ranked }} ranked</strong></div>
+    </section>
+
+    <section class="leaderboard-podium-section">
+      <div class="flow-heading"><div><span class="eyebrow">TOP CREW</span><h2>Leading the board.</h2></div></div>
+      <div class="leader-podium" id="leader-podium"></div>
+    </section>
+
+    <section class="leaderboard-me-section" id="leader-me-wrap">
+      <div class="flow-heading"><div><span class="eyebrow">YOUR POSITION</span><h2>Your place in the run.</h2></div></div>
+      <article class="glass-card pinned-player" id="leader-me"></article>
+    </section>
+
+    <section class="leaderboard-standings-section">
+      <div class="flow-heading"><div><span class="eyebrow">FULL STANDINGS</span><h2>Every ranked player.</h2></div></div>
+      <article class="glass-card flow-leaderboard"><div class="leaderboard-list full-leaderboard" id="leader-list"></div><div class="leaderboard-empty" id="leader-empty" hidden><span class="empty-icon">✦</span><div><h3>No scores here yet.</h3><p>Try another time period or game.</p></div></div></article>
+    </section>
+  </main>
+</div>
+<script id="leaderboard-initial" type="application/json">{{ board|tojson }}</script>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/leaderboard.js', v='10') }}"></script>{% endblock %}
