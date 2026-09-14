@@ -16,12 +16,14 @@ TEMP="$FINAL.tmp"
 source /opt/crew/deploy/postgres-env.sh
 crew_load_pg_env
 
-install -d -m 0700 -o root -g root "$BACKUP_DIR"
+install -d -m 0750 -o root -g postgres "$BACKUP_DIR"
 trap 'rm -f "$TEMP"' EXIT
 
 pg_dump --format=custom --compress=6 --no-owner --no-privileges --file="$TEMP" --dbname="$PGDATABASE"
 pg_restore --list "$TEMP" >/dev/null
 mv "$TEMP" "$FINAL"
+chown root:postgres "$FINAL"
+chmod 0640 "$FINAL"
 sha256sum "$FINAL" > "$FINAL.sha256"
 find "$BACKUP_DIR" -type f \( -name 'crew_*.dump' -o -name 'crew_*.dump.sha256' \) -mtime "+$RETENTION_DAYS" -delete
 
