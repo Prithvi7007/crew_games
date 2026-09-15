@@ -3,11 +3,7 @@
 {% block body_class %}profile-page{% endblock %}
 {% block body %}
 <div class="app-shell">
-  <header class="glass-nav">
-    <a class="nav-brand" href="{{ url_for('main.home') }}"><span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span><span class="crew-mark small">CREW</span></a>
-    <nav class="desktop-nav"><a href="{{ url_for('main.home') }}">Home</a><a href="{{ url_for('main.games') }}">Games</a><a href="{{ url_for('main.leaderboard') }}">Leaderboard</a></nav>
-    {% include "_account_menu.html" %}
-  </header>
+  {% include "_app_header.html" %}
   <main class="profile-main">
     <section class="profile-hero"><div class="profile-avatar-xl">{{ user.avatar }}</div><div class="profile-hero-copy"><span class="eyebrow">YOUR CREW PROFILE</span><h1>{{ user.username }}</h1><p>Your CREW name is permanent. Your look and security settings are yours to manage.</p></div></section>
     {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="profile-flashes">{% for category,message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}{% endwith %}

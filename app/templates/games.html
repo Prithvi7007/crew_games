@@ -3,11 +3,7 @@
 {% block body_class %}games-archive-page{% endblock %}
 {% block body %}
 <div class="app-shell">
-  <header class="glass-nav">
-    <a class="nav-brand" href="{{ url_for('main.home') }}"><span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span><span class="crew-mark small">CREW</span></a>
-    <nav class="desktop-nav" aria-label="Primary navigation"><a href="{{ url_for('main.home') }}">Home</a><a class="active" href="{{ url_for('main.games') }}">Games</a><a href="{{ url_for('main.leaderboard') }}">Leaderboard</a></nav>
-    {% include "_account_menu.html" %}
-  </header>
+  {% include "_app_header.html" %}
   <main class="archive-main">
     <section class="page-intro compact-page-intro"><span class="eyebrow">CREW GAME ARCHIVE</span><h1>Your games, week by week.</h1><p>Review completed challenges or play something you missed. Archive plays count in your personal history, not past competitive rankings.</p></section>
     <section class="archive-week-nav glass-card">

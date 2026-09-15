@@ -1145,3 +1145,2125 @@ footer{display:flex;justify-content:space-between;padding:28px 4px 0;color:rgba(
   .account-dropdown { animation: none; }
   .account-chevron { transition: none; }
 }
+
+/* ========================================================================== */
+/* CREW v13.1 — Experience System · refinement                               */
+/* Apple: restraint. Netflix: content first. Airbnb: human/mobile clarity.    */
+/* ========================================================================== */
+
+:root {
+    --v13-bg: #05080d;
+    --v13-panel: #0d131b;
+    --v13-panel-soft: rgba(17, 25, 36, .72);
+    --v13-ink: #f7f9fc;
+    --v13-muted: rgba(231, 237, 245, .62);
+    --v13-subtle: rgba(231, 237, 245, .38);
+    --v13-line: rgba(255, 255, 255, .085);
+    --v13-signal: #8de6ff;
+    --v13-mystery: #62dfad;
+    --v13-trivia: #ffd16f;
+    --v13-word: #78afff;
+    --v13-timer: #a78bfa;
+    --v13-ease: cubic-bezier(.2,.8,.2,1);
+    --v13-fast: 120ms;
+    --v13-ui: 220ms;
+    --v13-reveal: 520ms;
+}
+
+body.v13-experience,
+body.home-page {
+    background:
+        radial-gradient(circle at 12% -5%, rgba(69, 135, 208, .12), transparent 34rem),
+        radial-gradient(circle at 86% 14%, rgba(62, 214, 207, .065), transparent 28rem),
+        linear-gradient(180deg, #070b11 0%, var(--v13-bg) 40%, #030509 100%);
+}
+
+/* Shared shell — navigation is product chrome, not a dashboard card. */
+.v13-shell { width: min(1320px, calc(100% - 48px)); }
+.app-nav {
+    top: 0;
+    min-height: 64px;
+    padding: 0 4px;
+    border: 0;
+    border-bottom: 1px solid rgba(255,255,255,.075);
+    border-radius: 0;
+    background: rgba(5, 8, 13, .66);
+    box-shadow: none;
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+}
+.v13-brand { display: inline-flex; align-items: center; gap: 11px; min-width:0; }
+.v13-brand-copy { display: grid; gap: 3px; min-width:0; }
+.v13-brand-copy strong { font: 800 1rem/1 Manrope; letter-spacing: .15em; }
+.v13-brand-copy small { color: rgba(231,237,245,.38); font: 700 .42rem/1 Inter; letter-spacing: .16em; }
+.crew-signal { position: relative; width: 32px; height: 32px; display: block; flex: 0 0 32px; border: 1px solid rgba(141,230,255,.18); border-radius: 50%; background: radial-gradient(circle, rgba(141,230,255,.08), transparent 65%); }
+.crew-signal::before, .crew-signal::after { content:""; position:absolute; border:1px solid rgba(141,230,255,.15); border-radius:50%; inset:7px; }
+.crew-signal::after { inset: 12px; background: rgba(141,230,255,.76); border: 0; box-shadow: 0 0 14px rgba(141,230,255,.4); }
+.crew-signal i { position:absolute; width:3px; height:3px; border-radius:50%; background:rgba(214,247,255,.72); box-shadow:0 0 7px rgba(141,230,255,.45); }
+.crew-signal i:nth-child(1){left:4px;top:14px}.crew-signal i:nth-child(2){right:6px;top:6px}.crew-signal i:nth-child(3){right:4px;bottom:8px}.crew-signal i:nth-child(4){left:9px;bottom:4px}.crew-signal b{display:none}
+
+.app-nav .desktop-nav { padding:0; gap:4px; border:0; background:transparent; }
+.app-nav .desktop-nav a { min-width:auto; padding:9px 12px; text-align:center; border-radius:9px; color:rgba(231,237,245,.5); font-size:.7rem; }
+.app-nav .desktop-nav a:hover { color:rgba(255,255,255,.9); background:rgba(255,255,255,.035); }
+.app-nav .desktop-nav a.active { color:white; background:transparent; box-shadow:none; }
+.app-nav .account-trigger { border-radius:12px; }
+.app-nav .avatar { border-radius:50%; border-color:rgba(255,255,255,.1); background:rgba(255,255,255,.06); }
+.mobile-bottom-nav { display:none; }
+
+/* Home: today's challenge owns the screen. */
+.v13-home-main { padding-top: 18px; }
+.today-hero {
+    --game-accent: var(--v13-signal);
+    position: relative;
+    min-height: 500px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.42fr) minmax(270px, .58fr);
+    align-items: center;
+    gap: 24px;
+    overflow: hidden;
+    padding: 44px 4px 48px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.today-hero.game-tone-mystery { --game-accent: var(--v13-mystery); }
+.today-hero.game-tone-trivia { --game-accent: var(--v13-trivia); }
+.today-hero.game-tone-word { --game-accent: var(--v13-word); }
+.today-hero.game-tone-tick_tock { --game-accent: var(--v13-timer); }
+.today-hero::before {
+    content:"";
+    position:absolute;
+    width: 610px;
+    height:610px;
+    right:-230px;
+    top:-92px;
+    border-radius:50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--game-accent) 13%, transparent), transparent 65%);
+    pointer-events:none;
+}
+.today-hero-copy { position:relative; z-index:2; max-width:720px; min-width:0; }
+.today-kicker { display:flex; align-items:center; gap:9px; color:rgba(236,243,250,.6); font-size:.6rem; font-weight:800; letter-spacing:.16em; }
+.live-dot { width:7px; height:7px; border-radius:50%; background:var(--game-accent); box-shadow:0 0 14px color-mix(in srgb, var(--game-accent) 70%, transparent); }
+.live-dot.complete { background:var(--green); }.live-dot.idle { background:#778595; box-shadow:none; }
+.today-status { margin-left:4px; padding:5px 7px; border-radius:999px; background:color-mix(in srgb, var(--game-accent) 10%, transparent); color:var(--game-accent); letter-spacing:.11em; }
+.today-theme { display:inline-block; margin-top:28px; color:var(--game-accent); font:700 .64rem/1 Inter; letter-spacing:.14em; text-transform:uppercase; }
+.today-hero h1 { max-width:760px; margin:12px 0 16px; font:800 clamp(3.7rem,6.4vw,6.55rem)/.9 Manrope; letter-spacing:-.072em; }
+.today-hero-copy > p { max-width:570px; margin:0; color:var(--v13-muted); font-size:.96rem; line-height:1.65; }
+.today-actions { display:flex; align-items:center; gap:20px; margin-top:30px; }
+.v13-play-button { min-width:190px; min-height:52px; display:inline-flex; align-items:center; justify-content:space-between; gap:26px; padding:0 18px 0 21px; border-radius:14px; background:#f6f8fb; color:#080b10; font-size:.78rem; font-weight:800; box-shadow:0 16px 38px rgba(0,0,0,.22); transition:transform var(--v13-fast) var(--v13-ease), background var(--v13-ui) ease, box-shadow var(--v13-ui) ease; }
+.v13-play-button:hover { transform:translateY(-2px); background:white; box-shadow:0 20px 44px rgba(0,0,0,.3); }
+.v13-play-button:active { transform:scale(.985); }
+.today-meta { display:flex; flex-wrap:wrap; gap:6px 16px; margin:0; color:var(--v13-subtle); font-size:.64rem; }
+.today-meta span { position:relative; padding:0; border:0; border-radius:0; background:none; color:inherit; font-size:inherit; font-weight:700; }
+.today-meta span + span::before { content:""; position:absolute; left:-9px; top:50%; width:2px; height:2px; border-radius:50%; background:rgba(255,255,255,.25); }
+.today-meta strong { color:rgba(246,249,252,.82); font-weight:800; }.today-meta .is-complete strong{color:var(--green)}
+
+/* Signal is atmospheric support, not a second hero column. */
+.today-signal { position:relative; width:min(350px,100%); aspect-ratio:1; justify-self:end; transform:translateX(9%); opacity:.72; display:grid; place-items:center; }
+.signal-halo { position:absolute; border:1px solid color-mix(in srgb, var(--game-accent) 18%, transparent); border-radius:50%; }
+.halo-a { inset:9%; }.halo-b { inset:25%; border-color:color-mix(in srgb, var(--game-accent) 25%, transparent); }
+.signal-halo::before { content:""; position:absolute; inset:11%; border:1px dashed color-mix(in srgb, var(--game-accent) 12%, transparent); border-radius:inherit; }
+.signal-sweep { position:absolute; inset:9%; border-radius:50%; background:conic-gradient(from 0deg, transparent 0 72%, color-mix(in srgb, var(--game-accent) 12%, transparent) 88%, transparent 100%); animation:v13-sweep 9s linear infinite; }
+.signal-core { position:relative; z-index:2; width:118px; height:118px; display:grid; place-items:center; align-content:center; gap:7px; border-radius:50%; border:1px solid color-mix(in srgb, var(--game-accent) 30%, transparent); background:radial-gradient(circle at 42% 34%, color-mix(in srgb, var(--game-accent) 18%, #0c121a), #080d13 72%); box-shadow:0 0 70px color-mix(in srgb, var(--game-accent) 10%, transparent), inset 0 1px rgba(255,255,255,.06); }
+.signal-core strong { color:white; font:800 2.65rem/1 Manrope; letter-spacing:-.06em; }.signal-core span{color:color-mix(in srgb,var(--game-accent) 72%,white);font:800 .46rem/1 Inter;letter-spacing:.15em}
+.signal-point { position:absolute; width:7px; height:7px; border-radius:50%; background:var(--game-accent); box-shadow:0 0 14px color-mix(in srgb, var(--game-accent) 62%, transparent); }.point-a{left:16%;top:45%}.point-b{right:18%;top:22%;width:4px;height:4px}.point-c{right:11%;bottom:31%;width:5px;height:5px}.point-d{left:31%;bottom:10%;width:4px;height:4px}
+.score-core strong{font-size:3rem}.recap-hero{--game-accent:var(--green)}.recharge-hero{--game-accent:#8a98a9}
+@keyframes v13-sweep { to { transform:rotate(360deg); } }
+
+/* Weekly progress — one surface, no analytics row underneath it. */
+.week-console { margin:0 4px; padding:36px 0 8px; }
+.week-console-head { display:flex; justify-content:space-between; align-items:end; gap:20px; }
+.section-label { color:rgba(231,237,245,.42); font:800 .57rem/1 Inter; letter-spacing:.16em; }
+.week-console h2, .v13-section h2 { margin:7px 0 0; font:800 clamp(1.8rem,3vw,2.4rem)/1 Manrope; letter-spacing:-.05em; }
+.week-score { display:flex; align-items:baseline; gap:6px; }.week-score strong{font:800 2.15rem/1 Manrope;letter-spacing:-.06em}.week-score span{color:var(--v13-subtle);font-size:.68rem}
+.week-progress { height:3px; margin:20px 0 17px; overflow:hidden; border-radius:999px; background:rgba(255,255,255,.06); }.week-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7fe4ff,#7db0ff,#ae91ff);box-shadow:0 0 18px rgba(125,193,255,.25)}
+.week-days { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; overflow:hidden; border:1px solid var(--v13-line); border-radius:16px; background:var(--v13-line); }
+.week-day { --game-accent:var(--v13-signal); position:relative; min-height:104px; display:grid; align-content:center; gap:4px; padding:18px; background:#0a0f16; transition:background var(--v13-ui) ease, transform var(--v13-fast) var(--v13-ease); }
+.week-day.game-tone-mystery{--game-accent:var(--v13-mystery)}.week-day.game-tone-trivia{--game-accent:var(--v13-trivia)}.week-day.game-tone-word{--game-accent:var(--v13-word)}.week-day.game-tone-tick_tock{--game-accent:var(--v13-timer)}
+.week-day:hover { z-index:2; background:#101720; }.week-day:active{transform:scale(.99)}
+.week-day-state { position:absolute; top:15px; right:15px; width:7px; height:7px; border-radius:50%; border:1px solid rgba(255,255,255,.18); }
+.week-day.live .week-day-state { background:var(--game-accent); border-color:var(--game-accent); box-shadow:0 0 14px color-mix(in srgb,var(--game-accent) 55%, transparent); }.week-day.completed .week-day-state{background:var(--green);border-color:var(--green)}
+.week-day-name { color:color-mix(in srgb,var(--game-accent) 80%, white); font:800 .53rem/1 Inter; letter-spacing:.13em; }.week-day strong{margin-top:3px;font:800 .9rem/1.15 Manrope}.week-day small{color:var(--v13-subtle);font-size:.6rem}
+
+/* Home ends quickly: weekly progress, then weekly standings. */
+.v13-section { padding:52px 4px 0; }
+.v13-section-head { display:flex; align-items:end; justify-content:space-between; gap:24px; margin-bottom:17px; }
+.v13-section-head>a { color:rgba(235,242,250,.6); font-size:.68rem; font-weight:700; }.v13-section-head>a:hover{color:white}
+.v13-leader-card { overflow:hidden; border-top:1px solid rgba(255,255,255,.07); border-bottom:1px solid rgba(255,255,255,.07); }
+.v13-leader-row { display:grid; grid-template-columns:42px 42px 1fr auto; align-items:center; gap:12px; min-height:62px; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.045); }.v13-leader-row:last-child{border-bottom:0}.v13-leader-row.is-me{background:linear-gradient(90deg,rgba(82,168,226,.09),transparent 64%)}
+.v13-rank{color:var(--v13-subtle);font:700 .68rem Manrope}.v13-avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.055);font-size:.92rem}.v13-player{display:grid;gap:3px}.v13-player strong{font-size:.75rem}.v13-player small{color:var(--v13-subtle);font-size:.48rem;font-weight:800;letter-spacing:.11em}.v13-leader-row.is-me .v13-player small{color:var(--v13-signal)}.v13-points{font:800 .78rem Manrope}.v13-points small{color:var(--v13-subtle);font-size:.49rem}
+.v13-empty{min-height:112px;display:flex;align-items:center;justify-content:center;gap:15px}.v13-empty>span{color:var(--v13-signal);font-size:1.35rem}.v13-empty strong{font:800 .9rem Manrope}.v13-empty p{margin:4px 0 0;color:var(--v13-muted);font-size:.68rem}
+.v13-footer { padding-top:44px; }
+
+/* Preserve the poster primitives for the Games redesign, not Home. */
+.game-rail { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.game-poster { --game-accent:var(--v13-signal); position:relative; min-height:365px; overflow:hidden; display:flex; flex-direction:column; padding:21px; border:1px solid rgba(255,255,255,.07); border-radius:18px; background:linear-gradient(180deg,#101720,#090d13); box-shadow:0 18px 45px rgba(0,0,0,.16); transition:transform var(--v13-ui) var(--v13-ease), border-color var(--v13-ui) ease, box-shadow var(--v13-ui) ease; }
+.game-poster.game-tone-mystery{--game-accent:var(--v13-mystery)}.game-poster.game-tone-trivia{--game-accent:var(--v13-trivia)}.game-poster.game-tone-word{--game-accent:var(--v13-word)}.game-poster.game-tone-tick_tock{--game-accent:var(--v13-timer)}
+.game-poster::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 29%, color-mix(in srgb,var(--game-accent) 14%, transparent), transparent 38%); pointer-events:none; }
+.game-poster:hover { transform:translateY(-5px); border-color:color-mix(in srgb,var(--game-accent) 28%, transparent); box-shadow:0 26px 60px rgba(0,0,0,.24); }.game-poster:active{transform:translateY(-2px) scale(.99)}
+.poster-top,.poster-copy,.poster-action{position:relative;z-index:2}.poster-top{display:flex;justify-content:space-between;gap:10px;color:var(--v13-subtle);font:800 .51rem/1 Inter;letter-spacing:.12em}.poster-top span:first-child{color:color-mix(in srgb,var(--game-accent) 72%, white)}
+.poster-art{position:relative;height:146px;display:grid;place-items:center;margin:12px 0 8px}.poster-art i{position:absolute;width:110px;height:110px;border:1px solid color-mix(in srgb,var(--game-accent) 20%, transparent);border-radius:50%;box-shadow:0 0 50px color-mix(in srgb,var(--game-accent) 7%, transparent)}.poster-art i::after{content:"";position:absolute;inset:22px;border:1px solid color-mix(in srgb,var(--game-accent) 24%, transparent);border-radius:50%}.poster-art b{position:relative;font:800 2.6rem/1 Manrope;color:white;text-shadow:0 0 32px color-mix(in srgb,var(--game-accent) 35%, transparent)}
+.poster-copy small{display:block;margin-bottom:7px;color:color-mix(in srgb,var(--game-accent) 70%, white);font-size:.51rem;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.poster-copy h3{margin:0 0 7px;font:800 1.22rem/1.08 Manrope;letter-spacing:-.04em}.poster-copy p{margin:0;color:var(--v13-muted);font-size:.67rem;line-height:1.52}.poster-action{margin-top:auto;padding-top:20px;display:flex;justify-content:space-between;align-items:center;color:rgba(246,249,252,.78);font-size:.65rem}.poster-action strong{font-weight:800}.poster-action span{color:var(--game-accent)}
+
+/* Shared mobile navigation and true phone-first Home layout. */
+@media (max-width: 760px) {
+    body { padding-bottom: 86px; }
+    body.v13-experience { overflow-x: clip; }
+    .v13-shell, .app-shell { width: calc(100% - 24px); max-width:1260px; margin-top:0; }
+    .app-nav {
+        top:0;
+        width:100%;
+        max-width:100%;
+        grid-template-columns:minmax(0,1fr) auto;
+        min-height:58px;
+        padding:0 2px;
+        border-radius:0;
+    }
+    .app-nav .desktop-nav { display:none; }
+    .v13-brand { gap:9px; min-width:0; }
+    .crew-signal{width:29px;height:29px;flex-basis:29px}.crew-signal::before{inset:6px}.crew-signal::after{inset:11px}.crew-signal i:nth-child(1){left:3px;top:12px}
+    .v13-brand-copy strong{font-size:.82rem}.v13-brand-copy small{display:none}
+    .app-nav .account-menu { min-width:0; }
+    .app-nav .profile-copy, .app-nav .account-chevron { display:none; }
+    .app-nav .account-trigger{padding:3px;min-width:42px;display:grid;place-items:center}.app-nav .avatar{width:36px;height:36px}
+    .mobile-bottom-nav { position:fixed; z-index:100; left:50%; bottom:max(10px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(360px, calc(100vw - 24px)); min-height:60px; display:grid; grid-template-columns:repeat(3,1fr); align-items:center; padding:5px; border:1px solid rgba(255,255,255,.09); border-radius:19px; background:rgba(8,13,19,.91); box-shadow:0 18px 50px rgba(0,0,0,.4); backdrop-filter:blur(25px) saturate(125%); -webkit-backdrop-filter:blur(25px) saturate(125%); }
+    .mobile-bottom-nav a { min-height:48px; display:grid; place-items:center; align-content:center; gap:3px; border-radius:14px; color:rgba(231,237,245,.45); }
+    .mobile-bottom-nav a>span{font-size:.92rem;line-height:1}.mobile-bottom-nav a>strong{font-size:.5rem;letter-spacing:.02em}.mobile-bottom-nav a.active{color:white;background:rgba(255,255,255,.07)}.mobile-bottom-nav a.active>span{color:var(--v13-signal)}
+
+    .v13-home-main { width:100%; max-width:100%; padding-top:4px; }
+    .today-hero { min-height:auto; grid-template-columns:minmax(0,1fr); width:100%; max-width:100%; padding:42px 0 36px; gap:0; }
+    .today-hero::before { width:390px;height:390px;right:-245px;top:-66px;opacity:.68; }
+    .today-hero-copy { width:100%; max-width:100%; min-width:0; }
+    .today-theme{margin-top:24px}.today-hero h1{font-size:clamp(3.05rem,15vw,4.35rem);margin-top:11px;max-width:8ch}.today-hero-copy>p{font-size:.86rem;line-height:1.58;max-width:34rem}.today-actions{width:100%;align-items:stretch;flex-direction:column;gap:14px;margin-top:26px}.v13-play-button{width:100%;max-width:100%;min-width:0;min-height:54px}.today-meta{width:100%;gap:5px 13px;padding:0;font-size:.6rem;line-height:1.35}.today-meta span + span::before{display:block;left:-8px}
+    .today-signal { position:absolute; width:238px; right:-126px; top:62px; transform:none; opacity:.32; pointer-events:none; }.signal-core{width:82px;height:82px}.signal-core strong{font-size:1.85rem}.signal-core span{font-size:.36rem}
+
+    .week-console{width:100%;max-width:100%;margin:0;padding:30px 0 0}.week-console-head{align-items:end}.week-console h2{font-size:1.72rem}.week-score strong{font-size:1.58rem}.week-score span{font-size:.58rem}.week-progress{margin:17px 0 9px}
+    .week-days{grid-template-columns:1fr;gap:0;border-left:0;border-right:0;border-radius:0;background:transparent}
+    .week-day{min-height:66px;grid-template-columns:70px minmax(0,1fr) auto;grid-template-areas:"day title meta";align-items:center;align-content:initial;gap:10px;padding:0 4px 0 17px;border-bottom:1px solid rgba(255,255,255,.055);background:transparent}
+    .week-day:last-child{border-bottom:0}.week-day:hover{background:rgba(255,255,255,.025)}
+    .week-day-state{left:2px;right:auto;top:50%;transform:translateY(-50%);width:6px;height:6px}.week-day-name{grid-area:day;font-size:.49rem}.week-day strong{grid-area:title;margin:0;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.week-day small{grid-area:meta;font-size:.57rem;text-align:right;white-space:nowrap}
+
+    .v13-section{padding:44px 0 0}.v13-section-head{align-items:flex-end;gap:12px}.v13-section-head h2{font-size:1.65rem;max-width:230px}.v13-section-head>a{font-size:.58rem;white-space:nowrap}
+    .v13-leader-row{grid-template-columns:28px 36px minmax(0,1fr) auto;padding-left:2px;padding-right:2px}.v13-player{min-width:0}.v13-player strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v13-footer{display:none}
+}
+
+@media (max-width: 390px) {
+    .v13-shell, .app-shell { width:calc(100% - 18px); }
+    .today-kicker{font-size:.52rem;letter-spacing:.115em;gap:7px}.today-status{display:none}.today-hero h1{font-size:3.2rem}.week-day{grid-template-columns:62px minmax(0,1fr) auto;gap:7px}.v13-section-head>a{font-size:.55rem}
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .signal-sweep { animation:none; }
+    .game-poster:hover, .v13-play-button:hover { transform:none; }
+}
+
+/* ========================================================================== */
+/* CREW v13.2 — Daily Drop                                                    */
+/* Today is the product. Everything else supports the moment.                 */
+/* ========================================================================== */
+
+body.daily-drop {
+    --drop-accent: var(--v13-mystery);
+    background:
+        radial-gradient(circle at 50% -18%, rgba(50, 121, 171, .13), transparent 36rem),
+        linear-gradient(180deg, #05090e 0%, #03070b 58%, #020407 100%);
+}
+
+.daily-drop-shell {
+    --drop-accent: var(--v13-mystery);
+    width: min(1440px, calc(100% - 48px));
+    margin-top: 0;
+}
+.daily-drop-shell.game-tone-mystery { --drop-accent: var(--v13-mystery); }
+.daily-drop-shell.game-tone-trivia { --drop-accent: var(--v13-trivia); }
+.daily-drop-shell.game-tone-word { --drop-accent: var(--v13-word); }
+.daily-drop-shell.game-tone-tick_tock { --drop-accent: var(--v13-timer); }
+
+.daily-drop .app-nav {
+    min-height: 72px;
+    background: rgba(3, 8, 13, .73);
+    border-bottom-color: rgba(255,255,255,.065);
+}
+.daily-drop .app-nav .desktop-nav a.active {
+    position: relative;
+    color: #fff;
+}
+.daily-drop .app-nav .desktop-nav a.active::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 3px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--drop-accent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--drop-accent) 50%, transparent);
+}
+
+.daily-drop-main { width: 100%; }
+
+.daily-drop-stage {
+    position: relative;
+    min-height: 620px;
+    display: grid;
+    align-items: center;
+    overflow: hidden;
+    isolation: isolate;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.daily-drop-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -3;
+    background:
+        radial-gradient(circle at 72% 40%, color-mix(in srgb, var(--drop-accent) 15%, transparent), transparent 30%),
+        radial-gradient(circle at 78% 35%, rgba(255,255,255,.035), transparent 18%),
+        linear-gradient(90deg, rgba(2,6,10,.98) 0%, rgba(2,6,10,.88) 38%, rgba(2,6,10,.28) 72%, rgba(2,6,10,.72) 100%);
+}
+.daily-drop-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    opacity: .22;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(90deg, transparent 0 72px, rgba(255,255,255,.018) 73px, transparent 74px),
+        repeating-linear-gradient(0deg, transparent 0 72px, rgba(255,255,255,.012) 73px, transparent 74px);
+    mask-image: linear-gradient(90deg, transparent 0%, black 55%, black 100%);
+}
+
+.drop-copy {
+    position: relative;
+    z-index: 4;
+    width: min(650px, 58%);
+    padding: 78px 0 72px;
+}
+.drop-date-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(233,240,248,.64);
+    font: 800 .62rem/1 Inter;
+    letter-spacing: .16em;
+}
+.drop-live-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: var(--drop-accent);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--drop-accent) 72%, transparent);
+}
+.drop-live-dot.idle { background: #728091; box-shadow: none; }
+.drop-today {
+    margin-left: 6px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--drop-accent) 11%, transparent);
+    color: color-mix(in srgb, var(--drop-accent) 78%, white);
+    letter-spacing: .12em;
+}
+.drop-number {
+    display: block;
+    margin-top: 34px;
+    color: color-mix(in srgb, var(--drop-accent) 78%, white);
+    font: 800 .67rem/1 Inter;
+    letter-spacing: .2em;
+}
+.daily-drop-stage h1 {
+    max-width: 8.5ch;
+    margin: 13px 0 18px;
+    color: #f7f9fc;
+    font: 800 clamp(4.5rem, 7.5vw, 7.7rem)/.82 Manrope;
+    letter-spacing: -.075em;
+}
+.drop-manifesto {
+    margin: 0 0 24px;
+    color: rgba(245,249,253,.72);
+    font: 800 .74rem/1.15 Inter;
+    letter-spacing: .32em;
+}
+.drop-description {
+    display: grid;
+    gap: 3px;
+    margin: 0;
+    color: rgba(231,237,245,.76);
+    font-size: .95rem;
+    line-height: 1.42;
+}
+.drop-description span:last-child { color: rgba(231,237,245,.92); }
+.drop-play {
+    width: 230px;
+    min-height: 58px;
+    margin-top: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 26px;
+    padding: 0 20px 0 24px;
+    border-radius: 15px;
+    background: #f7f8fa;
+    color: #070b10;
+    font: 800 .82rem/1 Manrope;
+    box-shadow: 0 18px 46px rgba(0,0,0,.28);
+    transition: transform var(--v13-fast) var(--v13-ease), box-shadow var(--v13-ui) ease;
+}
+.drop-play:hover { transform: translateY(-2px); box-shadow: 0 24px 54px rgba(0,0,0,.38); }
+.drop-play:active { transform: scale(.985); }
+.drop-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-top: 18px;
+    color: rgba(231,237,245,.4);
+    font: 700 .65rem/1.3 Inter;
+}
+.drop-meta span + span { position: relative; }
+.drop-meta span + span::before {
+    content: "";
+    position: absolute;
+    left: -9px;
+    top: 50%;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.28);
+}
+.drop-meta strong { color: rgba(247,249,252,.86); }
+
+.drop-atmosphere {
+    position: absolute;
+    z-index: 1;
+    top: 4%;
+    right: -1%;
+    width: 58%;
+    height: 92%;
+    pointer-events: none;
+    opacity: .84;
+    background:
+        radial-gradient(circle at 56% 47%, color-mix(in srgb, var(--drop-accent) 10%, transparent), transparent 34%),
+        linear-gradient(145deg, transparent 18%, color-mix(in srgb, var(--drop-accent) 4%, transparent) 52%, transparent 72%);
+}
+.drop-atmosphere::before {
+    content: "";
+    position: absolute;
+    width: 64%;
+    height: 88%;
+    left: 23%;
+    top: 4%;
+    background:
+        linear-gradient(128deg, transparent 0 46%, color-mix(in srgb, var(--drop-accent) 7%, transparent) 47% 53%, transparent 54%),
+        radial-gradient(ellipse at 52% 82%, rgba(0,0,0,.86) 0 24%, transparent 25%),
+        radial-gradient(ellipse at 50% 39%, rgba(0,0,0,.62) 0 16%, transparent 17%);
+    filter: blur(.2px);
+}
+.drop-atmosphere::after {
+    content: "";
+    position: absolute;
+    inset: 7% 2% 5% 16%;
+    background: linear-gradient(108deg, transparent 0 42%, color-mix(in srgb, var(--drop-accent) 10%, transparent) 43% 47%, transparent 48% 100%);
+    filter: blur(8px);
+}
+.drop-orbit {
+    position: absolute;
+    right: 9%;
+    top: 18%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--drop-accent) 25%, transparent);
+    box-shadow: 0 0 70px color-mix(in srgb, var(--drop-accent) 5%, transparent);
+}
+.orbit-one { width: 60%; }
+.orbit-two { width: 45%; right: 16.5%; top: 25.5%; border-color: color-mix(in srgb, var(--drop-accent) 31%, transparent); }
+.orbit-three { width: 31%; right: 23.5%; top: 32.5%; border-style: dashed; border-color: color-mix(in srgb, var(--drop-accent) 18%, transparent); }
+.drop-emblem {
+    position: absolute;
+    right: 30.2%;
+    top: 40%;
+    width: 112px;
+    height: 112px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 8px;
+    border: 1px solid color-mix(in srgb, var(--drop-accent) 38%, transparent);
+    border-radius: 50%;
+    background: rgba(5,10,15,.72);
+    box-shadow: 0 0 60px color-mix(in srgb, var(--drop-accent) 12%, transparent), inset 0 1px rgba(255,255,255,.06);
+    backdrop-filter: blur(12px);
+}
+.drop-emblem strong { color: #fff; font: 800 2.5rem/1 Manrope; }
+.drop-emblem span { color: color-mix(in srgb, var(--drop-accent) 78%, white); font: 800 .44rem/1 Inter; letter-spacing: .18em; }
+.drop-beacon {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--drop-accent);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--drop-accent) 72%, transparent);
+}
+.beacon-one { right: 61%; top: 47%; }
+.beacon-two { right: 7%; top: 30%; width: 5px; height: 5px; }
+.beacon-three { right: 11%; top: 70%; width: 5px; height: 5px; }
+
+/* Each day has its own atmosphere while the CREW shell stays the same. */
+.game-tone-mystery .drop-atmosphere { filter: saturate(.92); }
+.game-tone-trivia .drop-atmosphere::before {
+    background:
+        radial-gradient(circle at 58% 42%, color-mix(in srgb, var(--drop-accent) 22%, transparent) 0 3%, transparent 4%),
+        radial-gradient(circle at 58% 42%, transparent 0 19%, color-mix(in srgb, var(--drop-accent) 16%, transparent) 20% 21%, transparent 22%),
+        radial-gradient(ellipse at 52% 86%, rgba(0,0,0,.75) 0 26%, transparent 27%);
+}
+.game-tone-word .drop-atmosphere::before {
+    width: 58%;
+    height: 58%;
+    left: 30%;
+    top: 20%;
+    border-radius: 18px;
+    background:
+        linear-gradient(90deg, rgba(120,175,255,.12) 1px, transparent 1px),
+        linear-gradient(rgba(120,175,255,.12) 1px, transparent 1px),
+        linear-gradient(145deg, rgba(120,175,255,.14), rgba(8,15,24,.3));
+    background-size: 25% 100%, 100% 33.33%, 100% 100%;
+    border: 1px solid rgba(120,175,255,.16);
+    transform: perspective(700px) rotateY(-10deg) rotateX(4deg);
+}
+.game-tone-tick_tock .drop-atmosphere::before {
+    width: 64%;
+    height: 64%;
+    left: 24%;
+    top: 16%;
+    border-radius: 50%;
+    border: 2px solid color-mix(in srgb, var(--drop-accent) 45%, transparent);
+    background:
+        conic-gradient(from -2deg, color-mix(in srgb, var(--drop-accent) 30%, transparent) 0 1deg, transparent 1deg 29deg, color-mix(in srgb, var(--drop-accent) 28%, transparent) 29deg 30deg, transparent 30deg 59deg, color-mix(in srgb, var(--drop-accent) 28%, transparent) 59deg 60deg, transparent 60deg),
+        radial-gradient(circle, transparent 0 45%, color-mix(in srgb, var(--drop-accent) 8%, transparent) 46% 55%, transparent 56%);
+    box-shadow: 0 0 90px color-mix(in srgb, var(--drop-accent) 17%, transparent), inset 0 0 55px color-mix(in srgb, var(--drop-accent) 9%, transparent);
+}
+
+.drop-recap { --drop-accent: #7fe4ff; }
+.drop-recharge { --drop-accent: #8c98a8; }
+
+.drop-week {
+    padding: 30px 0 28px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.drop-week-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+}
+.drop-overline { color: rgba(231,237,245,.4); font: 800 .54rem/1 Inter; letter-spacing: .18em; }
+.drop-week h2 { margin: 8px 0 0; font: 800 2rem/1 Manrope; letter-spacing: -.05em; }
+.drop-week-score { display: flex; align-items: baseline; gap: 7px; }
+.drop-week-score strong { font: 800 2rem/1 Manrope; letter-spacing: -.055em; }
+.drop-week-score span { color: rgba(231,237,245,.4); font: 700 .72rem/1 Inter; }
+
+.drop-week-rail {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 28px;
+}
+.drop-week-rail::before {
+    content: "";
+    position: absolute;
+    left: 1%;
+    right: 1%;
+    top: 10px;
+    height: 1px;
+    background: rgba(255,255,255,.18);
+}
+.drop-week-stop {
+    --game-accent: var(--v13-signal);
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+    color: inherit;
+}
+.drop-week-stop.game-tone-mystery { --game-accent: var(--v13-mystery); }
+.drop-week-stop.game-tone-trivia { --game-accent: var(--v13-trivia); }
+.drop-week-stop.game-tone-word { --game-accent: var(--v13-word); }
+.drop-week-stop.game-tone-tick_tock { --game-accent: var(--v13-timer); }
+.drop-node {
+    width: 21px;
+    height: 21px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.28);
+    background: #05090e;
+    box-shadow: 0 0 0 6px #05090e;
+}
+.drop-node i { width: 7px; height: 7px; border-radius: 50%; background: transparent; }
+.drop-week-stop.live .drop-node,
+.drop-week-stop.completed .drop-node { border-color: var(--game-accent); }
+.drop-week-stop.live .drop-node i,
+.drop-week-stop.completed .drop-node i { background: var(--game-accent); box-shadow: 0 0 16px color-mix(in srgb, var(--game-accent) 70%, transparent); }
+.drop-stop-day { color: color-mix(in srgb, var(--game-accent) 80%, white); font: 800 .54rem/1 Inter; letter-spacing: .13em; }
+.drop-week-stop strong { margin-top: 3px; font: 800 .88rem/1.1 Manrope; }
+.drop-week-stop small { color: rgba(231,237,245,.4); font: 600 .61rem/1.2 Inter; }
+
+.drop-next {
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 36px;
+    padding: 28px 0 18px;
+}
+.drop-next::after {
+    content: "FOUR DAYS. ONE CREW.";
+    color: rgba(231,237,245,.22);
+    font: 800 .48rem/1.7 Inter;
+    letter-spacing: .3em;
+}
+.next-drop-card {
+    --game-accent: var(--v13-signal);
+    width: min(470px, 100%);
+    min-height: 82px;
+    display: grid;
+    grid-template-columns: 50px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 16px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--game-accent) 6%, #0b1118), rgba(8,13,19,.74));
+    box-shadow: 0 16px 44px rgba(0,0,0,.14);
+    transition: transform var(--v13-fast) var(--v13-ease), border-color var(--v13-ui) ease;
+}
+.next-drop-card.game-tone-mystery { --game-accent: var(--v13-mystery); }
+.next-drop-card.game-tone-trivia { --game-accent: var(--v13-trivia); }
+.next-drop-card.game-tone-word { --game-accent: var(--v13-word); }
+.next-drop-card.game-tone-tick_tock { --game-accent: var(--v13-timer); }
+.next-drop-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--game-accent) 32%, transparent); }
+.next-drop-icon {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,.045);
+    color: color-mix(in srgb, var(--game-accent) 76%, white);
+    font-size: 1.1rem;
+}
+.next-drop-copy { display: grid; gap: 4px; }
+.next-drop-copy small { color: color-mix(in srgb, var(--game-accent) 76%, white); font: 800 .48rem/1 Inter; letter-spacing: .14em; }
+.next-drop-copy strong { font: 800 .85rem/1.1 Manrope; }
+.next-drop-copy em { color: rgba(231,237,245,.46); font: 600 .61rem/1.2 Inter; font-style: normal; }
+.next-drop-arrow { color: rgba(255,255,255,.72); font-size: 1rem; }
+
+@media (max-width: 900px) {
+    .drop-copy { width: min(620px, 66%); }
+    .drop-atmosphere { right: -10%; width: 64%; opacity: .68; }
+}
+
+@media (max-width: 760px) {
+    body.daily-drop { padding-bottom: 88px; }
+    .daily-drop-shell { width: calc(100% - 20px); }
+    .daily-drop .app-nav { min-height: 64px; }
+    .daily-drop .mobile-bottom-nav a.active { background: rgba(255,255,255,.065); }
+    .daily-drop .mobile-bottom-nav a.active > span { color: var(--drop-accent); }
+
+    .daily-drop-stage { min-height: 670px; align-items: start; }
+    .daily-drop-stage::before {
+        background:
+            radial-gradient(circle at 100% 28%, color-mix(in srgb, var(--drop-accent) 15%, transparent), transparent 42%),
+            linear-gradient(180deg, rgba(2,6,10,.9) 0%, rgba(2,6,10,.48) 42%, rgba(2,6,10,.98) 84%);
+    }
+    .daily-drop-stage::after { opacity: .13; mask-image: linear-gradient(180deg, black, transparent 76%); }
+    .drop-copy {
+        width: 100%;
+        max-width: none;
+        padding: 48px 10px 40px;
+    }
+    .drop-date-row { font-size: .56rem; gap: 8px; }
+    .drop-today { padding: 5px 7px; }
+    .drop-number { margin-top: 30px; font-size: .58rem; }
+    .daily-drop-stage h1 { max-width: 7.3ch; margin: 12px 0 18px; font-size: clamp(3.5rem, 15.5vw, 4.9rem); }
+    .drop-manifesto { margin-bottom: 21px; font-size: .62rem; letter-spacing: .25em; }
+    .drop-description { max-width: 24rem; font-size: .87rem; }
+    .drop-play { width: 100%; min-height: 58px; margin-top: 31px; }
+    .drop-meta { font-size: .61rem; }
+
+    .drop-atmosphere {
+        top: 65px;
+        right: -135px;
+        width: 360px;
+        height: 380px;
+        opacity: .52;
+    }
+    .drop-atmosphere::before { opacity: .6; }
+    .orbit-one { width: 78%; right: 2%; top: 10%; }
+    .orbit-two { width: 58%; right: 12%; top: 20%; }
+    .orbit-three { width: 40%; right: 21%; top: 29%; }
+    .drop-emblem { right: 31%; top: 38%; width: 84px; height: 84px; opacity: .55; }
+    .drop-emblem strong { font-size: 1.8rem; }
+    .drop-emblem span { display: none; }
+    .beacon-one { right: 70%; top: 45%; }
+
+    .drop-week { padding: 28px 10px 24px; }
+    .drop-week h2 { font-size: 1.75rem; }
+    .drop-week-score strong { font-size: 1.8rem; }
+    .drop-week-rail { margin-top: 26px; }
+    .drop-week-rail::before { left: 4%; right: 4%; }
+    .drop-week-stop { justify-items: center; text-align: center; }
+    .drop-node { margin-bottom: 12px; }
+    .drop-stop-day { font-size: .47rem; }
+    .drop-week-stop strong { font-size: .75rem; }
+    .drop-week-stop small { font-size: .55rem; }
+
+    .drop-next { min-height: 128px; padding: 23px 10px 12px; }
+    .drop-next::after { display: none; }
+    .next-drop-card { width: 100%; min-height: 78px; grid-template-columns: 44px minmax(0,1fr) auto; padding: 12px 13px; }
+    .next-drop-icon { width: 42px; height: 42px; }
+}
+
+@media (max-width: 420px) {
+    .daily-drop-shell { width: calc(100% - 16px); }
+    .drop-copy, .drop-week, .drop-next { padding-left: 8px; padding-right: 8px; }
+    .drop-date-row { letter-spacing: .115em; }
+    .drop-today { display: none; }
+    .daily-drop-stage h1 { font-size: clamp(3.25rem, 16vw, 4.35rem); }
+    .drop-manifesto { letter-spacing: .2em; }
+    .drop-week-stop strong { font-size: .69rem; }
+    .drop-week-stop small { font-size: .5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .drop-play:hover,
+    .next-drop-card:hover { transform: none; }
+}
+
+/* ========================================================================== */
+/* CREW v13.3 — Cinematic Today                                                */
+/* Real day-specific art, editorial copy, and a quieter weekly signal.         */
+/* ========================================================================== */
+
+.daily-drop-shell.game-tone-mystery { --drop-scene: url("../images/v13/mystery-scene.webp"); }
+.daily-drop-shell.game-tone-trivia { --drop-scene: url("../images/v13/trivia-scene.webp"); }
+.daily-drop-shell.game-tone-word { --drop-scene: url("../images/v13/word-scene.webp"); }
+.daily-drop-shell.game-tone-tick_tock { --drop-scene: url("../images/v13/tick_tock-scene.webp"); }
+
+.daily-drop-stage {
+    min-height: 610px;
+    background: #03070b;
+}
+
+.drop-scene {
+    position: absolute;
+    z-index: -4;
+    inset: 0;
+    background-image: var(--drop-scene);
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: auto 100%;
+    opacity: .96;
+    filter: saturate(.98) contrast(1.035);
+    transform: scale(1.002);
+}
+
+.daily-drop-stage::before {
+    background:
+        linear-gradient(90deg,
+            #02060a 0%,
+            rgba(2,6,10,.99) 22%,
+            rgba(2,6,10,.90) 37%,
+            rgba(2,6,10,.32) 57%,
+            rgba(2,6,10,.05) 78%,
+            rgba(2,6,10,.20) 100%),
+        linear-gradient(180deg, rgba(2,6,10,.03) 0%, rgba(2,6,10,.02) 68%, #03070b 100%);
+}
+
+.daily-drop-stage::after {
+    opacity: .12;
+    mask-image: linear-gradient(90deg, transparent 0%, black 48%, black 100%);
+}
+
+.drop-copy {
+    width: min(620px, 49%);
+    padding: 72px 0 66px;
+}
+
+.drop-kicker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: color-mix(in srgb, var(--drop-accent) 72%, white);
+    font: 800 .66rem/1 Inter;
+    letter-spacing: .20em;
+}
+
+.drop-kicker .drop-today {
+    margin-left: 8px;
+}
+
+.daily-drop-stage h1 {
+    max-width: 8.2ch;
+    margin: 18px 0 18px;
+    font-size: clamp(4.65rem, 7.35vw, 7.45rem);
+    line-height: .82;
+}
+
+.drop-manifesto {
+    margin: 0;
+    color: rgba(239,244,250,.76);
+    font: 600 1.08rem/1.35 Inter;
+    letter-spacing: -.025em;
+}
+
+.drop-description {
+    display: block;
+    max-width: 34rem;
+    margin-top: 10px;
+    color: rgba(231,237,245,.58);
+    font: 500 .86rem/1.5 Inter;
+}
+
+.drop-play {
+    margin-top: 30px;
+}
+
+.drop-meta {
+    margin-top: 16px;
+    text-transform: none;
+}
+
+/* Today has photographic atmosphere, so the procedural orbit art is reserved
+   for recap/recharge states instead of competing with the hero scene. */
+.daily-drop-stage > .drop-atmosphere { display: none; }
+.drop-recap > .drop-atmosphere,
+.drop-recharge > .drop-atmosphere { display: block; }
+
+.drop-week {
+    padding-top: 26px;
+}
+
+.drop-week-heading {
+    align-items: center;
+}
+
+.drop-week-heading .drop-overline {
+    color: rgba(231,237,245,.55);
+    font-size: .58rem;
+}
+
+.drop-week-score strong { font-size: 1.9rem; }
+
+.drop-week-rail {
+    margin-top: 22px;
+}
+
+.drop-week-stop:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 10px;
+    right: 50%;
+    width: 100%;
+    height: 1px;
+    background: transparent;
+}
+
+.drop-week-stop.completed::before,
+.drop-week-stop.live::before {
+    background: color-mix(in srgb, var(--game-accent) 78%, transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--game-accent) 18%, transparent);
+}
+
+.drop-next {
+    min-height: 132px;
+    padding-top: 24px;
+}
+
+@media (max-width: 900px) {
+    .drop-copy { width: min(580px, 55%); }
+}
+
+@media (max-width: 760px) {
+    .daily-drop-stage { min-height: 650px; }
+
+    .drop-scene {
+        inset: 0;
+        background-position: 67% 0;
+        background-size: auto 54%;
+        opacity: .58;
+        filter: saturate(.95) contrast(1.04);
+    }
+
+    .daily-drop-stage::before {
+        background:
+            linear-gradient(180deg,
+                rgba(2,6,10,.26) 0%,
+                rgba(2,6,10,.42) 28%,
+                rgba(2,6,10,.86) 52%,
+                #03070b 79%,
+                #03070b 100%),
+            linear-gradient(90deg, rgba(2,6,10,.86), rgba(2,6,10,.10) 80%);
+    }
+
+    .drop-copy {
+        width: 100%;
+        padding-top: 42px;
+    }
+
+    .drop-kicker {
+        font-size: .56rem;
+        letter-spacing: .15em;
+    }
+
+    .drop-kicker .drop-today { display: inline-flex; }
+
+    .daily-drop-stage h1 {
+        max-width: 7.2ch;
+        margin-top: 18px;
+        font-size: clamp(3.5rem, 15.3vw, 4.75rem);
+    }
+
+    .drop-manifesto {
+        max-width: 19rem;
+        font-size: .98rem;
+    }
+
+    .drop-description {
+        max-width: 20rem;
+        font-size: .8rem;
+    }
+
+    .drop-week {
+        padding-top: 24px;
+    }
+
+    .drop-week-heading .drop-overline { font-size: .52rem; }
+    .drop-week-score strong { font-size: 1.7rem; }
+    .drop-week-rail { margin-top: 23px; }
+}
+
+@media (max-width: 420px) {
+    .drop-kicker .drop-today { display: inline-flex; }
+    .daily-drop-stage h1 { font-size: clamp(3.25rem, 15.4vw, 4.15rem); }
+}
+
+/* ========================================================================== */
+/* CREW v13.4 — North-star composition polish                                 */
+/* Match the approved Daily Drop render: compact mobile hero, integrated week */
+/* rail + Next Up, stronger active signal, and no dead viewport space.         */
+/* ========================================================================== */
+
+.drop-progress-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 350px);
+    gap: clamp(28px, 4vw, 58px);
+    align-items: end;
+    padding: 26px 0 28px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.drop-progress-row .drop-week {
+    min-width: 0;
+    padding: 0;
+    border-bottom: 0;
+}
+
+.drop-progress-row .drop-next {
+    min-height: 0;
+    padding: 0;
+    display: block;
+}
+
+.drop-progress-row .drop-next::after { display: none; }
+.drop-progress-row .next-drop-card { width: 100%; }
+
+.drop-week-stop.live .drop-node {
+    border-color: color-mix(in srgb, var(--game-accent) 92%, white);
+    box-shadow:
+        0 0 0 5px #05090e,
+        0 0 0 7px color-mix(in srgb, var(--game-accent) 26%, transparent),
+        0 0 24px color-mix(in srgb, var(--game-accent) 30%, transparent);
+}
+
+.drop-week-stop.live .drop-stop-day,
+.drop-week-stop.live strong { color: color-mix(in srgb, var(--game-accent) 82%, white); }
+
+.drop-meta { color: rgba(231,237,245,.54); }
+.drop-meta strong { color: rgba(247,249,252,.94); }
+
+/* Give the desktop composition a deliberate ending instead of a long empty
+   black tail on tall browser windows. */
+.daily-drop-main { padding-bottom: 0; }
+.daily-drop-shell { min-height: min(100svh, 980px); }
+
+@media (max-width: 760px) {
+    body.daily-drop { padding-bottom: 96px; }
+    .daily-drop-main { padding-bottom: 18px; }
+
+    /* The phone hero is content-led. The old 650px minimum created a large
+       dead zone between the CTA and weekly progress. */
+    .daily-drop-stage {
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .drop-copy {
+        min-height: 455px;
+        padding: 38px 8px 28px;
+    }
+
+    .drop-scene {
+        background-size: cover;
+        background-position: 65% center;
+        opacity: .61;
+    }
+
+    .game-tone-mystery .drop-scene { background-position: 58% center; }
+    .game-tone-trivia .drop-scene { background-position: 63% center; }
+    .game-tone-word .drop-scene { background-position: 61% center; }
+    .game-tone-tick_tock .drop-scene { background-position: 66% center; }
+
+    .daily-drop-stage::before {
+        background:
+            linear-gradient(180deg,
+                rgba(2,6,10,.17) 0%,
+                rgba(2,6,10,.34) 30%,
+                rgba(2,6,10,.76) 58%,
+                #03070b 92%,
+                #03070b 100%),
+            linear-gradient(90deg, rgba(2,6,10,.91), rgba(2,6,10,.10) 86%);
+    }
+
+    .daily-drop-stage h1 {
+        margin-bottom: 14px;
+        font-size: clamp(3.2rem, 14.6vw, 4.15rem);
+    }
+
+    .drop-manifesto {
+        margin-bottom: 10px;
+        color: rgba(245,249,253,.80);
+        font-size: .91rem;
+        line-height: 1.25;
+    }
+
+    .drop-description {
+        color: rgba(231,237,245,.61);
+        font-size: .77rem;
+        line-height: 1.45;
+    }
+
+    .drop-play {
+        min-height: 56px;
+        margin-top: 24px;
+    }
+
+    .drop-meta {
+        margin-top: 14px;
+        font-size: .59rem;
+    }
+
+    .drop-progress-row {
+        display: block;
+        padding: 26px 8px 18px;
+        border-bottom: 0;
+    }
+
+    .drop-progress-row .drop-week { padding: 0; }
+    .drop-week-rail { margin-top: 20px; }
+    .drop-node { margin-bottom: 10px; }
+    .drop-stop-day { font-size: .45rem; }
+    .drop-week-stop strong { font-size: .69rem; }
+    .drop-week-stop small { font-size: .48rem; }
+
+    .drop-progress-row .drop-next {
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,.07);
+    }
+
+    .next-drop-card {
+        min-height: 76px;
+        border-radius: 15px;
+    }
+
+    /* Ensure the fixed Today/Games/Rankings bar never covers Next Up. */
+    .drop-progress-row { padding-bottom: 88px; }
+}
+
+@media (max-width: 420px) {
+    .drop-copy { min-height: 440px; }
+    .drop-progress-row { padding-left: 6px; padding-right: 6px; }
+}
+
+/* ========================================================================== */
+/* CREW v13.6 — North-star fidelity lock                                      */
+/* One framed daily game stage. The hero owns the experience; Week 01 and     */
+/* Next Up form a compact footer. Mobile uses purpose-built portrait art and   */
+/* keeps the entire Today experience inside one phone viewport.                */
+/* ========================================================================== */
+
+body.daily-drop {
+    min-height: 100svh;
+    margin: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background:
+        radial-gradient(56rem 36rem at 72% -12%, rgba(19, 88, 96, .12), transparent 62%),
+        radial-gradient(42rem 26rem at 50% 116%, rgba(79, 58, 142, .065), transparent 64%),
+        #03070a;
+}
+
+/* No visible turbulence/grain on the daily experience. */
+body.daily-drop .noise,
+body.daily-drop .ambient { display: none; }
+
+.daily-drop-shell {
+    --frame-bg: #04080c;
+    position: relative;
+    width: min(1240px, calc(100vw - 32px), calc((100svh - 32px) * 1.56));
+    aspect-ratio: 1.56 / 1;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.105);
+    border-radius: 20px;
+    background: var(--frame-bg);
+    box-shadow: 0 34px 100px rgba(0,0,0,.36);
+}
+
+.daily-drop-shell.game-tone-mystery { --drop-scene-mobile: url("../images/v13/mystery-scene-mobile.webp"); }
+.daily-drop-shell.game-tone-trivia { --drop-scene-mobile: url("../images/v13/trivia-scene-mobile.webp"); }
+.daily-drop-shell.game-tone-word { --drop-scene-mobile: url("../images/v13/word-scene-mobile.webp"); }
+.daily-drop-shell.game-tone-tick_tock { --drop-scene-mobile: url("../images/v13/tick_tock-scene-mobile.webp"); }
+
+.daily-drop .app-nav {
+    position: relative;
+    top: auto;
+    flex: 0 0 62px;
+    min-height: 62px;
+    padding: 0 24px;
+    border: 0;
+    border-bottom: 1px solid rgba(255,255,255,.065);
+    border-radius: 0;
+    background: rgba(3,8,12,.965);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.daily-drop-main {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 126px;
+    padding: 0;
+}
+
+.daily-drop-stage {
+    position: relative;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255,255,255,.075);
+    isolation: isolate;
+}
+
+.drop-scene {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: var(--drop-scene);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 67% center;
+    opacity: .96;
+    filter: saturate(.96) contrast(1.025);
+    transform: none;
+}
+
+.game-tone-mystery .drop-scene { background-position: 61% center; }
+.game-tone-trivia .drop-scene { background-position: 66% center; }
+.game-tone-word .drop-scene { background-position: 61% center; }
+.game-tone-tick_tock .drop-scene { background-position: 66% center; }
+
+/* The left third is the editorial text field; the scene stays readable on the right. */
+.daily-drop-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg,
+            #020609 0%,
+            rgba(2,6,9,.995) 18%,
+            rgba(2,6,9,.94) 31%,
+            rgba(2,6,9,.66) 43%,
+            rgba(2,6,9,.22) 57%,
+            rgba(2,6,9,.04) 78%),
+        linear-gradient(180deg, rgba(2,6,9,.02) 0%, rgba(2,6,9,.02) 74%, rgba(2,6,9,.50) 100%);
+}
+
+.daily-drop-stage::after { display: none; }
+
+.drop-copy {
+    position: relative;
+    z-index: 2;
+    width: 39%;
+    max-width: 460px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px 0 28px 34px;
+}
+
+.drop-kicker {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: color-mix(in srgb, var(--drop-accent) 78%, white);
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .19em;
+    text-transform: uppercase;
+}
+
+.drop-live-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: var(--drop-accent);
+    box-shadow: 0 0 13px color-mix(in srgb, var(--drop-accent) 55%, transparent);
+}
+
+.daily-drop-stage h1 {
+    max-width: 7.4ch;
+    margin: 17px 0 16px;
+    font-size: clamp(3.6rem, 5.15vw, 5.35rem);
+    line-height: .87;
+    letter-spacing: -.064em;
+}
+
+.drop-manifesto {
+    max-width: 28rem;
+    margin: 0 0 14px;
+    color: rgba(250,252,255,.88);
+    font-size: .64rem;
+    line-height: 1.35;
+    font-weight: 800;
+    letter-spacing: .20em;
+    text-transform: uppercase;
+}
+
+.drop-description {
+    display: grid;
+    gap: 1px;
+    max-width: 23rem;
+    margin: 0;
+    color: rgba(227,234,242,.80);
+    font-size: .79rem;
+    line-height: 1.42;
+}
+
+.drop-description span { display: block; }
+
+.drop-play {
+    width: 190px;
+    min-height: 48px;
+    margin-top: 22px;
+    padding: 0 17px;
+    border-radius: 13px;
+}
+
+.drop-meta {
+    margin-top: 10px;
+    color: rgba(224,232,241,.63);
+    font-size: .56rem;
+}
+
+/* WEEK 01 + NEXT UP are one footer composition, never a second dashboard. */
+.drop-progress-row {
+    min-height: 126px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 250px;
+    gap: 24px;
+    align-items: stretch;
+    padding: 15px 28px 18px;
+    background: #04080c;
+}
+
+.drop-progress-row .drop-week {
+    min-width: 0;
+    padding: 0;
+}
+
+.drop-week-heading {
+    min-height: 28px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.drop-week-heading .drop-overline {
+    color: rgba(197,209,223,.58);
+    font-size: .48rem;
+    font-weight: 800;
+    letter-spacing: .19em;
+}
+
+.drop-week-score {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    transform: translateY(-2px);
+}
+
+.drop-week-score strong {
+    font-size: 1.46rem;
+    line-height: 1;
+    letter-spacing: -.045em;
+}
+
+.drop-week-score span {
+    color: rgba(203,213,225,.48);
+    font-size: .58rem;
+    font-weight: 700;
+}
+
+.drop-week-rail {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: 11px;
+}
+
+.drop-week-rail::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 2.4%;
+    right: 2.4%;
+    height: 1px;
+    background: rgba(148,163,184,.30);
+}
+
+.drop-week-stop {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    display: grid;
+    justify-items: start;
+    gap: 0;
+    text-decoration: none;
+}
+
+.drop-node {
+    position: relative;
+    width: 15px;
+    height: 15px;
+    margin-bottom: 9px;
+    border: 1px solid rgba(148,163,184,.62);
+    border-radius: 50%;
+    background: #04080c;
+    box-shadow: 0 0 0 5px #04080c;
+}
+
+.drop-node i {
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: transparent;
+}
+
+.drop-week-stop.completed .drop-node,
+.drop-week-stop.live .drop-node {
+    border-color: var(--game-accent);
+}
+
+.drop-week-stop.completed .drop-node i,
+.drop-week-stop.live .drop-node i {
+    background: var(--game-accent);
+}
+
+.drop-week-stop.live .drop-node {
+    box-shadow:
+        0 0 0 4px #04080c,
+        0 0 0 6px color-mix(in srgb, var(--game-accent) 28%, transparent),
+        0 0 18px color-mix(in srgb, var(--game-accent) 30%, transparent);
+}
+
+.drop-stop-day {
+    color: rgba(191,204,220,.58);
+    font-size: .44rem;
+    font-weight: 800;
+    letter-spacing: .10em;
+}
+
+.drop-week-stop.completed .drop-stop-day,
+.drop-week-stop.live .drop-stop-day {
+    color: color-mix(in srgb, var(--game-accent) 80%, white);
+}
+
+/* The render uses the rail itself as the content. Keep game names in the DOM
+   for accessibility, but visually remove mini-card detail from Today. */
+.drop-week-stop strong,
+.drop-week-stop small { display: none; }
+
+.drop-progress-row .drop-next {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    align-self: center;
+}
+
+.next-drop-card {
+    min-height: 72px;
+    display: grid;
+    grid-template-columns: 34px minmax(0,1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0 7px 17px;
+    border: 0;
+    border-left: 1px solid rgba(255,255,255,.12);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.next-drop-icon {
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 9px;
+    background: rgba(255,255,255,.035);
+    font-size: .72rem;
+}
+
+.next-drop-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.next-drop-copy small {
+    color: color-mix(in srgb, var(--game-accent) 72%, #a5b4c8);
+    font-size: .42rem;
+    font-weight: 800;
+    letter-spacing: .16em;
+}
+
+.next-drop-copy strong {
+    overflow: hidden;
+    color: #f3f7fb;
+    font-size: .76rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.next-drop-copy em {
+    color: rgba(203,213,225,.54);
+    font-size: .52rem;
+    font-style: normal;
+}
+
+.next-drop-arrow {
+    padding: 0 8px;
+    color: rgba(241,245,249,.78);
+}
+
+@media (max-width: 760px) {
+    body.daily-drop {
+        display: block;
+        overflow: hidden;
+        padding: 8px 0;
+        background: #03070a;
+    }
+
+    .daily-drop-shell {
+        width: calc(100% - 16px);
+        height: calc(100svh - 16px);
+        min-height: 0;
+        aspect-ratio: auto;
+        margin: 0 auto;
+        border-radius: 19px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .daily-drop .app-nav {
+        flex: 0 0 58px;
+        min-height: 58px;
+        padding: 0 13px;
+    }
+
+    .daily-drop-main {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
+        padding: 0 0 72px;
+        overflow: hidden;
+    }
+
+    .daily-drop-stage {
+        min-height: 0;
+        height: auto;
+    }
+
+    .drop-scene {
+        background-image: var(--drop-scene-mobile, var(--drop-scene));
+        background-size: cover;
+        background-position: center center;
+        opacity: .92;
+        filter: saturate(.96) contrast(1.02);
+    }
+
+    .game-tone-mystery .drop-scene { background-position: 57% center; }
+    .game-tone-trivia .drop-scene { background-position: 56% center; }
+    .game-tone-word .drop-scene { background-position: 55% center; }
+    .game-tone-tick_tock .drop-scene { background-position: 58% center; }
+
+    .daily-drop-stage::before {
+        background:
+            linear-gradient(90deg,
+                rgba(2,6,9,.98) 0%,
+                rgba(2,6,9,.91) 33%,
+                rgba(2,6,9,.58) 55%,
+                rgba(2,6,9,.10) 82%),
+            linear-gradient(180deg,
+                rgba(2,6,9,.02) 0%,
+                rgba(2,6,9,.04) 58%,
+                rgba(2,6,9,.42) 79%,
+                #03070a 100%);
+    }
+
+    .drop-copy {
+        width: 72%;
+        max-width: 310px;
+        height: auto;
+        min-height: 100%;
+        justify-content: center;
+        padding: 22px 0 22px 14px;
+    }
+
+    .drop-kicker {
+        gap: 8px;
+        font-size: .49rem;
+        letter-spacing: .16em;
+    }
+
+    .drop-live-dot { width: 6px; height: 6px; flex-basis: 6px; }
+
+    .daily-drop-stage h1 {
+        max-width: 7.1ch;
+        margin: 14px 0 12px;
+        font-size: clamp(3rem, 13.4vw, 3.85rem);
+        line-height: .86;
+    }
+
+    .drop-manifesto {
+        max-width: 18rem;
+        margin-bottom: 10px;
+        font-size: .53rem;
+        line-height: 1.35;
+        letter-spacing: .19em;
+    }
+
+    .drop-description {
+        max-width: 16rem;
+        color: rgba(232,238,245,.80);
+        font-size: .70rem;
+        line-height: 1.36;
+    }
+
+    .drop-play {
+        width: 185px;
+        min-height: 47px;
+        margin-top: 18px;
+        padding: 0 14px;
+        border-radius: 13px;
+    }
+
+    .drop-meta { margin-top: 8px; }
+
+    .drop-progress-row {
+        min-height: 0;
+        display: block;
+        padding: 13px 14px 14px;
+        border-top: 1px solid rgba(255,255,255,.06);
+        background: #04080c;
+    }
+
+    .drop-week-heading { min-height: 25px; align-items: center; }
+    .drop-week-heading .drop-overline { font-size: .45rem; }
+    .drop-week-score strong { font-size: 1.28rem; }
+    .drop-week-score span { font-size: .53rem; }
+
+    .drop-week-rail { margin-top: 11px; }
+    .drop-week-rail::before { top: 7px; left: 4%; right: 4%; }
+    .drop-node { width: 15px; height: 15px; margin-bottom: 7px; box-shadow: 0 0 0 4px #04080c; }
+    .drop-stop-day { font-size: .40rem; }
+
+    .drop-progress-row .drop-next {
+        margin-top: 13px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255,255,255,.065);
+    }
+
+    .next-drop-card {
+        min-height: 58px;
+        grid-template-columns: 32px minmax(0,1fr) auto;
+        gap: 9px;
+        padding: 6px 9px;
+        border: 1px solid rgba(255,255,255,.075);
+        border-radius: 13px;
+        background: rgba(7,13,19,.84);
+    }
+
+    .next-drop-icon { width: 31px; height: 31px; border-radius: 9px; }
+    .next-drop-copy small { font-size: .39rem; }
+    .next-drop-copy strong { font-size: .72rem; }
+    .next-drop-copy em { font-size: .49rem; }
+
+    /* Bottom navigation belongs to the framed phone experience, not the page. */
+    .daily-drop .mobile-bottom-nav {
+        position: absolute;
+        left: 50%;
+        bottom: 11px;
+        transform: translateX(-50%);
+        width: min(330px, calc(100% - 28px));
+        min-height: 56px;
+        z-index: 20;
+    }
+}
+
+@media (max-width: 390px) {
+    .drop-copy { width: 76%; padding-left: 12px; }
+    .daily-drop-stage h1 { font-size: clamp(2.82rem, 13.2vw, 3.45rem); }
+    .drop-play { width: 180px; }
+    .drop-progress-row { padding-left: 12px; padding-right: 12px; }
+}
+
+/* If a very short phone cannot fit the single-stage composition, allow a
+   controlled scroll rather than clipping gameplay navigation. */
+@media (max-width: 760px) and (max-height: 700px) {
+    body.daily-drop { overflow: auto; }
+    .daily-drop-shell { height: 700px; }
+}
+
+/* ========================================================================== */
+/* CREW v13.7 — full-bleed fidelity lock                                      */
+/* The approved render is one continuous cinematic stage, not a card with a   */
+/* picture pasted into its top half. Media now spans the entire Today surface  */
+/* and the UI floats above it.                                                 */
+/* ========================================================================== */
+
+body.daily-drop {
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    overflow: hidden;
+    background:
+        radial-gradient(70rem 42rem at 50% 8%, rgba(22,61,73,.12), transparent 66%),
+        #020609;
+}
+
+body.daily-drop .ambient,
+body.daily-drop .noise { display: none !important; }
+
+.daily-drop-shell {
+    width: min(1500px, calc(100vw - 24px));
+    height: calc(100svh - 24px);
+    min-height: 680px;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.18);
+    border-radius: 20px;
+    background: #03070a;
+    box-shadow: 0 32px 90px rgba(0,0,0,.30);
+}
+
+.daily-drop .app-nav {
+    flex: 0 0 68px;
+    min-height: 68px;
+    position: relative;
+    z-index: 20;
+    border-bottom: 1px solid rgba(255,255,255,.055);
+    background: rgba(3,8,12,.88);
+    backdrop-filter: blur(20px) saturate(120%);
+}
+
+.daily-drop-main {
+    position: relative;
+    isolation: isolate;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 142px;
+    overflow: hidden;
+    background: #03070a;
+}
+
+/* One piece of media spans hero + week footer. This is the key fidelity fix. */
+.drop-stage-media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.drop-stage-media img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: 65% 48%;
+    opacity: .98;
+    filter: saturate(1.02) contrast(1.035) brightness(.94);
+    transform: scale(1.006);
+}
+
+.game-tone-mystery .drop-stage-media img { object-position: 61% 48%; }
+.game-tone-trivia .drop-stage-media img { object-position: 65% 47%; }
+.game-tone-word .drop-stage-media img { object-position: 61% 48%; }
+.game-tone-tick_tock .drop-stage-media img { object-position: 66% 48%; }
+
+/* Continuous vignette: readable copy on the left, art remains alive everywhere. */
+.daily-drop-main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg,
+            rgba(2,6,9,.96) 0%,
+            rgba(2,6,9,.88) 19%,
+            rgba(2,6,9,.58) 37%,
+            rgba(2,6,9,.18) 57%,
+            rgba(2,6,9,.04) 78%),
+        linear-gradient(180deg,
+            rgba(2,6,9,.03) 0%,
+            rgba(2,6,9,.03) 58%,
+            rgba(2,6,9,.42) 76%,
+            rgba(2,6,9,.91) 100%);
+}
+
+.daily-drop-stage,
+.drop-progress-row {
+    position: relative;
+    z-index: 2;
+    background: transparent;
+}
+
+.daily-drop-stage {
+    min-height: 0;
+    height: auto;
+    overflow: visible;
+}
+
+/* Disable the old split-panel scene/overlay system. */
+.daily-drop-stage::before,
+.daily-drop-stage::after,
+.drop-scene { display: none !important; }
+
+.drop-copy {
+    width: min(40%, 520px);
+    max-width: none;
+    min-height: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px 0 26px clamp(38px, 4.4vw, 72px);
+}
+
+.drop-kicker {
+    font-size: .64rem;
+    letter-spacing: .19em;
+}
+
+.daily-drop-stage h1 {
+    max-width: 6.1ch;
+    margin: 18px 0 14px;
+    font-size: clamp(4.5rem, 6.6vw, 7.2rem);
+    line-height: .82;
+    letter-spacing: -.072em;
+}
+
+.drop-manifesto {
+    margin-bottom: 15px;
+    font-size: .72rem;
+    line-height: 1.35;
+    letter-spacing: .20em;
+}
+
+.drop-description {
+    max-width: 22rem;
+    gap: 1px;
+    font-size: .96rem;
+    line-height: 1.4;
+    color: rgba(236,241,247,.82);
+}
+
+.drop-play {
+    width: 220px;
+    min-height: 58px;
+    margin-top: 25px;
+    padding: 0 20px;
+    border-radius: 15px;
+    font-size: .92rem;
+}
+
+.drop-progress-row {
+    min-height: 142px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 30px;
+    align-items: center;
+    padding: 16px clamp(38px, 4.4vw, 72px) 20px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    background: linear-gradient(180deg, rgba(3,8,12,.54), rgba(3,8,12,.84));
+    backdrop-filter: blur(10px);
+}
+
+.drop-week-heading {
+    min-height: 30px;
+    align-items: center;
+}
+
+.drop-week-heading .drop-overline { font-size: .53rem; }
+.drop-week-score strong { font-size: 1.72rem; }
+.drop-week-score span { font-size: .65rem; }
+
+.drop-week-rail { margin-top: 13px; }
+.drop-week-rail::before { top: 8px; left: 1.7%; right: 1.7%; }
+.drop-node { width: 17px; height: 17px; margin-bottom: 8px; background: rgba(3,8,12,.92); box-shadow: 0 0 0 5px rgba(3,8,12,.95); }
+.drop-stop-day { font-size: .46rem; }
+
+.drop-progress-row .drop-next {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid rgba(255,255,255,.10);
+    padding-left: 22px;
+}
+
+.next-drop-card {
+    width: 100%;
+    min-height: 74px;
+    padding: 8px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.next-drop-copy strong { font-size: .86rem; }
+.next-drop-copy em { font-size: .56rem; }
+
+@media (max-width: 1050px) and (min-width: 761px) {
+    .drop-copy { width: 47%; }
+    .daily-drop-stage h1 { font-size: clamp(4rem, 7.3vw, 5.7rem); }
+    .drop-progress-row { grid-template-columns: minmax(0,1fr) 240px; }
+}
+
+@media (max-width: 760px) {
+    body.daily-drop {
+        display: block;
+        padding: 0;
+        overflow: hidden;
+        background: #03070a;
+    }
+
+    .daily-drop-shell {
+        width: 100%;
+        height: 100svh;
+        min-height: 0;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .daily-drop .app-nav {
+        flex: 0 0 64px;
+        min-height: 64px;
+        padding: 0 18px;
+        background: rgba(2,7,10,.82);
+    }
+
+    .daily-drop-main {
+        grid-template-rows: minmax(0, 1fr) auto;
+        padding: 0 0 70px;
+        overflow: hidden;
+    }
+
+    .drop-stage-media img {
+        object-position: 58% 42%;
+        filter: saturate(1.04) contrast(1.03) brightness(.90);
+        transform: scale(1.01);
+    }
+
+    .game-tone-mystery .drop-stage-media img { object-position: 58% 42%; }
+    .game-tone-trivia .drop-stage-media img { object-position: 58% 40%; }
+    .game-tone-word .drop-stage-media img { object-position: 58% 42%; }
+    .game-tone-tick_tock .drop-stage-media img { object-position: 61% 42%; }
+
+    .daily-drop-main::before {
+        background:
+            linear-gradient(90deg,
+                rgba(2,6,9,.90) 0%,
+                rgba(2,6,9,.78) 30%,
+                rgba(2,6,9,.48) 49%,
+                rgba(2,6,9,.12) 72%,
+                rgba(2,6,9,.03) 100%),
+            linear-gradient(180deg,
+                rgba(2,6,9,.02) 0%,
+                rgba(2,6,9,.02) 56%,
+                rgba(2,6,9,.40) 72%,
+                rgba(2,6,9,.94) 100%);
+    }
+
+    .daily-drop-stage {
+        min-height: 0;
+        height: auto;
+    }
+
+    .drop-copy {
+        width: min(69%, 310px);
+        max-width: none;
+        min-height: 100%;
+        height: 100%;
+        justify-content: center;
+        padding: 18px 0 24px 24px;
+    }
+
+    .drop-kicker { font-size: .50rem; }
+
+    .daily-drop-stage h1 {
+        max-width: 6.25ch;
+        margin: 13px 0 12px;
+        font-size: clamp(3.45rem, 14.6vw, 4.45rem);
+        line-height: .84;
+    }
+
+    .drop-manifesto {
+        max-width: 17rem;
+        margin-bottom: 12px;
+        font-size: .55rem;
+        letter-spacing: .18em;
+    }
+
+    .drop-description {
+        max-width: 15.8rem;
+        font-size: .74rem;
+        line-height: 1.38;
+    }
+
+    .drop-play {
+        width: 190px;
+        min-height: 50px;
+        margin-top: 20px;
+        padding: 0 16px;
+        border-radius: 14px;
+        font-size: .80rem;
+    }
+
+    .drop-progress-row {
+        display: block;
+        min-height: 0;
+        padding: 13px 22px 14px;
+        border-top: 1px solid rgba(255,255,255,.075);
+        background: linear-gradient(180deg, rgba(3,8,12,.58), rgba(3,8,12,.90));
+        backdrop-filter: blur(12px);
+    }
+
+    .drop-week-heading { min-height: 27px; }
+    .drop-week-heading .drop-overline { font-size: .44rem; }
+    .drop-week-score strong { font-size: 1.38rem; }
+    .drop-week-score span { font-size: .53rem; }
+
+    .drop-week-rail { margin-top: 11px; }
+    .drop-week-rail::before { top: 7px; left: 3%; right: 3%; }
+    .drop-node { width: 15px; height: 15px; margin-bottom: 7px; box-shadow: 0 0 0 4px rgba(3,8,12,.96); }
+    .drop-stop-day { font-size: .39rem; }
+
+    .drop-progress-row .drop-next {
+        margin-top: 13px;
+        padding: 12px 0 0;
+        border-top: 1px solid rgba(255,255,255,.065);
+        border-left: 0;
+    }
+
+    .next-drop-card {
+        min-height: 58px;
+        grid-template-columns: 34px minmax(0,1fr) auto;
+        gap: 10px;
+        padding: 7px 10px;
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 14px;
+        background: rgba(5,11,16,.68);
+        backdrop-filter: blur(12px);
+    }
+
+    .next-drop-copy strong { font-size: .76rem; }
+    .next-drop-copy em { font-size: .49rem; }
+
+    .daily-drop .mobile-bottom-nav {
+        position: absolute;
+        left: 50%;
+        bottom: 10px;
+        transform: translateX(-50%);
+        width: min(340px, calc(100% - 34px));
+        min-height: 56px;
+        z-index: 30;
+        background: rgba(6,12,18,.88);
+        backdrop-filter: blur(18px) saturate(125%);
+    }
+}
+
+@media (max-width: 390px) {
+    .drop-copy { width: 72%; padding-left: 20px; }
+    .daily-drop-stage h1 { font-size: clamp(3.10rem, 14.4vw, 3.75rem); }
+    .drop-description { font-size: .70rem; }
+    .drop-progress-row { padding-left: 18px; padding-right: 18px; }
+}
+
+@media (max-width: 760px) and (max-height: 700px) {
+    body.daily-drop { overflow: auto; }
+    .daily-drop-shell { min-height: 700px; height: 700px; }
+}
+
+/* ========================================================================== */
+/* CREW v13.7.1 — scene delivery hotfix                                      */
+/* Use CSS backgrounds for the cinematic layer. This avoids broken <picture> */
+/* source selection and guarantees the scene fills the full Today surface.    */
+/* ========================================================================== */
+
+.drop-stage-media {
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 65% 47%;
+    opacity: .98;
+    filter: saturate(1.02) contrast(1.035) brightness(.94);
+    transform: scale(1.006);
+    transform-origin: center;
+}
+
+.game-tone-mystery .drop-stage-media {
+    background-image: url("../images/v13/mystery-scene.webp");
+    background-position: 61% 48%;
+}
+
+.game-tone-trivia .drop-stage-media {
+    background-image: url("../images/v13/trivia-scene.webp");
+    background-position: 65% 47%;
+}
+
+.game-tone-word .drop-stage-media {
+    background-image: url("../images/v13/word-scene.webp");
+    background-position: 61% 48%;
+}
+
+.game-tone-tick_tock .drop-stage-media {
+    background-image: url("../images/v13/tick_tock-scene.webp");
+    background-position: 66% 48%;
+}
+
+@media (max-width: 760px) {
+    .drop-stage-media {
+        filter: saturate(1.04) contrast(1.03) brightness(.90);
+        transform: scale(1.01);
+    }
+
+    .game-tone-mystery .drop-stage-media {
+        background-image: url("../images/v13/mystery-scene-mobile.webp");
+        background-position: center 42%;
+    }
+
+    .game-tone-trivia .drop-stage-media {
+        background-image: url("../images/v13/trivia-scene-mobile.webp");
+        background-position: center 40%;
+    }
+
+    .game-tone-word .drop-stage-media {
+        background-image: url("../images/v13/word-scene-mobile.webp");
+        background-position: center 42%;
+    }
+
+    /* Thursday keeps the proven desktop stopwatch art until a portrait source
+       is added; the focal position keeps the stopwatch visible on phones. */
+    .game-tone-tick_tock .drop-stage-media {
+        background-image: url("../images/v13/tick_tock-scene.webp");
+        background-position: 64% 42%;
+    }
+}
+
+/* ========================================================================== */
+/* CREW v13.7.2 — direct scene element lock                                   */
+/* The static scene endpoint is healthy (200 image/webp). Render the artwork   */
+/* as explicit <img> elements so scene delivery no longer depends on CSS URL  */
+/* resolution. Desktop and mobile assets are selected only by display rules.   */
+/* ========================================================================== */
+
+.drop-stage-media {
+    background-image: none !important;
+    opacity: 1;
+    filter: none;
+    transform: none;
+}
+
+.drop-stage-media > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block !important;
+    object-fit: cover;
+    opacity: .98;
+    filter: saturate(1.02) contrast(1.035) brightness(.94);
+    transform: scale(1.006);
+    transform-origin: center;
+}
+
+.drop-stage-media-mobile { display: none !important; }
+
+.game-tone-mystery .drop-stage-media > img { object-position: 61% 48%; }
+.game-tone-trivia .drop-stage-media > img { object-position: 65% 47%; }
+.game-tone-word .drop-stage-media > img { object-position: 61% 48%; }
+.game-tone-tick_tock .drop-stage-media > img { object-position: 66% 48%; }
+
+@media (max-width: 760px) {
+    .drop-stage-media-desktop { display: none !important; }
+    .drop-stage-media-mobile { display: block !important; }
+
+    .drop-stage-media > img {
+        filter: saturate(1.04) contrast(1.03) brightness(.90);
+        transform: scale(1.01);
+    }
+
+    .game-tone-mystery .drop-stage-media > img { object-position: 58% 42%; }
+    .game-tone-trivia .drop-stage-media > img { object-position: 58% 40%; }
+    .game-tone-word .drop-stage-media > img { object-position: 58% 42%; }
+    .game-tone-tick_tock .drop-stage-media > img { object-position: 64% 42%; }
+}

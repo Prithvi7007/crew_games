@@ -148,9 +148,12 @@ def test_global_account_menu_exposes_profile_and_sign_out():
     assert 'action="{{ url_for(\'auth.logout\') }}"' in partial
     assert '>Sign out<' in partial
 
+    app_header = (root / "app" / "templates" / "_app_header.html").read_text(encoding="utf-8")
+    assert '{% include "_account_menu.html" %}' in app_header
+
     for name in ["home.html", "games.html", "leaderboard.html", "profile.html", "mystery.html", "trivia.html", "tick_tock.html", "word.html"]:
         template = (root / "app" / "templates" / name).read_text(encoding="utf-8")
-        assert '{% include "_account_menu.html" %}' in template
+        assert '{% include "_app_header.html" %}' in template
 
 def test_db_upgrade_releases_preflight_connection_before_alembic(app, monkeypatch):
     import app.db as db_module

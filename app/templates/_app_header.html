@@ -1,0 +1,27 @@
+{% set endpoint = request.endpoint or '' %}
+{% set home_active = endpoint == 'main.home' %}
+{% set games_active = endpoint == 'main.games' or endpoint.startswith('mystery.') or endpoint.startswith('trivia.') or endpoint.startswith('word.') or endpoint.startswith('tick_tock.') %}
+{% set leaderboard_active = endpoint == 'main.leaderboard' or endpoint == 'main.leaderboard_api' %}
+<header class="glass-nav app-nav">
+  <a class="nav-brand v13-brand" href="{{ url_for('main.home') }}" aria-label="CREW today">
+    <span class="crew-signal" aria-hidden="true">
+      <i></i><i></i><i></i><i></i>
+      <b></b>
+    </span>
+    <span class="v13-brand-copy">
+      <strong>CREW</strong>
+      <small>UNIVERSAL DESTINATIONS &amp; EXPERIENCES</small>
+    </span>
+  </a>
+  <nav class="desktop-nav" aria-label="Primary navigation">
+    <a{% if home_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.home') }}">Today</a>
+    <a{% if games_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.games') }}">Games</a>
+    <a{% if leaderboard_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.leaderboard') }}">Rankings</a>
+  </nav>
+  {% include "_account_menu.html" %}
+</header>
+<nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+  <a{% if home_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.home') }}"><span aria-hidden="true">⌂</span><strong>Today</strong></a>
+  <a{% if games_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.games') }}"><span aria-hidden="true">◇</span><strong>Games</strong></a>
+  <a{% if leaderboard_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.leaderboard') }}"><span aria-hidden="true">↗</span><strong>Rankings</strong></a>
+</nav>
