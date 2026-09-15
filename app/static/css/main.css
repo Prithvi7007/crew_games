@@ -3267,3 +3267,104 @@ body.daily-drop .noise { display: none !important; }
     .game-tone-word .drop-stage-media > img { object-position: 58% 42%; }
     .game-tone-tick_tock .drop-stage-media > img { object-position: 64% 42%; }
 }
+
+
+/* ========================================================================== */
+/* CREW v13.9 — Brand chrome lock                                             */
+/* The shell should read as one premium product bar, not enterprise chrome.   */
+/* ========================================================================== */
+.app-nav,
+.daily-drop .app-nav {
+    position: relative;
+    top: 0;
+    min-height: 72px;
+    grid-template-columns: minmax(210px, 1fr) auto minmax(210px, 1fr);
+    padding: 0 22px;
+    border: 1px solid rgba(148, 163, 184, .18);
+    border-radius: 20px;
+    background:
+        linear-gradient(110deg, rgba(23, 42, 62, .72), rgba(7, 15, 24, .91) 42%, rgba(8, 21, 31, .83));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 12px 40px rgba(0,0,0,.14);
+    backdrop-filter: blur(22px) saturate(125%);
+    -webkit-backdrop-filter: blur(22px) saturate(125%);
+}
+
+.v13-brand { gap: 0; }
+.v13-brand-copy { display: flex; align-items: center; gap: 15px; }
+.v13-brand-copy strong {
+    font: 850 1.14rem/1 Manrope, Inter, sans-serif;
+    letter-spacing: .075em;
+}
+.v13-brand-copy small {
+    display: grid;
+    gap: 2px;
+    color: rgba(231,237,245,.57);
+    font: 750 .46rem/1.05 Inter, sans-serif;
+    letter-spacing: .16em;
+    white-space: nowrap;
+}
+
+.app-nav .desktop-nav { gap: 16px; }
+.app-nav .desktop-nav a {
+    padding: 9px 4px;
+    border-radius: 0;
+    color: rgba(231,237,245,.48);
+    font-size: .72rem;
+    font-weight: 700;
+}
+.app-nav .desktop-nav a:hover,
+.app-nav .desktop-nav a.active { color: #fff; background: transparent; }
+.app-nav .desktop-nav a.active::after { display: none !important; }
+
+.app-nav .profile-copy,
+.app-nav .account-chevron { display: none; }
+.app-nav .account-trigger {
+    min-width: 44px;
+    padding: 3px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+}
+.app-nav .avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border-color: rgba(255,255,255,.14);
+    background: rgba(255,255,255,.055);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+@media (max-width: 760px) {
+    .app-nav,
+    .daily-drop .app-nav {
+        min-height: 64px;
+        grid-template-columns: 1fr auto;
+        padding: 0 16px;
+        border-radius: 0;
+        border-width: 0 0 1px;
+        background: rgba(3,8,12,.80);
+        box-shadow: none;
+    }
+    .v13-brand-copy { gap: 0; }
+    .v13-brand-copy strong { font-size: 1rem; }
+    .v13-brand-copy small { display: none; }
+}
+
+
+/* ========================================================================== */
+/* CREW v13.10 — master artwork lock                                          */
+/* High-resolution scene masters are composed for the Today frame itself.     */
+/* Keep them clean: no sharpening filters, no scale-up, no synthetic grain.   */
+/* ========================================================================== */
+@media (min-width: 761px) {
+    .drop-stage-media > img.drop-stage-media-desktop {
+        opacity: 1;
+        filter: none;
+        transform: none;
+        object-position: 50% 50%;
+        image-rendering: auto;
+    }
+}
+
+
+/* CREW v13.10.1 — unique master asset URLs; defeats stale static caches. */

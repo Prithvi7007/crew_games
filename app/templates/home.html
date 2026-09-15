@@ -35,15 +35,15 @@
         {% set drop_cta = 'Play tick-tock' %}
       {% endif %}
 
-      {% set scene_desktop = 'images/v13/' ~ todays_game.key ~ '-scene.webp' %}
+      {% set scene_desktop = 'images/v13/' ~ todays_game.key ~ '-scene-master.webp' %}
       {% if todays_game.key == 'tick_tock' %}
         {% set scene_mobile = scene_desktop %}
       {% else %}
         {% set scene_mobile = 'images/v13/' ~ todays_game.key ~ '-scene-mobile.webp' %}
       {% endif %}
       <div class="drop-stage-media" aria-hidden="true">
-        <img class="drop-stage-media-desktop" src="{{ url_for('static', filename=scene_desktop) }}" alt="" fetchpriority="high" decoding="async">
-        <img class="drop-stage-media-mobile" src="{{ url_for('static', filename=scene_mobile) }}" alt="" fetchpriority="high" decoding="async">
+        <img class="drop-stage-media-desktop" src="{{ url_for('static', filename=scene_desktop, v='13.10.1') }}" alt="" fetchpriority="high" decoding="async">
+        <img class="drop-stage-media-mobile" src="{{ url_for('static', filename=scene_mobile, v='13.10.1') }}" alt="" fetchpriority="high" decoding="async">
       </div>
 
       <section class="daily-drop-stage" aria-labelledby="drop-title">
@@ -64,15 +64,6 @@
             <span>{{ drop_cta }}</span><span aria-hidden="true">→</span>
           </a>
 
-          {% if todays_game.completed or todays_game.started %}
-          <div class="drop-meta" aria-label="Today's challenge status">
-            {% if todays_game.completed %}
-              <span><strong>{{ todays_game.score }}</strong> earned</span>
-            {% else %}
-              <span>In progress</span>
-            {% endif %}
-          </div>
-          {% endif %}
         </div>
       </section>
 

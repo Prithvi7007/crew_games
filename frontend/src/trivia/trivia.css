@@ -1,0 +1,620 @@
+:root {
+  --trivia-amber: #ffc85c;
+  --trivia-amber-strong: #ffaf24;
+  --trivia-ink: #05070a;
+  --trivia-panel: rgba(12, 14, 18, .82);
+  --trivia-line: rgba(255, 255, 255, .12);
+  --trivia-muted: rgba(240, 244, 251, .62);
+}
+
+.trivia-page .single-game-main.react-island-game {
+  width: min(1080px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: clamp(26px, 5vh, 58px) 0 72px;
+}
+
+.react-trivia-shell-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.react-trivia-shell-heading .back-link {
+  display: inline-flex;
+  margin-bottom: 12px;
+}
+
+.react-trivia-shell-heading h1 {
+  margin: 0;
+  font: 800 clamp(2rem, 5vw, 4.7rem)/.92 Manrope, Inter, sans-serif;
+  letter-spacing: -.055em;
+}
+
+.react-trivia-shell-heading p {
+  margin: 14px 0 0;
+  color: var(--trivia-muted);
+}
+
+.react-trivia-stage {
+  position: relative;
+  overflow: hidden;
+  min-height: min(670px, 72vh);
+  padding: clamp(26px, 4.5vw, 56px);
+  border: 1px solid var(--trivia-line);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(255, 184, 55, .19), transparent 32%),
+    radial-gradient(circle at 10% 92%, rgba(255, 137, 20, .08), transparent 36%),
+    linear-gradient(145deg, rgba(22, 18, 12, .96), rgba(7, 9, 13, .985) 52%, rgba(5, 7, 10, .995));
+  box-shadow: 0 26px 80px rgba(0, 0, 0, .36), inset 0 1px 0 rgba(255, 255, 255, .035);
+  outline: none;
+  isolation: isolate;
+}
+
+.react-trivia-stage::before,
+.react-trivia-stage::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.react-trivia-stage::before {
+  width: min(660px, 70vw);
+  aspect-ratio: 1;
+  right: -180px;
+  top: -260px;
+  border: 1px solid rgba(255, 193, 80, .15);
+  box-shadow: 0 0 0 54px rgba(255, 193, 80, .025), 0 0 0 108px rgba(255, 193, 80, .018);
+}
+
+.react-trivia-stage::after {
+  width: 260px;
+  height: 260px;
+  right: 8%;
+  bottom: -140px;
+  background: rgba(255, 166, 42, .12);
+  filter: blur(54px);
+}
+
+.react-trivia-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  color: var(--trivia-muted);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.react-trivia-topline > div {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.react-trivia-topline strong {
+  color: #fff;
+  font: 800 1.25rem/1 Manrope, Inter, sans-serif;
+  letter-spacing: -.04em;
+}
+
+.react-trivia-topline strong small {
+  margin-left: 3px;
+  color: rgba(255,255,255,.4);
+  font-size: .62em;
+}
+
+.react-trivia-kicker {
+  color: var(--trivia-amber);
+  font-size: .73rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.react-trivia-progress {
+  height: 3px;
+  margin: 18px 0 clamp(42px, 7vh, 84px);
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(255,255,255,.08);
+}
+
+.react-trivia-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--trivia-amber-strong), #ffe6aa);
+  box-shadow: 0 0 22px rgba(255, 178, 47, .48);
+  transition: width .45s cubic-bezier(.2,.7,.2,1);
+}
+
+.react-trivia-question-wrap {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: clamp(18px, 3vw, 34px);
+  align-items: start;
+  max-width: 910px;
+}
+
+.react-question-number {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(255, 197, 91, .28);
+  border-radius: 17px;
+  color: var(--trivia-amber);
+  background: rgba(255, 185, 57, .06);
+  font: 800 .78rem/1 Manrope, Inter, sans-serif;
+  letter-spacing: .08em;
+}
+
+.react-trivia-question-wrap h1 {
+  max-width: 820px;
+  margin: -4px 0 0;
+  color: #f8f9fb;
+  font: 700 clamp(2rem, 4.3vw, 4rem)/1.02 Manrope, Inter, sans-serif;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+
+.react-trivia-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: clamp(44px, 7vh, 74px) 0 30px 82px;
+}
+
+.react-trivia-option {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 14px;
+  min-height: 78px;
+  padding: 12px 18px 12px 12px;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 18px;
+  color: #f7f8fb;
+  background: rgba(255,255,255,.035);
+  text-align: left;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, opacity .18s ease;
+}
+
+.react-trivia-option:not(:disabled):hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 195, 83, .42);
+  background: rgba(255, 185, 57, .075);
+}
+
+.react-option-letter {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 13px;
+  color: var(--trivia-amber);
+  background: rgba(0,0,0,.24);
+  font: 800 .8rem/1 Manrope, Inter, sans-serif;
+}
+
+.react-option-copy {
+  font: 650 clamp(.95rem, 1.5vw, 1.08rem)/1.25 Inter, sans-serif;
+}
+
+.react-option-status {
+  color: rgba(255,255,255,.3);
+  font-size: 1.05rem;
+  text-align: center;
+}
+
+.react-trivia-option.is-correct {
+  border-color: rgba(89, 239, 166, .68);
+  background: rgba(64, 211, 140, .12);
+}
+
+.react-trivia-option.is-correct .react-option-letter,
+.react-trivia-option.is-correct .react-option-status {
+  color: #72f1b4;
+}
+
+.react-trivia-option.is-wrong {
+  border-color: rgba(255, 112, 112, .62);
+  background: rgba(238, 77, 77, .1);
+}
+
+.react-trivia-option.is-wrong .react-option-letter,
+.react-trivia-option.is-wrong .react-option-status {
+  color: #ff8888;
+}
+
+.react-trivia-option.is-dimmed {
+  opacity: .43;
+}
+
+.react-trivia-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  min-height: 58px;
+  margin-left: 82px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  color: var(--trivia-muted);
+  font-weight: 600;
+}
+
+.react-trivia-feedback.is-success { color: #8df5c4; }
+.react-trivia-feedback.is-error { color: #ffaaaa; }
+
+.react-trivia-feedback button,
+.react-trivia-primary,
+.react-trivia-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 15px;
+  font: 750 .88rem/1 Inter, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.react-trivia-feedback button,
+.react-trivia-primary {
+  color: #111319;
+  background: #f5f6f8;
+}
+
+.react-trivia-secondary {
+  color: #f4f6fa;
+  border: 1px solid rgba(255,255,255,.13);
+  background: rgba(255,255,255,.04);
+}
+
+.react-trivia-result,
+.react-trivia-upcoming {
+  display: flex;
+  min-height: min(670px, 72vh);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.react-result-burst {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 26px;
+  border: 1px solid rgba(255, 193, 78, .23);
+  border-radius: 50%;
+  color: var(--trivia-amber);
+  background: rgba(255, 182, 53, .08);
+  box-shadow: 0 0 0 18px rgba(255, 185, 53, .025), 0 0 70px rgba(255, 163, 34, .13);
+  font-size: 1.7rem;
+}
+
+.react-result-score {
+  margin-top: 18px;
+  color: #fff;
+  font: 800 clamp(5.4rem, 14vw, 9.4rem)/.78 Manrope, Inter, sans-serif;
+  letter-spacing: -.075em;
+}
+
+.react-result-label {
+  margin-top: 20px;
+  color: var(--trivia-amber);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .22em;
+}
+
+.react-result-copy,
+.react-trivia-upcoming > p:not(.react-trivia-kicker) {
+  margin: 22px 0 32px;
+  color: var(--trivia-muted);
+}
+
+.react-result-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.react-trivia-upcoming h1 {
+  max-width: 680px;
+  margin: 18px 0 0;
+  font: 800 clamp(2.4rem, 6vw, 5rem)/.98 Manrope, Inter, sans-serif;
+  letter-spacing: -.055em;
+}
+
+@media (max-width: 720px) {
+  .trivia-page .single-game-main.react-island-game {
+    width: min(100% - 24px, 620px);
+    padding: 20px 0 92px;
+  }
+
+  .react-trivia-shell-heading {
+    margin-bottom: 14px;
+  }
+
+  .react-trivia-shell-heading h1 {
+    font-size: clamp(2rem, 12vw, 3.2rem);
+  }
+
+  .react-trivia-stage {
+    min-height: calc(100svh - 210px);
+    padding: 22px 18px 20px;
+    border-radius: 24px;
+  }
+
+  .react-trivia-topline > div {
+    display: grid;
+    gap: 7px;
+  }
+
+  .react-trivia-progress {
+    margin: 16px 0 34px;
+  }
+
+  .react-trivia-question-wrap {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .react-question-number {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  .react-trivia-question-wrap h1 {
+    font-size: clamp(1.8rem, 8.3vw, 2.75rem);
+  }
+
+  .react-trivia-options {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    margin: 34px 0 24px;
+  }
+
+  .react-trivia-option {
+    min-height: 66px;
+    border-radius: 16px;
+  }
+
+  .react-trivia-feedback {
+    align-items: stretch;
+    flex-direction: column;
+    margin-left: 0;
+  }
+
+  .react-trivia-feedback button {
+    width: 100%;
+  }
+
+  .react-result-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .react-result-actions a {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-trivia-progress i,
+  .react-trivia-option {
+    transition: none;
+  }
+}
+
+
+/* CREW v13.9 — React Trivia polish lock */
+.trivia-page .app-shell.game-shell {
+  width: min(1220px, calc(100% - 40px));
+}
+
+.trivia-page .single-game-main.react-island-game {
+  width: min(1040px, calc(100% - 48px));
+  padding-top: clamp(34px, 5vh, 52px);
+}
+
+.react-trivia-shell-heading > div {
+  display: grid;
+}
+
+.react-trivia-context {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.react-trivia-context .back-link,
+.react-trivia-context .eyebrow {
+  margin: 0;
+  font-size: .68rem;
+  line-height: 1;
+}
+
+.react-trivia-context .back-link {
+  color: rgba(235,241,248,.56);
+}
+
+.react-trivia-context .eyebrow {
+  color: #8fe8ff;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.react-trivia-shell-heading h1 {
+  max-width: 900px;
+  font-size: clamp(3.2rem, 6vw, 5.35rem);
+}
+
+.react-trivia-stage {
+  min-height: min(650px, 70vh);
+  border-color: rgba(255, 199, 92, .18);
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255, 181, 47, .20), transparent 31%),
+    radial-gradient(circle at 12% 92%, rgba(255, 130, 18, .085), transparent 34%),
+    linear-gradient(145deg, rgba(20, 16, 11, .97), rgba(7, 8, 11, .992) 53%, rgba(4, 6, 8, .998));
+}
+
+.react-trivia-option:focus-visible,
+.react-trivia-feedback button:focus-visible,
+.react-trivia-primary:focus-visible,
+.react-trivia-secondary:focus-visible {
+  outline: 2px solid rgba(255, 204, 111, .95);
+  outline-offset: 3px;
+}
+
+.react-trivia-feedback button,
+.react-trivia-primary,
+.react-trivia-secondary {
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+
+.react-trivia-feedback button:hover,
+.react-trivia-primary:hover,
+.react-trivia-secondary:hover { transform: translateY(-1px); }
+
+.react-trivia-result {
+  position: relative;
+  min-height: min(650px, 70vh);
+}
+
+.react-trivia-result::before {
+  content: '';
+  position: absolute;
+  width: min(520px, 68vw);
+  aspect-ratio: 1;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 196, 80, .12);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 64px rgba(255, 185, 53, .018),
+    0 0 0 128px rgba(255, 185, 53, .012),
+    0 0 110px rgba(255, 159, 24, .08);
+  pointer-events: none;
+}
+
+.react-result-burst,
+.react-trivia-result > :not(.react-result-sparks) {
+  position: relative;
+  z-index: 2;
+}
+
+.react-result-burst {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 22px;
+}
+
+.react-result-score {
+  font-size: clamp(6.2rem, 15vw, 10.5rem);
+}
+
+.react-result-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.react-result-meta span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 999px;
+  color: rgba(235,240,247,.58);
+  background: rgba(255,255,255,.035);
+  font-size: .69rem;
+  font-weight: 650;
+}
+
+.react-result-meta strong { color: #fff; font-weight: 800; }
+.react-result-copy { margin: 16px 0 28px; }
+
+.react-result-sparks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: .82;
+}
+
+.react-result-sparks i {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--trivia-amber);
+  box-shadow: 0 0 16px rgba(255, 183, 55, .8);
+  animation: trivia-spark 1.05s cubic-bezier(.2,.75,.2,1) both;
+}
+
+.react-result-sparks i:nth-child(1) { --x: -235px; --y: -138px; animation-delay: .02s; }
+.react-result-sparks i:nth-child(2) { --x: 226px; --y: -122px; animation-delay: .08s; }
+.react-result-sparks i:nth-child(3) { --x: -276px; --y: 34px; animation-delay: .14s; }
+.react-result-sparks i:nth-child(4) { --x: 265px; --y: 52px; animation-delay: .04s; }
+.react-result-sparks i:nth-child(5) { --x: -178px; --y: 145px; animation-delay: .18s; }
+.react-result-sparks i:nth-child(6) { --x: 182px; --y: 154px; animation-delay: .11s; }
+.react-result-sparks i:nth-child(7) { --x: -82px; --y: -188px; animation-delay: .06s; }
+.react-result-sparks i:nth-child(8) { --x: 93px; --y: -194px; animation-delay: .16s; }
+
+@keyframes trivia-spark {
+  from { transform: translate(0, 0) scale(.2); opacity: 0; }
+  28% { opacity: 1; }
+  to { transform: translate(var(--x), var(--y)) scale(1); opacity: 0; }
+}
+
+@media (max-width: 720px) {
+  .trivia-page .single-game-main.react-island-game {
+    width: min(100% - 24px, 620px);
+    padding-top: 22px;
+  }
+  .react-trivia-context {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+    margin-bottom: 12px;
+  }
+  .react-trivia-shell-heading h1 { font-size: clamp(2.6rem, 13vw, 3.6rem); }
+  .react-trivia-stage { min-height: calc(100svh - 230px); }
+  .react-result-meta { gap: 6px; }
+  .react-result-actions { max-width: 360px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-result-sparks { display: none; }
+  .react-trivia-feedback button,
+  .react-trivia-primary,
+  .react-trivia-secondary { transition: none; }
+}
