@@ -701,6 +701,12 @@ a.v17-secondary-card:hover {
   .v17-today-page .mobile-bottom-nav {
     position:fixed;
     inset:auto 0 0 0;
+    width:100%;
+    max-width:none;
+    min-height:68px;
+    padding:0;
+    border-radius:0;
+    transform:none;
     z-index:80;
     height:68px;
     display:grid;

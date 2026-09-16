@@ -8,9 +8,10 @@
       <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
       <span class="crew-mark small">CREW <em>CONTENT STUDIO</em></span>
     </a>
-    <nav class="desktop-nav"><a class="active" href="{{ url_for('admin.dashboard') }}">Schedule</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
+    <nav class="desktop-nav"><a class="active" href="{{ url_for('admin.dashboard') }}">Schedule</a><a href="{{ url_for('admin.players') }}">Players</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
     <form method="post" action="{{ url_for('admin.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-quiet-button" type="submit">Exit admin ↗</button></form>
   </header>
+  {% include "admin/_mobile_nav.html" %}
 
   <main class="admin-main">
     <section class="admin-title-row">

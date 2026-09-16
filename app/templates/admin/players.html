@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Players · CREW Admin{% endblock %}
+{% block body_class %}admin-page admin-players-page{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v21-admin-players.css', v='21.0.0') }}">{% endblock %}
+{% block body %}
+<div class="admin-shell admin-players-shell">
+  <header class="glass-nav admin-nav admin-players-nav">
+    <a class="nav-brand" href="{{ url_for('admin.dashboard') }}">
+      <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
+      <span class="crew-mark small">CREW <em>CONTENT STUDIO</em></span>
+    </a>
+    <nav class="desktop-nav"><a href="{{ url_for('admin.dashboard') }}">Schedule</a><a class="active" href="{{ url_for('admin.players') }}">Players</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
+    <form method="post" action="{{ url_for('admin.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-quiet-button" type="submit">Exit admin ↗</button></form>
+  </header>
+  {% include "admin/_mobile_nav.html" %}
+
+  <main class="admin-main admin-players-main">
+    <section class="admin-players-heading">
+      <div><span class="eyebrow">PLAYER ACCOUNTS</span><h1>Manage the CREW.</h1><p>Find players, review activity, recover access, and revoke sessions.</p></div>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}<div class="admin-flash {{ category }}">{{ message }}</div>{% endfor %}
+    {% endwith %}
+
+    <section class="admin-player-metrics">
+      <article class="glass-card"><span>TOTAL PLAYERS</span><strong>{{ metrics.players }}</strong><small>CREW accounts</small></article>
+      <article class="glass-card"><span>ACTIVE</span><strong>{{ metrics.active }}</strong><small>Activity in the last 7 days</small></article>
+      <article class="glass-card"><span>GAMES PLAYED</span><strong>{{ metrics.games }}</strong><small>Competitive completions</small></article>
+    </section>
+
+    <section class="glass-card admin-player-directory">
+      <div class="admin-directory-toolbar">
+        <div><span class="eyebrow">DIRECTORY</span><h2>Player accounts</h2></div>
+        <form class="admin-player-search" method="get" action="{{ url_for('admin.players') }}">
+          <input type="search" name="q" value="{{ search }}" maxlength="40" placeholder="Search CREW name…" aria-label="Search player accounts">
+          <button type="submit">Search</button>
+          {% if search %}<a href="{{ url_for('admin.players') }}">Clear</a>{% endif %}
+        </form>
+      </div>
+
+      {% if players %}
+      <div class="admin-player-table-wrap">
+        <table class="admin-player-table">
+          <thead><tr><th>Player</th><th>Last activity</th><th>Games</th><th>Points</th><th>Streak</th><th></th></tr></thead>
+          <tbody>
+            {% for player in players %}
+            <tr>
+              <td><a class="admin-player-identity" href="{{ url_for('admin.player_detail', profile_id=player.id) }}"><span class="admin-player-avatar">{{ player.avatar }}</span><span><strong>{{ player.username }}</strong><small>Account #{{ player.id }}</small></span></a></td>
+              <td><strong>{{ player.last_activity[:10] if player.last_activity else 'Never' }}</strong><small>{% if player.last_played_at %}Last play {{ player.last_played_at[:10] }}{% elif player.last_login_at %}Login activity{% else %}No activity yet{% endif %}</small></td>
+              <td>{{ player.games_completed }}</td>
+              <td>{{ player.total_points }}</td>
+              <td>{{ player.current_streak }}</td>
+              <td><a class="admin-player-open" href="{{ url_for('admin.player_detail', profile_id=player.id) }}">Manage →</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="admin-player-empty"><strong>No players found.</strong><span>{% if search %}Try another CREW name.{% else %}Player accounts will appear here after profiles are created.{% endif %}</span></div>
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}

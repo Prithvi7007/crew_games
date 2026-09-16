@@ -1,8 +1,11 @@
 import hmac
 import re
+import secrets
 import time
 from datetime import date, timedelta
 from functools import wraps
+
+from werkzeug.security import generate_password_hash
 
 from flask import (
     Blueprint,
@@ -17,9 +20,13 @@ from flask import (
 
 from app.db import (
     count_game_attempts,
+    get_db,
     get_game_content,
+    get_profile_by_id,
     save_game_content,
     set_game_content_status,
+    update_profile_password,
+    update_profile_recovery_code,
 )
 from app.mystery.game import get_puzzle
 from app.schedule import crew_today, GAME_DEFINITIONS, get_game_definition, get_week_start
@@ -356,3 +363,192 @@ def preview_game(game_key, game_date):
         payload=payload,
         edit_url=url_for("admin.edit_game", game_key=game_key, game_date=game_date),
     )
+
+
+PLAYER_GAME_LABELS = {
+    "mystery": "Mystery Monday",
+    "trivia": "Trivia Tuesday",
+    "word": "Wordle Wednesday",
+    "tick_tock": "Tick-Tock Thursday",
+}
+
+
+def _player_admin_rows(search=""):
+    search = _plain_text(search, 40)
+    where = ""
+    params = []
+    if search:
+        where = "WHERE LOWER(p.username) LIKE ?"
+        params.append(f"%{search.casefold()}%")
+
+    rows = get_db().execute(
+        f"""
+        SELECT
+            p.id, p.username, p.avatar, p.created_at, p.last_login_at, p.session_version,
+            COALESCE(us.current_streak, 0) AS current_streak,
+            COALESCE(us.longest_streak, 0) AS longest_streak,
+            COALESCE(us.total_points, 0) AS total_points,
+            COALESCE(us.games_completed, 0) AS games_completed,
+            (
+                SELECT MAX(gc.completed_at)
+                FROM game_completions gc
+                WHERE gc.profile_id = p.id AND gc.competitive = 1
+            ) AS last_played_at
+        FROM profiles p
+        LEFT JOIN user_stats us ON us.profile_id = p.id
+        {where}
+        ORDER BY LOWER(p.username) ASC
+        """,
+        params,
+    ).fetchall()
+
+    players = []
+    for row in rows:
+        item = dict(row)
+        activity = [value for value in (item.get("last_login_at"), item.get("last_played_at")) if value]
+        item["last_activity"] = max(activity) if activity else None
+        players.append(item)
+    return players
+
+
+def _player_admin_record(profile_id):
+    profile = get_profile_by_id(profile_id)
+    if not profile:
+        return None
+    stats = get_db().execute(
+        """
+        SELECT current_streak, longest_streak, total_points, games_completed, last_completed_date
+        FROM user_stats
+        WHERE profile_id = ?
+        """,
+        (profile_id,),
+    ).fetchone()
+    result = dict(profile)
+    result.update({
+        "current_streak": int(stats["current_streak"]) if stats else 0,
+        "longest_streak": int(stats["longest_streak"]) if stats else 0,
+        "total_points": int(stats["total_points"]) if stats else 0,
+        "games_completed": int(stats["games_completed"]) if stats else 0,
+        "last_completed_date": stats["last_completed_date"] if stats else None,
+    })
+    return result
+
+
+def _player_recent_games(profile_id, limit=20):
+    rows = get_db().execute(
+        """
+        SELECT game_key, game_date, score, won, completed_at, competitive
+        FROM game_completions
+        WHERE profile_id = ?
+        ORDER BY game_date DESC, completed_at DESC
+        LIMIT ?
+        """,
+        (profile_id, limit),
+    ).fetchall()
+    games = []
+    for row in rows:
+        item = dict(row)
+        item["title"] = PLAYER_GAME_LABELS.get(item["game_key"], item["game_key"].replace("_", " ").title())
+        games.append(item)
+    return games
+
+
+def _render_player_detail(profile_id, credential_result=None):
+    player = _player_admin_record(profile_id)
+    if not player:
+        flash("That player account no longer exists.", "error")
+        return redirect(url_for("admin.players"))
+    return render_template(
+        "admin/player_detail.html",
+        player=player,
+        recent_games=_player_recent_games(profile_id),
+        credential_result=credential_result,
+    )
+
+
+def _invalidate_player_sessions(profile_id):
+    db = get_db()
+    result = db.execute(
+        "UPDATE profiles SET session_version = session_version + 1 WHERE id = ?",
+        (profile_id,),
+    )
+    db.commit()
+    return result.rowcount > 0
+
+
+@admin_bp.get("/players")
+@admin_required
+def players():
+    search = _plain_text(request.args.get("q", ""), 40)
+    players = _player_admin_rows(search)
+    all_players = players if not search else _player_admin_rows()
+    active_cutoff = (crew_today() - timedelta(days=6)).isoformat()
+    metrics = {
+        "players": len(all_players),
+        "active": sum(
+            1 for player in all_players
+            if player.get("last_activity") and str(player["last_activity"])[:10] >= active_cutoff
+        ),
+        "games": sum(int(player.get("games_completed") or 0) for player in all_players),
+    }
+    return render_template(
+        "admin/players.html",
+        players=players,
+        search=search,
+        metrics=metrics,
+    )
+
+
+@admin_bp.get("/players/<int:profile_id>")
+@admin_required
+def player_detail(profile_id):
+    return _render_player_detail(profile_id)
+
+
+@admin_bp.post("/players/<int:profile_id>/force-sign-out")
+@admin_required
+def player_force_sign_out(profile_id):
+    player = get_profile_by_id(profile_id)
+    if not player:
+        flash("That player account no longer exists.", "error")
+        return redirect(url_for("admin.players"))
+    _invalidate_player_sessions(profile_id)
+    audit_security_event("admin_player_force_sign_out", player["username"], {"profile_id": profile_id})
+    flash(f"{player['username']} will be signed out on their next authenticated request.", "success")
+    return redirect(url_for("admin.player_detail", profile_id=profile_id))
+
+
+@admin_bp.post("/players/<int:profile_id>/reset-password")
+@admin_required
+def player_reset_password(profile_id):
+    player = get_profile_by_id(profile_id)
+    if not player:
+        flash("That player account no longer exists.", "error")
+        return redirect(url_for("admin.players"))
+    temporary_password = secrets.token_urlsafe(14)
+    update_profile_password(profile_id, generate_password_hash(temporary_password))
+    audit_security_event("admin_player_password_reset", player["username"], {"profile_id": profile_id})
+    return _render_player_detail(profile_id, {
+        "kind": "password",
+        "title": "Temporary password",
+        "value": temporary_password,
+        "message": "Give this to the player securely. Their previous sessions are now invalid.",
+    })
+
+
+@admin_bp.post("/players/<int:profile_id>/reset-recovery")
+@admin_required
+def player_reset_recovery(profile_id):
+    player = get_profile_by_id(profile_id)
+    if not player:
+        flash("That player account no longer exists.", "error")
+        return redirect(url_for("admin.players"))
+    recovery_code = "CREW-" + "-".join(secrets.token_hex(3).upper() for _ in range(3))
+    update_profile_recovery_code(profile_id, generate_password_hash(recovery_code))
+    audit_security_event("admin_player_recovery_reset", player["username"], {"profile_id": profile_id})
+    return _render_player_detail(profile_id, {
+        "kind": "recovery",
+        "title": "New recovery code",
+        "value": recovery_code,
+        "message": "This replaces the player's previous recovery code. Show it once and store it securely.",
+    })

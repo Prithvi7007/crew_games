@@ -5,9 +5,10 @@
 <div class="admin-shell">
   <header class="glass-nav admin-nav">
     <a class="nav-brand" href="{{ dashboard_url }}"><span class="brand-parent">CREW CONTENT STUDIO</span><span class="crew-mark small">{{ definition.title }}</span></a>
-    <nav class="desktop-nav"><a href="{{ dashboard_url }}">Schedule</a><a class="active" href="#">Editor</a><a href="{{ preview_url }}">Preview</a></nav>
+    <nav class="desktop-nav"><a href="{{ dashboard_url }}">Schedule</a><a href="{{ url_for('admin.players') }}">Players</a><a class="active" href="#">Editor</a><a href="{{ preview_url }}">Preview</a></nav>
     <a class="admin-quiet-button" href="{{ dashboard_url }}">Done</a>
   </header>
+  {% include "admin/_mobile_nav.html" %}
 
   <main class="admin-main admin-editor-main">
     <section class="admin-editor-heading">

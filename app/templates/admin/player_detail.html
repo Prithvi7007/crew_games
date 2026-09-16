@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ player.username }} · CREW Admin{% endblock %}
+{% block body_class %}admin-page admin-players-page{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v21-admin-players.css', v='21.0.0') }}">{% endblock %}
+{% block body %}
+<div class="admin-shell admin-players-shell">
+  <header class="glass-nav admin-nav admin-players-nav">
+    <a class="nav-brand" href="{{ url_for('admin.dashboard') }}"><span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span><span class="crew-mark small">CREW <em>CONTENT STUDIO</em></span></a>
+    <nav class="desktop-nav"><a href="{{ url_for('admin.dashboard') }}">Schedule</a><a class="active" href="{{ url_for('admin.players') }}">Players</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
+    <form method="post" action="{{ url_for('admin.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-quiet-button" type="submit">Exit admin ↗</button></form>
+  </header>
+  {% include "admin/_mobile_nav.html" %}
+
+  <main class="admin-main admin-player-detail-main">
+    <a class="admin-player-back" href="{{ url_for('admin.players') }}">← All players</a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}<div class="admin-flash {{ category }}">{{ message }}</div>{% endfor %}
+    {% endwith %}
+
+    {% if credential_result %}
+    <section class="admin-credential-reveal {{ credential_result.kind }}">
+      <span>SHOW THIS ONCE</span>
+      <h2>{{ credential_result.title }}</h2>
+      <code class="admin-secret-value">{{ credential_result.value }}</code>
+      <p>{{ credential_result.message }}</p>
+    </section>
+    {% endif %}
+
+    <section class="admin-player-hero">
+      <div class="admin-player-hero-avatar">{{ player.avatar }}</div>
+      <div><span class="eyebrow">PLAYER ACCOUNT #{{ player.id }}</span><h1>{{ player.username }}</h1><p>Joined {{ player.created_at[:10] }}{% if player.last_login_at %} · Last login {{ player.last_login_at[:10] }}{% endif %}</p></div>
+    </section>
+
+    <section class="admin-player-metrics admin-player-detail-metrics">
+      <article class="glass-card"><span>TOTAL POINTS</span><strong>{{ player.total_points }}</strong><small>Competitive score</small></article>
+      <article class="glass-card"><span>GAMES</span><strong>{{ player.games_completed }}</strong><small>Completed</small></article>
+      <article class="glass-card"><span>CURRENT STREAK</span><strong>{{ player.current_streak }}</strong><small>Scheduled games</small></article>
+      <article class="glass-card"><span>LONGEST STREAK</span><strong>{{ player.longest_streak }}</strong><small>Personal best</small></article>
+    </section>
+
+    <div class="admin-player-detail-grid">
+      <section class="glass-card admin-player-activity">
+        <div class="admin-section-heading"><div><span class="eyebrow">ACTIVITY</span><h2>Recent games</h2></div><small>Latest 20 completions</small></div>
+        {% if recent_games %}
+        <div class="admin-activity-list">
+          {% for game in recent_games %}
+          <article><div><span class="admin-activity-game game-{{ game.game_key }}">{{ game.title }}</span><strong>{{ game.game_date }}</strong></div><div class="admin-activity-score"><strong>{{ game.score }}</strong><span>PTS</span></div><small>{% if game.competitive %}Competitive{% else %}Practice{% endif %}{% if game.completed_at %} · {{ game.completed_at[:16]|replace('T', ' ') }}{% endif %}</small></article>
+          {% endfor %}
+        </div>
+        {% else %}<div class="admin-player-empty"><strong>No completed games yet.</strong><span>This account has not posted a completion.</span></div>{% endif %}
+      </section>
+
+      <aside class="admin-account-controls">
+        <section class="glass-card admin-account-card">
+          <span class="eyebrow">ACCESS</span><h2>Force sign-out</h2><p>Invalidates every existing login session for this player. Their password does not change.</p>
+          <form method="post" action="{{ url_for('admin.player_force_sign_out', profile_id=player.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-account-button" type="submit">Sign out everywhere</button></form>
+        </section>
+        <section class="glass-card admin-account-card">
+          <span class="eyebrow">PASSWORD</span><h2>Reset password</h2><p>Generates a secure temporary password and immediately invalidates existing player sessions.</p>
+          <form method="post" action="{{ url_for('admin.player_reset_password', profile_id=player.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-account-button primary" type="submit">Generate temporary password</button></form>
+        </section>
+        <section class="glass-card admin-account-card">
+          <span class="eyebrow">RECOVERY</span><h2>Replace recovery code</h2><p>Generates a new recovery code and makes the previous code unusable.</p>
+          <form method="post" action="{{ url_for('admin.player_reset_recovery', profile_id=player.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-account-button" type="submit">Generate recovery code</button></form>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+{% endblock %}

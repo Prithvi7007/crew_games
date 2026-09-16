@@ -8,6 +8,7 @@
     <span class="admin-preview-badge">ADMIN PREVIEW · {{ payload.status|upper }}</span>
     <a class="admin-quiet-button" href="{{ edit_url }}">Back to editor</a>
   </header>
+  {% include "admin/_mobile_nav.html" %}
   <main class="admin-main preview-main">
     <section class="preview-title">
       <span class="eyebrow">{{ game_day.strftime('%A · %B %d, %Y')|upper }}</span>
