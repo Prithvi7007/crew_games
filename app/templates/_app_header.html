@@ -17,7 +17,16 @@
   {% include "_account_menu.html" %}
 </header>
 <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
-  <a{% if home_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.home') }}"><span aria-hidden="true">⌂</span><strong>Today</strong></a>
-  <a{% if games_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.games') }}"><span aria-hidden="true">◇</span><strong>Games</strong></a>
-  <a{% if leaderboard_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.leaderboard') }}"><span aria-hidden="true">↗</span><strong>Rankings</strong></a>
+  <a{% if home_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.home') }}">
+    <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6.5 9.5V20h11V9.5"/><path d="M10 20v-6h4v6"/></svg></span>
+    <strong>Today</strong>
+  </a>
+  <a{% if games_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.games') }}">
+    <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 7 7-7 7-7-7 7-7Z"/></svg></span>
+    <strong>Games</strong>
+  </a>
+  <a{% if leaderboard_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.leaderboard') }}">
+    <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 17 10 12l3 3 6-7"/><path d="M15 8h4v4"/></svg></span>
+    <strong>Rankings</strong>
+  </a>
 </nav>

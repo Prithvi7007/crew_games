@@ -1,29 +1,78 @@
 {% extends "base.html" %}
 {% block title %}Games · CREW{% endblock %}
-{% block body_class %}games-archive-page{% endblock %}
+{% block body_class %}v14-games-page{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v14-pages.css', v='14.7.0') }}">
+{% endblock %}
+
 {% block body %}
-<div class="app-shell">
+<div class="v14-games-shell">
   {% include "_app_header.html" %}
-  <main class="archive-main">
-    <section class="page-intro compact-page-intro"><span class="eyebrow">CREW GAME ARCHIVE</span><h1>Your games, week by week.</h1><p>Review completed challenges or play something you missed. Archive plays count in your personal history, not past competitive rankings.</p></section>
-    <section class="archive-week-nav glass-card">
-      {% if previous_week %}<a class="secondary-button archive-arrow" href="{{ url_for('main.games', week=previous_week.isoformat()) }}">← Previous week</a>{% else %}<span class="secondary-button archive-arrow disabled">← Previous week</span>{% endif %}
-      <div><span class="eyebrow">{% if is_current %}CURRENT WEEK{% else %}ARCHIVE WEEK{% endif %}</span><strong>{{ week_label }}</strong></div>
-      {% if next_week %}<a class="secondary-button archive-arrow" href="{{ url_for('main.games', week=next_week.isoformat()) }}">Next week →</a>{% else %}<span class="secondary-button archive-arrow disabled">Next week →</span>{% endif %}
-    </section>
-    <section class="archive-grid">
+
+  <main class="v14-games-main">
+    <header class="v14-games-intro">
+      <div>
+        <span class="v14-games-kicker">THE WEEKLY LINEUP</span>
+        <h1>Four days.<br>Four challenges.</h1>
+      </div>
+      <p>Replay completed games or catch up on something you missed. Archive scores stay in your personal history without changing past weekly rankings.</p>
+    </header>
+
+    <nav class="v14-week-switcher" aria-label="Archive week">
+      {% if previous_week %}
+        <a href="{{ url_for('main.games', week=previous_week.isoformat()) }}"><span aria-hidden="true">←</span><span>Previous week</span></a>
+      {% else %}
+        <span class="disabled"><span aria-hidden="true">←</span><span>Previous week</span></span>
+      {% endif %}
+
+      <div class="v14-week-current">
+        <small>{% if is_current %}CURRENT WEEK{% else %}ARCHIVE WEEK{% endif %}</small>
+        <strong>{{ week_label }}</strong>
+      </div>
+
+      {% if next_week %}
+        <a href="{{ url_for('main.games', week=next_week.isoformat()) }}"><span>Next week</span><span aria-hidden="true">→</span></a>
+      {% else %}
+        <span class="disabled"><span>Next week</span><span aria-hidden="true">→</span></span>
+      {% endif %}
+    </nav>
+
+    <section class="v14-games-grid" aria-label="{{ week_label }} games">
       {% for game in games %}
-      <article class="glass-card archive-game-card {{ game.status }} game-tone-{{ game.key }}">
-        <div class="archive-card-head"><span>{{ game.day|upper }} · {{ game.date.strftime('%b %d')|upper }}</span><span class="archive-status {{ game.status }}">{{ game.status_label }}</span></div>
-        <div class="journey-node">{{ game.glyph }}</div>
-        {% if game.theme_label %}<span class="game-theme">{{ game.theme_label }}</span>{% endif %}
-        <h2>{{ game.title }}</h2><p>{{ game.description }}</p>
-        {% if game.completed %}<div class="archive-result"><strong>{{ game.score }}</strong><span>POINTS</span></div>{% endif %}
-        <a class="primary-button compact" href="{{ game.url }}"><span>{{ game.action }}</span><span>→</span></a>
+      <article class="v14-game-card {{ game.status }} v14-game-{{ game.key }}">
+        <div class="v14-game-art" aria-hidden="true"></div>
+        <div class="v14-game-shade" aria-hidden="true"></div>
+
+        <div class="v14-game-card-top">
+          <span>{{ game.day|upper }} · {{ game.date.strftime('%b %d')|upper }}</span>
+          <span class="v14-game-status">{{ game.status_label }}</span>
+        </div>
+
+        <div class="v14-game-card-copy">
+          {% if game.theme_label %}<span class="v14-game-theme">{{ game.theme_label }}</span>{% endif %}
+          <h2>{{ game.title }}</h2>
+          <p>{{ game.description }}</p>
+        </div>
+
+        <div class="v14-game-card-foot">
+          {% if game.completed %}
+            <div class="v14-game-score"><strong>{{ game.score }}</strong><span>PTS</span></div>
+          {% else %}
+            <div class="v14-game-score muted"><strong>{{ game.points }}</strong><span>PTS</span></div>
+          {% endif %}
+          <a href="{{ game.url }}"><span>{{ game.action }}</span><span aria-hidden="true">→</span></a>
+        </div>
       </article>
       {% endfor %}
     </section>
-    <section class="archive-note glass-card"><span class="eyebrow">HOW HISTORY WORKS</span><h2>Past leaderboards stay locked.</h2><p>Finish a missed challenge whenever you like. The result is saved to your CREW history, but the original week's standings never change.</p></section>
+
+    <section class="v14-history-note">
+      <span>HOW HISTORY WORKS</span>
+      <div>
+        <h2>Past leaderboards stay locked.</h2>
+        <p>Finish a missed challenge whenever you like. Your result is saved to CREW history, but the original week's standings never change.</p>
+      </div>
+    </section>
   </main>
 </div>
 {% endblock %}

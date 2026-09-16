@@ -1,91 +1,92 @@
 {% extends "base.html" %}
 {% block title %}Sign in · CREW{% endblock %}
-{% block body_class %}login-page{% endblock %}
+{% block body_class %}v14-login-page{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v14-pages.css', v='14.7.0') }}">
+{% endblock %}
 
 {% block body %}
-<main class="login-shell auth-shell">
-    <section class="login-brand-panel auth-brand-panel">
-        <div class="brand-lockup">
-            <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
-            <span class="crew-mark">CREW</span>
-        </div>
+<main class="v14-auth-shell">
+    <div class="v14-auth-art" aria-hidden="true">
+        <span class="v14-auth-art-panel mystery"></span>
+        <span class="v14-auth-art-panel trivia"></span>
+        <span class="v14-auth-art-panel word"></span>
+        <span class="v14-auth-art-panel tick"></span>
+    </div>
+    <div class="v14-auth-vignette" aria-hidden="true"></div>
 
-        <div class="login-story auth-story">
-            <span class="eyebrow">WEEKLY GAMES</span>
+    <section class="v14-auth-brand" aria-label="CREW weekly games">
+        <a class="v14-auth-logo" href="{{ url_for('auth.login') }}" aria-label="CREW sign in">
+            <strong>CREW</strong>
+            <small><span>PLAY TOGETHER</span><span>GO FURTHER</span></small>
+        </a>
+
+        <div class="v14-auth-story">
+            <span class="v14-auth-kicker">MONDAY — THURSDAY</span>
             <h1>Four days.<br><span>One CREW.</span></h1>
-            <p>Mystery Monday. Trivia Tuesday. Wordle Wednesday. Tick-Tock Thursday. Play the week and climb the leaderboard.</p>
+            <p>A new shared challenge every day. Play the week, build your streak, and see where your CREW lands.</p>
         </div>
 
-        <div class="auth-weekline" aria-label="CREW weekly games">
-            <div><b>M</b><span>Mystery</span></div>
-            <div><b>T</b><span>Trivia</span></div>
-            <div><b>W</b><span>Wordle</span></div>
-            <div><b>T</b><span>Tick-Tock</span></div>
-        </div>
-
-        <div class="world-orbit" aria-hidden="true">
-            <div class="orbit orbit-a"></div>
-            <div class="orbit orbit-b"></div>
-            <div class="orbit-core"><span>C</span></div>
-            <span class="orbit-dot dot-one"></span>
-            <span class="orbit-dot dot-two"></span>
-            <span class="orbit-dot dot-three"></span>
+        <div class="v14-auth-week" aria-label="CREW weekly lineup">
+            <span><i class="mystery"></i><b>Mystery Monday</b></span>
+            <span><i class="trivia"></i><b>Trivia Tuesday</b></span>
+            <span><i class="word"></i><b>Wordle Wednesday</b></span>
+            <span><i class="tick"></i><b>TickTock Thursday</b></span>
         </div>
     </section>
 
-    <section class="login-form-wrap auth-form-wrap">
-        <div class="glass-card login-card auth-card">
-            <div class="auth-card-topline">
-                <span class="mini-crew">CREW</span>
-                <span class="auth-status"><i></i> MON–THU</span>
+    <section class="v14-auth-entry">
+        <div class="v14-auth-card">
+            <div class="v14-auth-card-top">
+                <span>CREW ACCESS</span>
+                <span class="v14-auth-live"><i></i> WEEKLY GAMES</span>
             </div>
 
-            <div class="login-card-heading auth-card-heading">
-                <span class="eyebrow auth-mobile-eyebrow">WEEKLY GAMES</span>
+            <div class="v14-auth-heading">
                 <h2>Welcome back.</h2>
                 <p>Your next challenge is waiting.</p>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
+                    <div class="v14-auth-alerts" aria-live="polite">
                     {% for category, message in messages %}
-                        <div class="alert {{ category }}">{{ message }}</div>
+                        <div class="v14-auth-alert {{ category }}">{{ message }}</div>
                     {% endfor %}
+                    </div>
                 {% endif %}
             {% endwith %}
 
-            <form method="post" class="login-form auth-form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <label class="auth-field">
+            <form method="post" class="v14-auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                <label class="v14-auth-field">
                     <span>CREW name</span>
-                    <div class="auth-input-wrap">
-                        <input type="text" name="username" placeholder="Your CREW name" autocomplete="username" maxlength="24" required autofocus>
-                    </div>
+                    <input type="text" name="username" placeholder="Your CREW name" autocomplete="username" maxlength="24" required autofocus>
                 </label>
 
-                <label class="auth-field">
+                <label class="v14-auth-field">
                     <span>Password</span>
-                    <div class="auth-input-wrap has-action">
+                    <span class="v14-auth-password">
                         <input id="loginPassword" type="password" name="password" placeholder="Your password" autocomplete="current-password" required>
                         <button class="password-toggle" type="button" data-password-toggle="loginPassword" aria-label="Show password">Show</button>
-                    </div>
+                    </span>
                 </label>
 
-                <div class="auth-form-meta">
-                    <a class="account-link inline-link" href="{{ url_for('auth.recover') }}">Forgot password?</a>
+                <div class="v14-auth-meta">
+                    <a href="{{ url_for('auth.recover') }}">Forgot password?</a>
                 </div>
 
-                <button class="primary-button auth-primary" type="submit">
-                    <span>Enter CREW</span>
-                    <span class="button-arrow" aria-hidden="true">→</span>
+                <button class="v14-auth-submit" type="submit">
+                    <span>Enter CREW</span><span aria-hidden="true">→</span>
                 </button>
             </form>
 
-            <div class="auth-signup">
+            <div class="v14-auth-signup">
                 <span>New to CREW?</span>
-                <a href="{{ url_for('auth.create_profile_view') }}">Create your profile</a>
+                <a href="{{ url_for('auth.create_profile_view') }}">Create your profile →</a>
             </div>
-
-            <p class="auth-footnote">No real name or work email required.</p>
+            <p class="v14-auth-footnote">No real name or work email required.</p>
         </div>
     </section>
 </main>

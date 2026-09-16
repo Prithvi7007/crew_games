@@ -1,0 +1,165 @@
+{% set featured_ns = namespace(game=todays_game) %}
+{% set completed_ns = namespace(count=0) %}
+{% set next_ns = namespace(game=None) %}
+
+{% for game in games %}
+  {% if game.completed %}{% set completed_ns.count = completed_ns.count + 1 %}{% endif %}
+  {% if next_ns.game is none and game.date > today %}{% set next_ns.game = game %}{% endif %}
+  {% if featured_ns.game is none and game.date <= today %}{% set featured_ns.game = game %}{% endif %}
+{% endfor %}
+
+{% set featured = featured_ns.game %}
+{% set feature_key = featured.key if featured else 'mystery' %}
+{% set meta_map = {
+  'mystery': ('1 CASE', '~5 MIN'),
+  'trivia': ('10 QUESTIONS', '~3 MIN'),
+  'word': ('6 TRIES', '~5 MIN'),
+  'tick_tock': ('1 TIMER', '<1 MIN')
+} %}
+
+<div class="v16-today-shell v16-current-{{ feature_key }}">
+  {% include "_app_header.html" %}
+
+  <main class="v16-today-main">
+    <header class="v16-week-head">
+      <div class="v16-week-copy">
+        <span class="v16-eyebrow">WEEK 01 · YOUR CREW JOURNEY</span>
+        <h1>{% if todays_game %}Today's challenge.{% elif featured %}Your latest challenge.{% else %}The week starts Monday.{% endif %}</h1>
+        <p>Play the day, catch up on anything you missed, and see what unlocks next.</p>
+      </div>
+
+      <aside class="v16-week-score" aria-label="Weekly score">
+        <div><strong>{{ weekly_points }}</strong><span>/ 400</span></div>
+        <small>POINTS THIS WEEK</small>
+        <p>{{ completed_ns.count }} OF 4 COMPLETED</p>
+      </aside>
+    </header>
+
+    <section class="v16-journey" aria-label="This week's CREW games">
+      <div class="v16-track" aria-hidden="true"><span></span></div>
+
+      <div class="v16-journey-grid">
+        {% for game in games %}
+          {% set is_featured = featured and game.key == featured.key %}
+          {% set is_today = game.date == today %}
+          {% set is_future = game.date > today %}
+          {% set is_past = game.date < today %}
+          {% set meta = meta_map.get(game.key, ('DAILY GAME', '')) %}
+          {% if is_future %}
+            {% set state = 'future' %}
+            {% set state_label = 'LOCKED' %}
+          {% elif game.completed %}
+            {% set state = 'completed' %}
+            {% set state_label = 'COMPLETED' %}
+          {% elif is_today %}
+            {% set state = 'current' %}
+            {% set state_label = 'TODAY' %}
+          {% else %}
+            {% set state = 'available' %}
+            {% set state_label = 'AVAILABLE' %}
+          {% endif %}
+
+          <article class="v16-day v16-tone-{{ game.key }} {{ state }}{% if is_featured %} featured{% endif %}">
+            <div class="v16-slot v16-slot-top">
+              {% if is_featured %}
+                <div class="v16-game-card v16-feature-card">
+                  <div class="v16-card-art v16-art-{{ game.key }}" aria-hidden="true"></div>
+                  <div class="v16-card-shade" aria-hidden="true"></div>
+
+                  <div class="v16-card-topline">
+                    <span>{% if is_today %}TODAY{% else %}LATEST{% endif %} · DAY {{ '%02d'|format(loop.index) }}</span>
+                    <span class="v16-state">{{ state_label }}</span>
+                  </div>
+
+                  <div class="v16-card-copy">
+                    <span class="v16-card-day">{{ game.day|upper }} · {{ game.date.strftime('%b %d')|upper }}</span>
+                    <h2>{{ game.title }}</h2>
+                    <p>{{ game.description }}</p>
+                    <div class="v16-card-meta">
+                      <span>{{ meta[0] }}</span>
+                      <span>{{ game.points }} PTS</span>
+                      <span>{{ meta[1] }}</span>
+                    </div>
+                  </div>
+
+                  <div class="v16-card-foot">
+                    {% if game.completed %}
+                      <div class="v16-result"><strong>{{ game.score }}</strong><span>PTS EARNED</span></div>
+                    {% else %}
+                      <div class="v16-result muted"><strong>{{ game.points }}</strong><span>PTS AVAILABLE</span></div>
+                    {% endif %}
+                    <a class="v16-card-action" href="{{ game.url }}">
+                      <span>{{ game.action }}</span><span aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="v16-node-wrap">
+              <span class="v16-node" aria-hidden="true"><i></i></span>
+              <span class="v16-node-day">{{ game.day[:3]|upper }}</span>
+            </div>
+
+            <div class="v16-slot v16-slot-bottom">
+              {% if not is_featured %}
+                {% if is_future %}
+                  <div class="v16-game-card v16-secondary-card locked" aria-label="{{ game.title }}, unlocks {{ game.day }}">
+                    <div class="v16-card-art v16-art-{{ game.key }}" aria-hidden="true"></div>
+                    <div class="v16-card-shade" aria-hidden="true"></div>
+                    <div class="v16-lock" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><rect x="5.5" y="10" width="13" height="10" rx="2"/><path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10"/></svg>
+                    </div>
+                    <div class="v16-card-topline">
+                      <span>DAY {{ '%02d'|format(loop.index) }}</span>
+                      <span class="v16-state">LOCKED</span>
+                    </div>
+                    <div class="v16-card-copy">
+                      <span class="v16-card-day">{{ game.day|upper }} · {{ game.date.strftime('%b %d')|upper }}</span>
+                      <h2>{{ game.title }}</h2>
+                      <p>{{ game.description }}</p>
+                    </div>
+                    <div class="v16-locked-foot">
+                      <span>UNLOCKS {{ game.day|upper }}</span>
+                      <span>{{ game.points }} PTS</span>
+                    </div>
+                  </div>
+                {% else %}
+                  <a class="v16-game-card v16-secondary-card unlocked" href="{{ game.url }}">
+                    <div class="v16-card-art v16-art-{{ game.key }}" aria-hidden="true"></div>
+                    <div class="v16-card-shade" aria-hidden="true"></div>
+                    <div class="v16-card-topline">
+                      <span>DAY {{ '%02d'|format(loop.index) }}</span>
+                      <span class="v16-state">{{ state_label }}</span>
+                    </div>
+                    <div class="v16-card-copy">
+                      <span class="v16-card-day">{{ game.day|upper }} · {{ game.date.strftime('%b %d')|upper }}</span>
+                      <h2>{{ game.title }}</h2>
+                      <p>{{ game.description }}</p>
+                    </div>
+                    <div class="v16-card-foot compact">
+                      {% if game.completed %}
+                        <div class="v16-result"><strong>{{ game.score }}</strong><span>PTS EARNED</span></div>
+                      {% else %}
+                        <div class="v16-result muted"><strong>{{ game.points }}</strong><span>PTS AVAILABLE</span></div>
+                      {% endif %}
+                      <span class="v16-small-action">{{ game.action }} →</span>
+                    </div>
+                  </a>
+                {% endif %}
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% if next_ns.game %}
+      <div class="v16-next-mobile">
+        <span>NEXT UP</span>
+        <strong>{{ next_ns.game.title }}</strong>
+        <small>{{ next_ns.game.day }}</small>
+      </div>
+    {% endif %}
+  </main>
+</div>
