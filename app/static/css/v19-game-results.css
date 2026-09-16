@@ -1,0 +1,230 @@
+/* CREW v19.3 — unified completed-game presentation
+   Mystery, Wordle and Tick-Tock use the same cinematic result language as
+   Trivia Tuesday. The completed view has one action: View Rankings. */
+
+.crew-game-complete.mystery-page::before,
+.crew-game-complete.word-page::before,
+.crew-game-complete.timer-page::before {
+  opacity: 0 !important;
+  background-image: none !important;
+}
+
+.crew-game-complete.mystery-page::after,
+.crew-game-complete.word-page::after,
+.crew-game-complete.timer-page::after {
+  background: transparent !important;
+}
+
+.crew-result-stage {
+  --result-accent: #ffbd45;
+  position: relative;
+  width: 100%;
+  min-height: min(610px, 67vh);
+  overflow: hidden;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 56%) minmax(0, 44%);
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--result-accent) 25%, rgba(255,255,255,.08));
+  border-radius: 20px;
+  isolation: isolate;
+  background-color: #04090d;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  box-shadow:
+    0 26px 80px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.crew-result-mystery {
+  --result-accent: #55e6ac;
+  background-image: url("../images/v14/mystery.png");
+  background-position: 61% center;
+}
+
+.crew-result-word {
+  --result-accent: #55b9ff;
+  background-image: url("../images/v14/word.png");
+  background-position: 61% center;
+}
+
+.crew-result-tick_tock {
+  --result-accent: #c55cff;
+  background-image: url("../images/v14/tick_tock.png");
+  background-position: 62% center;
+}
+
+.crew-result-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg,
+      rgba(3,8,12,.98) 0%,
+      rgba(3,8,12,.90) 34%,
+      rgba(3,8,12,.50) 68%,
+      rgba(3,8,12,.20) 100%),
+    linear-gradient(180deg, rgba(3,8,12,.05), rgba(3,8,12,.42));
+}
+
+.crew-result-content {
+  grid-column: 1;
+  width: min(430px, 78%);
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 52px 0;
+  text-align: center;
+}
+
+.crew-result-burst {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  border: 1px solid color-mix(in srgb, var(--result-accent) 34%, transparent);
+  border-radius: 50%;
+  color: var(--result-accent);
+  background: color-mix(in srgb, var(--result-accent) 7%, transparent);
+  box-shadow:
+    0 0 0 12px color-mix(in srgb, var(--result-accent) 2%, transparent),
+    0 0 50px color-mix(in srgb, var(--result-accent) 10%, transparent);
+  font-size: 1.3rem;
+}
+
+.crew-result-kicker {
+  margin: 0;
+  color: var(--result-accent);
+  font: 800 .64rem/1 Inter, sans-serif;
+  letter-spacing: .14em;
+}
+
+.crew-result-score {
+  margin-top: 17px;
+  color: #fff;
+  font: 850 clamp(4.8rem,10vw,7.4rem)/.80 Manrope, Inter, sans-serif;
+  letter-spacing: -.075em;
+}
+
+.crew-result-label {
+  margin-top: 15px;
+  color: var(--result-accent);
+  font: 800 .65rem/1 Inter, sans-serif;
+  letter-spacing: .22em;
+}
+
+.crew-result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  margin-top: 18px;
+  color: rgba(225,234,243,.72);
+  font: 700 .62rem/1.25 Inter, sans-serif;
+}
+
+.crew-result-meta span + span::before {
+  content: "";
+  display: inline-block;
+  width: 1px;
+  height: 10px;
+  margin-right: 18px;
+  vertical-align: -1px;
+  background: rgba(255,255,255,.18);
+}
+
+.crew-result-copy {
+  margin: 20px 0 24px;
+  color: rgba(211,222,233,.62);
+  font: 500 .82rem/1.45 Inter, sans-serif;
+}
+
+.crew-result-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.crew-result-primary {
+  min-width: 154px;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border-radius: 10px;
+  color: #0a0d11;
+  background: #f7f8fa;
+  box-shadow: 0 10px 25px rgba(0,0,0,.20);
+  font: 800 .70rem/1 Inter, sans-serif;
+  text-decoration: none;
+}
+
+.crew-result-primary:hover {
+  transform: translateY(-1px);
+}
+
+/* Trivia already owns its result stage. Keep only the single primary action. */
+.v19-trivia-page .react-result-actions {
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  .crew-result-stage {
+    min-height: calc(100svh - 260px);
+    grid-template-columns: 1fr;
+    align-items: end;
+    border-radius: 17px;
+  }
+
+  .crew-result-mystery {
+    background-image: url("../images/v14/mystery-mobile.jpg");
+    background-position: center;
+  }
+
+  .crew-result-word {
+    background-image: url("../images/v14/word-mobile.jpg");
+    background-position: center;
+  }
+
+  .crew-result-tick_tock {
+    background-image: url("../images/v14/tick_tock-mobile.jpg");
+    background-position: center;
+  }
+
+  .crew-result-shade {
+    background:
+      linear-gradient(180deg,
+        rgba(3,8,12,.24) 0%,
+        rgba(3,8,12,.64) 48%,
+        rgba(3,8,12,.97) 100%);
+  }
+
+  .crew-result-content {
+    grid-column: 1;
+    width: min(88%, 390px);
+    padding: 150px 0 34px;
+  }
+
+  .crew-result-score {
+    font-size: clamp(4.6rem,24vw,6.4rem);
+  }
+
+  .crew-result-meta span + span::before {
+    display: none;
+  }
+
+  .crew-result-primary {
+    min-width: 170px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crew-result-primary {
+    transition: none;
+  }
+}

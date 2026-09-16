@@ -1,26 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Trivia Tuesday · CREW{% endblock %}
-{% block body_class %}game-page trivia-page react-game-page{% endblock %}
+{% block body_class %}v19-trivia-page react-game-page{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='react/trivia.css', v='13.9') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v19-trivia.css', v='19.2.0') }}">
 {% endblock %}
 {% block body %}
-<div class="app-shell game-shell">
+<div class="v19-trivia-shell">
   {% include "_app_header.html" %}
-  <main class="single-game-main react-island-game">
-    <section class="react-trivia-shell-heading">
-      <div>
-        <div class="react-trivia-context">
-          <a class="back-link" href="{{ return_url }}">← Back to {% if state.archive %}game archive{% else %}Today{% endif %}</a>
-          <span class="eyebrow">{{ game_day.strftime('%A · %B %d')|upper }}</span>
+
+  <main class="v19-trivia-main">
+    <header class="v19-trivia-heading">
+      <div class="v19-trivia-heading-copy">
+        <div class="v19-trivia-context">
+          <a class="v19-back-link" href="{{ return_url }}">← Back to {% if state.archive %}game archive{% else %}Today{% endif %}</a>
+          <span class="v19-trivia-date">{{ game_day.strftime('%A · %B %d')|upper }}</span>
         </div>
         <h1>Trivia Tuesday</h1>
-        <p>Ten questions. Ten points each. One clean run.</p>
+        <p>{% if state.completed %}Round complete. Your score is locked in.{% else %}Ten questions. Ten points each. One clean run.{% endif %}</p>
       </div>
-    </section>
+      <div class="v19-trivia-heading-mark" aria-hidden="true">
+        <span>10</span>
+        <small>QUESTIONS</small>
+      </div>
+    </header>
+
     {% if state.archive %}
-    <div class="archive-play-banner"><strong>Archive play</strong><span>This result goes to your personal history, not the original weekly standings.</span></div>
+    <div class="v19-archive-banner">
+      <strong>Archive play</strong>
+      <span>This result goes to your personal history, not the original weekly standings.</span>
+    </div>
     {% endif %}
+
     <div
       id="crew-trivia-root"
       data-answer-url="{{ url_for('trivia.answer', date=state.date) }}"
@@ -29,8 +40,9 @@
     ></div>
   </main>
 </div>
+
 <script nonce="{{ csp_nonce }}" id="trivia-state" type="application/json">{{ state|tojson }}</script>
 {% endblock %}
 {% block scripts %}
-<script type="module" src="{{ url_for('static', filename='react/trivia.js', v='13.9') }}"></script>
+<script type="module" src="{{ url_for('static', filename='react/trivia.js', v='19.3.0') }}"></script>
 {% endblock %}

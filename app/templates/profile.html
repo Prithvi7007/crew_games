@@ -1,23 +1,133 @@
 {% extends "base.html" %}
 {% block title %}Profile · CREW{% endblock %}
-{% block body_class %}profile-page{% endblock %}
+{% block body_class %}v20-profile-page{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v20-profile.css', v='20.0.0') }}">
+{% endblock %}
 {% block body %}
-<div class="app-shell">
+<div class="v20-profile-shell">
   {% include "_app_header.html" %}
-  <main class="profile-main">
-    <section class="profile-hero"><div class="profile-avatar-xl">{{ user.avatar }}</div><div class="profile-hero-copy"><span class="eyebrow">YOUR CREW PROFILE</span><h1>{{ user.username }}</h1><p>Your CREW name is permanent. Your look and security settings are yours to manage.</p></div></section>
-    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="profile-flashes">{% for category,message in messages %}<div class="flash-message {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}{% endwith %}
-    <section class="profile-stats-grid">
-      <article class="glass-card"><span>GAME STREAK</span><strong>{{ stats.current_streak }}</strong></article>
-      <article class="glass-card"><span>LIVE COMPLETIONS</span><strong>{{ history.live_completed }}</strong></article>
-      <article class="glass-card"><span>ARCHIVE PLAYS</span><strong>{{ history.archive_completed }}</strong></article>
-      <article class="glass-card"><span>ALL COMPLETED</span><strong>{{ history.completed }}</strong></article>
+
+  <main class="v20-profile-main">
+    <header class="v20-profile-hero">
+      <div class="v20-profile-identity">
+        <div class="v20-profile-avatar" aria-hidden="true">{{ user.avatar }}</div>
+        <div>
+          <span class="v20-kicker">YOUR CREW PROFILE</span>
+          <h1>{{ user.username }}</h1>
+          <p>Your CREW name stays fixed. Your avatar and security settings are yours to manage.</p>
+        </div>
+      </div>
+
+      <div class="v20-hero-summary" aria-label="Profile summary">
+        <div><span>STREAK</span><strong>{{ stats.current_streak }}</strong><small>games</small></div>
+        <i aria-hidden="true"></i>
+        <div><span>COMPLETED</span><strong>{{ history.completed }}</strong><small>total</small></div>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="v20-flashes">
+        {% for category,message in messages %}
+        <div class="v20-flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    <section class="v20-stat-strip" aria-label="CREW stats">
+      <div><span>GAME STREAK</span><strong>{{ stats.current_streak }}</strong></div>
+      <div><span>LIVE COMPLETIONS</span><strong>{{ history.live_completed }}</strong></div>
+      <div><span>ARCHIVE PLAYS</span><strong>{{ history.archive_completed }}</strong></div>
+      <div><span>ALL COMPLETED</span><strong>{{ history.completed }}</strong></div>
     </section>
-    <section class="profile-settings-grid">
-      <article class="glass-card profile-setting-card"><span class="eyebrow">CREW NAME</span><h2>{{ profile.username }}</h2><p>This is your permanent identity across scores, history, and leaderboards.</p><span class="immutable-pill">PERMANENT</span></article>
-      <article class="glass-card profile-setting-card"><span class="eyebrow">AVATAR</span><h2>Change your look.</h2><form method="post" action="{{ url_for('auth.profile_avatar') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><div class="profile-avatar-picker">{% for item in avatars %}<label class="avatar-choice {% if item.value==profile.avatar %}selected{% endif %}"><input type="radio" name="avatar" value="{{ item.value }}" {% if item.value==profile.avatar %}checked{% endif %}><span>{{ item.value }}</span><small>{{ item.label }}</small></label>{% endfor %}</div><button class="primary-button compact" type="submit">Save avatar →</button></form></article>
-      <article class="glass-card profile-setting-card"><span class="eyebrow">PASSWORD</span><h2>Change password.</h2><form class="profile-form" method="post" action="{{ url_for('auth.profile_password') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><label><span>Current password</span><input type="password" name="current_password" required autocomplete="current-password"></label><label><span>New password</span><input type="password" name="new_password" required minlength="{{ password_min_length }}" autocomplete="new-password"></label><label><span>Confirm new password</span><input type="password" name="new_password_confirm" required minlength="{{ password_min_length }}" autocomplete="new-password"></label><button class="primary-button compact" type="submit">Update password →</button></form></article>
-      <article class="glass-card profile-setting-card"><span class="eyebrow">RECOVERY</span><h2>Generate a new recovery code.</h2><p>Your current code stops working immediately when you generate a replacement.</p><form class="profile-form" method="post" action="{{ url_for('auth.profile_recovery') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><label><span>Current password</span><input type="password" name="current_password" required autocomplete="current-password"></label><button class="secondary-button" type="submit">Generate new code</button></form></article>
+
+    <section class="v20-settings">
+      <article class="v20-panel v20-identity-panel">
+        <div class="v20-panel-head">
+          <div>
+            <span class="v20-kicker">IDENTITY</span>
+            <h2>Your CREW look.</h2>
+          </div>
+          <span class="v20-permanent">NAME LOCKED</span>
+        </div>
+
+        <div class="v20-name-row">
+          <div>
+            <span>CREW NAME</span>
+            <strong>{{ profile.username }}</strong>
+          </div>
+          <p>Used across scores, history, and rankings.</p>
+        </div>
+
+        <form class="v20-avatar-form" method="post" action="{{ url_for('auth.profile_avatar') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <div class="v20-form-label">
+            <span>AVATAR</span>
+            <small>Choose how you show up across CREW.</small>
+          </div>
+
+          <div class="v20-avatar-picker">
+            {% for item in avatars %}
+            <label class="v20-avatar-choice {% if item.value==profile.avatar %}selected{% endif %}">
+              <input type="radio" name="avatar" value="{{ item.value }}" {% if item.value==profile.avatar %}checked{% endif %}>
+              <span>{{ item.value }}</span>
+              <small>{{ item.label }}</small>
+            </label>
+            {% endfor %}
+          </div>
+
+          <button class="v20-primary" type="submit"><span>Save avatar</span><span>→</span></button>
+        </form>
+      </article>
+
+      <div class="v20-security-stack">
+        <article class="v20-panel">
+          <div class="v20-panel-head">
+            <div>
+              <span class="v20-kicker">SECURITY</span>
+              <h2>Change password.</h2>
+            </div>
+          </div>
+
+          <form class="v20-form" method="post" action="{{ url_for('auth.profile_password') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label>
+              <span>Current password</span>
+              <input type="password" name="current_password" required autocomplete="current-password">
+            </label>
+            <div class="v20-form-split">
+              <label>
+                <span>New password</span>
+                <input type="password" name="new_password" required minlength="{{ password_min_length }}" autocomplete="new-password">
+              </label>
+              <label>
+                <span>Confirm password</span>
+                <input type="password" name="new_password_confirm" required minlength="{{ password_min_length }}" autocomplete="new-password">
+              </label>
+            </div>
+            <button class="v20-primary" type="submit"><span>Update password</span><span>→</span></button>
+          </form>
+        </article>
+
+        <article class="v20-panel v20-recovery-panel">
+          <div class="v20-recovery-copy">
+            <span class="v20-kicker">RECOVERY</span>
+            <h2>Replace recovery code.</h2>
+            <p>Your current recovery code stops working as soon as a new one is generated.</p>
+          </div>
+
+          <form class="v20-recovery-form" method="post" action="{{ url_for('auth.profile_recovery') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label>
+              <span>Current password</span>
+              <input type="password" name="current_password" required autocomplete="current-password">
+            </label>
+            <button class="v20-secondary" type="submit">Generate new code</button>
+          </form>
+        </article>
+      </div>
     </section>
   </main>
 </div>

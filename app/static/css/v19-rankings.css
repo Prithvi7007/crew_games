@@ -1,0 +1,604 @@
+/* CREW v19 — Rankings
+   Purpose-built rankings page. Uses unique v19 classes to avoid the legacy
+   leaderboard cascade while preserving the existing leaderboard.js contract. */
+
+.v19-rankings-page {
+  --r-bg: #02070b;
+  --r-panel: rgba(6,13,19,.72);
+  --r-line: rgba(255,255,255,.10);
+  --r-line-soft: rgba(255,255,255,.065);
+  --r-text: #f7f9fc;
+  --r-muted: rgba(210,221,232,.62);
+  --r-soft: rgba(179,196,213,.43);
+  --r-gold: #ffbd45;
+  min-height: 100svh;
+  margin: 0;
+  color: var(--r-text);
+  background:
+    radial-gradient(62rem 34rem at 78% -6%, rgba(255,189,69,.075), transparent 67%),
+    radial-gradient(40rem 28rem at 8% 42%, rgba(85,230,172,.035), transparent 72%),
+    var(--r-bg);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.v19-rankings-page .ambient,
+.v19-rankings-page .noise { display:none !important; }
+
+.v19-rankings-shell {
+  width: 100%;
+  min-height: 100svh;
+}
+
+/* Header */
+.v19-rankings-page .app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: minmax(260px,1fr) auto minmax(260px,1fr);
+  align-items: center;
+  padding: 0 clamp(30px,3vw,52px);
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  border-radius: 0;
+  background: rgba(2,8,12,.82);
+  box-shadow: none;
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+}
+
+.v19-rankings-page .v13-brand-copy {
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+.v19-rankings-page .v13-brand-copy strong {
+  color:#fff;
+  font:850 1.3rem/1 Manrope,Inter,sans-serif;
+  letter-spacing:.05em;
+}
+.v19-rankings-page .v13-brand-copy small {
+  display:grid;
+  gap:2px;
+  color:rgba(225,234,243,.54);
+  font:800 .50rem/1.08 Inter,sans-serif;
+  letter-spacing:.17em;
+}
+.v19-rankings-page .desktop-nav {
+  display:flex;
+  justify-content:center;
+  gap:31px;
+}
+.v19-rankings-page .desktop-nav a {
+  position:relative;
+  padding:28px 0 23px;
+  color:rgba(212,223,235,.48);
+  background:transparent;
+  font:700 .84rem/1 Inter,sans-serif;
+  text-decoration:none;
+}
+.v19-rankings-page .desktop-nav a:hover,
+.v19-rankings-page .desktop-nav a.active { color:#fff; }
+.v19-rankings-page .desktop-nav a.active::after {
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:18px;
+  height:2px;
+  border-radius:99px;
+  background:currentColor;
+  opacity:.70;
+}
+.v19-rankings-page .profile-copy,
+.v19-rankings-page .account-chevron { display:none; }
+.v19-rankings-page .account-trigger {
+  justify-self:end;
+  min-width:40px;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+.v19-rankings-page .avatar {
+  width:39px;
+  height:39px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:50%;
+  color:#fff;
+  background:rgba(255,255,255,.05);
+}
+.v19-rankings-page .mobile-bottom-nav { display:none; }
+
+/* Main layout */
+.v19-rankings-main {
+  width:min(1480px,calc(100% - 64px));
+  margin:0 auto;
+  padding:clamp(54px,6vw,90px) 0 100px;
+}
+
+.v19-rankings-hero {
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);
+  align-items:end;
+  gap:clamp(46px,7vw,110px);
+}
+
+.v19-kicker {
+  color:var(--r-gold);
+  font:800 .60rem/1 Inter,sans-serif;
+  letter-spacing:.20em;
+}
+
+.v19-rankings-title h1 {
+  margin:18px 0 0;
+  color:#fff;
+  font:850 clamp(5rem,7vw,8rem)/.78 Manrope,Inter,sans-serif;
+  letter-spacing:-.078em;
+}
+
+.v19-rankings-copy {
+  max-width:430px;
+  padding-bottom:8px;
+}
+.v19-rankings-copy > p {
+  margin:0;
+  color:var(--r-muted);
+  font:500 .86rem/1.65 Inter,sans-serif;
+}
+.v19-live-stat {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-top:25px;
+  padding-top:16px;
+  border-top:1px solid var(--r-line);
+}
+.v19-live-stat span {
+  color:var(--r-soft);
+  font:800 .48rem/1 Inter,sans-serif;
+  letter-spacing:.16em;
+}
+.v19-live-stat strong {
+  color:#fff;
+  font:800 .74rem/1 Inter,sans-serif;
+}
+
+/* Filters */
+.v19-filterbar {
+  margin-top:46px;
+  display:grid;
+  grid-template-columns:minmax(220px,.9fr) minmax(260px,1fr) minmax(260px,.8fr);
+  gap:13px;
+  align-items:end;
+  padding:16px;
+  border:1px solid var(--r-line);
+  border-radius:16px;
+  background:rgba(6,13,19,.64);
+  backdrop-filter:blur(16px) saturate(114%);
+  -webkit-backdrop-filter:blur(16px) saturate(114%);
+}
+
+.v19-filterbar label {
+  display:grid;
+  gap:8px;
+}
+.v19-filterbar label > span,
+.v19-filter-note > span {
+  color:var(--r-soft);
+  font:800 .47rem/1 Inter,sans-serif;
+  letter-spacing:.16em;
+}
+.v19-filterbar select {
+  width:100%;
+  height:48px;
+  box-sizing:border-box;
+  padding:0 13px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:10px;
+  outline:none;
+  color:#f4f7fa;
+  background:#0b1218;
+  font:650 .75rem/1 Inter,sans-serif;
+}
+.v19-filterbar select:focus {
+  border-color:rgba(255,189,69,.38);
+  box-shadow:0 0 0 3px rgba(255,189,69,.045);
+}
+.v19-filter-note {
+  min-height:48px;
+  display:grid;
+  align-content:center;
+  justify-items:end;
+  gap:6px;
+  padding:0 8px;
+  text-align:right;
+}
+.v19-filter-note strong {
+  color:rgba(239,244,249,.72);
+  font:650 .66rem/1.2 Inter,sans-serif;
+}
+
+/* Section headings */
+.v19-section {
+  margin-top:58px;
+}
+.v19-section-head {
+  display:grid;
+  grid-template-columns:auto minmax(40px,1fr);
+  align-items:end;
+  gap:24px;
+  margin-bottom:18px;
+}
+.v19-section-head > div {
+  display:grid;
+  gap:8px;
+}
+.v19-section-kicker {
+  color:var(--r-soft);
+  font:800 .48rem/1 Inter,sans-serif;
+  letter-spacing:.18em;
+}
+.v19-section-head h2 {
+  margin:0;
+  color:#fff;
+  font:800 clamp(1.9rem,3vw,3.1rem)/.96 Manrope,Inter,sans-serif;
+  letter-spacing:-.05em;
+}
+.v19-section-rule {
+  height:1px;
+  margin-bottom:8px;
+  background:linear-gradient(90deg,var(--r-line),transparent);
+}
+
+/* Podium */
+.v19-podium {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  align-items:stretch;
+}
+
+.v19-rankings-page .podium-card,
+.v19-rankings-page .podium-empty {
+  position:relative;
+  width:100%;
+  min-height:220px;
+  box-sizing:border-box;
+  display:grid;
+  align-content:end;
+  justify-items:start;
+  gap:7px;
+  padding:24px;
+  order:initial !important;
+  transform:none !important;
+  overflow:hidden;
+  border:1px solid var(--r-line);
+  border-radius:17px;
+  color:#fff;
+  background:
+    radial-gradient(26rem 17rem at 92% 0%,rgba(255,189,69,.095),transparent 66%),
+    rgba(6,13,19,.69);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+  text-align:left;
+}
+
+.v19-rankings-page .podium-card.place-1 {
+  min-height:250px;
+  border-color:rgba(255,189,69,.25);
+}
+
+.v19-rankings-page .podium-rank {
+  position:absolute;
+  top:20px;
+  left:22px;
+  color:var(--r-gold);
+  font:800 .60rem/1 Inter,sans-serif;
+  letter-spacing:.12em;
+}
+
+.v19-rankings-page .podium-avatar {
+  width:66px;
+  height:66px;
+  display:grid;
+  place-items:center;
+  margin:0 0 8px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:50%;
+  background:rgba(255,255,255,.045);
+  font-size:1.7rem;
+}
+
+.v19-rankings-page .podium-card > strong {
+  color:#fff;
+  font:800 1.25rem/1.15 Manrope,Inter,sans-serif;
+}
+.v19-rankings-page .podium-card > span:not(.podium-rank) {
+  color:var(--r-gold);
+  font:800 .78rem/1 Inter,sans-serif;
+}
+.v19-rankings-page .podium-card > small {
+  color:var(--r-soft);
+  font:500 .65rem/1.4 Inter,sans-serif;
+}
+
+/* One player: full-width champion strip instead of an empty 3-column podium. */
+.v19-podium > .podium-card:only-child {
+  grid-column:1 / -1;
+  min-height:138px;
+  grid-template-columns:58px 68px minmax(0,1fr) auto;
+  grid-template-rows:auto auto;
+  align-items:center;
+  align-content:center;
+  justify-items:stretch;
+  column-gap:18px;
+  row-gap:5px;
+  padding:22px 26px;
+}
+
+.v19-podium > .podium-card:only-child .podium-rank {
+  position:static;
+  grid-column:1;
+  grid-row:1 / -1;
+  align-self:center;
+  color:var(--r-gold);
+}
+.v19-podium > .podium-card:only-child .podium-avatar {
+  grid-column:2;
+  grid-row:1 / -1;
+  margin:0;
+}
+.v19-podium > .podium-card:only-child > strong {
+  grid-column:3;
+  grid-row:1;
+  align-self:end;
+}
+.v19-podium > .podium-card:only-child > small {
+  grid-column:3;
+  grid-row:2;
+  align-self:start;
+}
+.v19-podium > .podium-card:only-child > span:not(.podium-rank) {
+  grid-column:4;
+  grid-row:1 / -1;
+  align-self:center;
+  justify-self:end;
+  font-size:1.25rem;
+}
+
+.v19-podium > .podium-empty:only-child {
+  grid-column:1 / -1;
+  min-height:132px;
+}
+
+/* If only one player is ranked, the top strip already represents you. */
+.v19-rankings-main:has(.v19-podium > .podium-card:only-child) .v19-me-section {
+  display:none;
+}
+
+/* Your position + standings */
+.v19-me-card,
+.v19-standings-card {
+  overflow:hidden;
+  border:1px solid var(--r-line);
+  border-radius:16px;
+  background:rgba(6,13,19,.66);
+}
+
+.v19-standings-labels {
+  min-height:36px;
+  display:grid;
+  grid-template-columns:62px minmax(0,1fr) auto;
+  align-items:center;
+  gap:13px;
+  padding:0 19px;
+  border-bottom:1px solid var(--r-line-soft);
+  color:rgba(179,196,213,.34);
+  font:800 .43rem/1 Inter,sans-serif;
+  letter-spacing:.15em;
+}
+.v19-standings-labels span:last-child {
+  justify-self:end;
+}
+
+.v19-rankings-page .leader-row {
+  min-height:68px;
+  display:grid;
+  grid-template-columns:58px 44px minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:13px;
+  padding:0 19px;
+  border-bottom:1px solid var(--r-line-soft);
+}
+.v19-rankings-page .leader-row:last-child { border-bottom:0; }
+
+.v19-rankings-page .leader-row.is-me {
+  background:linear-gradient(90deg,rgba(255,189,69,.075),rgba(255,189,69,.015));
+}
+.v19-rankings-page .leader-row .rank {
+  color:rgba(221,230,240,.44);
+  font:800 .70rem/1 Manrope,Inter,sans-serif;
+}
+.v19-rankings-page .player-avatar {
+  width:37px;
+  height:37px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.v19-rankings-page .player-meta {
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+.v19-rankings-page .player-meta strong {
+  overflow:hidden;
+  color:#f5f8fb;
+  font:700 .78rem/1.1 Inter,sans-serif;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.v19-rankings-page .player-meta span {
+  color:var(--r-soft);
+  font-size:.60rem;
+}
+.v19-rankings-page .you-pill {
+  padding:5px 7px;
+  border-radius:999px;
+  color:#111;
+  background:var(--r-gold);
+  font:850 .43rem/1 Inter,sans-serif;
+  letter-spacing:.10em;
+}
+.v19-rankings-page .leader-row .score {
+  color:#fff;
+  font:850 1rem/1 Manrope,Inter,sans-serif;
+}
+.v19-rankings-page .leader-row .score small {
+  color:var(--r-soft);
+  font-size:.46rem;
+  letter-spacing:.08em;
+}
+.v19-rankings-page .leaderboard-empty {
+  min-height:160px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  color:var(--r-muted);
+}
+.v19-rankings-page .leaderboard-empty h3 {
+  margin:0 0 5px;
+  color:#fff;
+  font:800 1.05rem/1 Manrope,Inter,sans-serif;
+}
+.v19-rankings-page .leaderboard-empty p {
+  margin:0;
+  color:var(--r-soft);
+  font-size:.68rem;
+}
+
+/* Mobile */
+@media (max-width:760px) {
+  .v19-rankings-page {
+    padding-bottom:68px;
+  }
+
+  .v19-rankings-page .app-nav {
+    min-height:64px;
+    grid-template-columns:1fr auto;
+    padding:0 18px;
+  }
+  .v19-rankings-page .desktop-nav { display:none; }
+  .v19-rankings-page .v13-brand-copy { gap:0; }
+  .v19-rankings-page .v13-brand-copy strong { font-size:1.08rem; }
+  .v19-rankings-page .v13-brand-copy small { display:none; }
+  .v19-rankings-page .avatar { width:35px; height:35px; }
+
+  .v19-rankings-main {
+    width:calc(100% - 28px);
+    padding:34px 0 36px;
+  }
+
+  .v19-rankings-hero {
+    grid-template-columns:1fr;
+    gap:20px;
+  }
+  .v19-rankings-title h1 {
+    font-size:clamp(4rem,18vw,5.6rem);
+  }
+  .v19-rankings-copy {
+    max-width:none;
+  }
+
+  .v19-filterbar {
+    margin-top:28px;
+    grid-template-columns:1fr;
+    padding:13px;
+  }
+  .v19-filter-note {
+    min-height:auto;
+    justify-items:start;
+    padding:7px 2px 2px;
+    text-align:left;
+  }
+
+  .v19-section {
+    margin-top:40px;
+  }
+
+  .v19-section-head {
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .v19-section-rule { display:none; }
+
+  .v19-podium {
+    grid-template-columns:1fr;
+  }
+  .v19-rankings-page .podium-card,
+  .v19-rankings-page .podium-card.place-1 {
+    min-height:165px;
+  }
+
+  .v19-podium > .podium-card:only-child {
+    min-height:154px;
+    grid-template-columns:45px 56px minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+    column-gap:12px;
+    padding:18px;
+  }
+  .v19-podium > .podium-card:only-child .podium-avatar {
+    width:56px;
+    height:56px;
+  }
+  .v19-podium > .podium-card:only-child > span:not(.podium-rank) {
+    grid-column:3;
+    grid-row:3;
+    justify-self:start;
+    margin-top:5px;
+  }
+
+  .v19-standings-labels { display:none; }
+
+  .v19-rankings-page .leader-row {
+    min-height:64px;
+    grid-template-columns:38px 36px minmax(0,1fr) auto;
+    gap:8px;
+    padding:0 11px;
+  }
+  .v19-rankings-page .you-pill { display:none; }
+
+  .v19-rankings-page .mobile-bottom-nav {
+    position:fixed;
+    inset:auto 0 0 0;
+    z-index:90;
+    height:68px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    border-top:1px solid rgba(255,255,255,.09);
+    background:rgba(2,8,12,.90);
+    backdrop-filter:blur(18px) saturate(120%);
+    -webkit-backdrop-filter:blur(18px) saturate(120%);
+  }
+  .v19-rankings-page .mobile-bottom-nav a {
+    display:grid;
+    place-items:center;
+    align-content:center;
+    gap:4px;
+    color:rgba(190,202,216,.52);
+    font:700 .46rem/1 Inter,sans-serif;
+    text-decoration:none;
+  }
+  .v19-rankings-page .mobile-bottom-nav a.active { color:#fff; }
+  .v19-rankings-page .mobile-bottom-nav .nav-icon svg {
+    width:17px;
+    height:17px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+}

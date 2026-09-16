@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css', v='13.10.1') }}">
     {% block head %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/v18-pages.css', v='18.1.0') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/v19-game-results.css', v='19.3.0') }}">
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <div class="ambient ambient-one"></div>
@@ -21,6 +23,7 @@
     {% block body %}{% endblock %}
 
     <script src="{{ url_for('static', filename='js/ui.js', v='13.3') }}"></script>
+    <script src="{{ url_for('static', filename='js/game-results.js', v='19.3.0') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

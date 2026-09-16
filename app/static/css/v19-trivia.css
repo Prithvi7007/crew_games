@@ -1,0 +1,434 @@
+/* CREW v19.2 — Trivia Tuesday
+   Isolated from the shared v18 game-page cascade. Artwork appears once,
+   inside the gameplay/result stage, instead of once on the page and again
+   inside the React card. */
+
+.v19-trivia-page {
+  --tt-bg: #02070b;
+  --tt-gold: #ffbd45;
+  --tt-text: #f7f9fc;
+  --tt-muted: rgba(212,223,234,.62);
+  --tt-soft: rgba(180,197,214,.43);
+  min-height: 100svh;
+  margin: 0;
+  color: var(--tt-text);
+  background:
+    radial-gradient(58rem 28rem at 72% -8%, rgba(255,189,69,.055), transparent 67%),
+    var(--tt-bg);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.v19-trivia-page .ambient,
+.v19-trivia-page .noise {
+  display: none !important;
+}
+
+.v19-trivia-shell {
+  width: 100%;
+  min-height: 100svh;
+}
+
+/* Header */
+.v19-trivia-page .app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: minmax(260px,1fr) auto minmax(260px,1fr);
+  align-items: center;
+  padding: 0 clamp(30px,3vw,52px);
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  border-radius: 0;
+  background: rgba(2,8,12,.82);
+  box-shadow: none;
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+}
+
+.v19-trivia-page .v13-brand-copy {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.v19-trivia-page .v13-brand-copy strong {
+  color: #fff;
+  font: 850 1.3rem/1 Manrope,Inter,sans-serif;
+  letter-spacing: .05em;
+}
+.v19-trivia-page .v13-brand-copy small {
+  display: grid;
+  gap: 2px;
+  color: rgba(225,234,243,.54);
+  font: 800 .50rem/1.08 Inter,sans-serif;
+  letter-spacing: .17em;
+}
+.v19-trivia-page .desktop-nav {
+  display: flex;
+  justify-content: center;
+  gap: 31px;
+}
+.v19-trivia-page .desktop-nav a {
+  position: relative;
+  padding: 28px 0 23px;
+  color: rgba(212,223,235,.48);
+  background: transparent;
+  font: 700 .84rem/1 Inter,sans-serif;
+  text-decoration: none;
+}
+.v19-trivia-page .desktop-nav a:hover,
+.v19-trivia-page .desktop-nav a.active { color: #fff; }
+.v19-trivia-page .desktop-nav a.active::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 18px;
+  height: 2px;
+  border-radius: 99px;
+  background: currentColor;
+  opacity: .70;
+}
+.v19-trivia-page .profile-copy,
+.v19-trivia-page .account-chevron { display: none; }
+.v19-trivia-page .account-trigger {
+  justify-self: end;
+  min-width: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.v19-trivia-page .avatar {
+  width: 39px;
+  height: 39px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255,255,255,.05);
+}
+.v19-trivia-page .mobile-bottom-nav { display: none; }
+
+/* Page shell */
+.v19-trivia-main {
+  width: min(1280px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: clamp(42px,5vw,70px) 0 88px;
+}
+
+.v19-trivia-heading {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: end;
+  gap: 36px;
+  margin-bottom: 26px;
+}
+
+.v19-trivia-context {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 14px;
+}
+
+.v19-back-link,
+.v19-trivia-date {
+  font: 750 .60rem/1 Inter,sans-serif;
+}
+
+.v19-back-link {
+  color: rgba(229,237,245,.50);
+  text-decoration: none;
+}
+
+.v19-back-link:hover {
+  color: #fff;
+}
+
+.v19-trivia-date {
+  color: var(--tt-gold);
+  letter-spacing: .16em;
+}
+
+.v19-trivia-heading h1 {
+  margin: 0;
+  color: #fff;
+  font: 850 clamp(3.5rem,5.4vw,5.8rem)/.86 Manrope,Inter,sans-serif;
+  letter-spacing: -.068em;
+}
+
+.v19-trivia-heading p {
+  margin: 14px 0 0;
+  color: var(--tt-muted);
+  font: 500 .82rem/1.55 Inter,sans-serif;
+}
+
+.v19-trivia-heading-mark {
+  min-width: 112px;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  padding-bottom: 5px;
+}
+
+.v19-trivia-heading-mark span {
+  color: #fff;
+  font: 850 2.1rem/1 Manrope,Inter,sans-serif;
+  letter-spacing: -.05em;
+}
+
+.v19-trivia-heading-mark small {
+  color: var(--tt-soft);
+  font: 800 .43rem/1 Inter,sans-serif;
+  letter-spacing: .15em;
+}
+
+.v19-archive-banner {
+  margin-bottom: 16px;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 11px;
+  background: rgba(6,13,19,.68);
+  color: var(--tt-muted);
+  font-size: .68rem;
+}
+.v19-archive-banner strong {
+  color: var(--tt-gold);
+}
+
+/* React stage: single artwork surface */
+.v19-trivia-page #crew-trivia-root {
+  width: 100%;
+}
+
+.v19-trivia-page .react-trivia-stage {
+  width: 100%;
+  min-height: min(610px, 67vh);
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: clamp(28px,4vw,48px);
+  border: 1px solid rgba(255,189,69,.17);
+  border-radius: 20px;
+  isolation: isolate;
+  background:
+    linear-gradient(90deg,
+      rgba(3,8,12,.97) 0%,
+      rgba(3,8,12,.88) 33%,
+      rgba(3,8,12,.47) 67%,
+      rgba(3,8,12,.22) 100%),
+    linear-gradient(180deg, rgba(3,8,12,.08), rgba(3,8,12,.42)),
+    url("../images/v14/trivia.png") 63% center / cover no-repeat;
+  box-shadow:
+    0 26px 80px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.025);
+  outline: none;
+}
+
+/* Remove legacy decorative pseudo-art from the React stylesheet. */
+.v19-trivia-page .react-trivia-stage::before,
+.v19-trivia-page .react-trivia-stage::after {
+  content: none !important;
+  display: none !important;
+}
+
+.v19-trivia-page .react-trivia-result,
+.v19-trivia-page .react-trivia-upcoming {
+  min-height: min(610px,67vh);
+}
+
+/* Keep results comfortably centered without producing the oversized left bubble. */
+.v19-trivia-page .react-trivia-result {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.v19-trivia-page .react-result-burst {
+  width: 68px;
+  height: 68px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  background: rgba(255,189,69,.065);
+  box-shadow:
+    0 0 0 12px rgba(255,189,69,.018),
+    0 0 50px rgba(255,189,69,.09);
+}
+
+.v19-trivia-page .react-result-score {
+  margin-top: 13px;
+  font-size: clamp(4.8rem,10vw,7.4rem);
+}
+
+.v19-trivia-page .react-result-label {
+  margin-top: 16px;
+  font-size: .65rem;
+}
+
+.v19-trivia-page .react-result-meta {
+  margin-top: 18px;
+}
+
+.v19-trivia-page .react-result-copy {
+  margin: 18px 0 24px;
+}
+
+.v19-trivia-page .react-result-actions {
+  gap: 9px;
+}
+
+.v19-trivia-page .react-trivia-primary,
+.v19-trivia-page .react-trivia-secondary {
+  min-height: 46px;
+  border-radius: 10px;
+}
+
+/* Live-question state */
+.v19-trivia-page .react-trivia-progress {
+  height: 2px;
+  margin: 17px 0 clamp(34px,5vh,54px);
+}
+
+.v19-trivia-page .react-trivia-question-wrap {
+  max-width: 820px;
+  grid-template-columns: 56px minmax(0,1fr);
+  gap: 24px;
+}
+
+.v19-trivia-page .react-question-number {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+}
+
+.v19-trivia-page .react-trivia-question-wrap h1 {
+  max-width: 760px;
+  font-size: clamp(2rem,3.4vw,3.35rem);
+}
+
+.v19-trivia-page .react-trivia-options {
+  max-width: 900px;
+  gap: 10px;
+  margin: clamp(34px,5vh,54px) 0 26px 80px;
+}
+
+.v19-trivia-page .react-trivia-option {
+  min-height: 70px;
+  border-radius: 13px;
+  background: rgba(5,11,16,.70);
+  backdrop-filter: blur(9px);
+}
+
+.v19-trivia-page .react-trivia-feedback {
+  max-width: 900px;
+  margin-left: 80px;
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  .v19-trivia-page {
+    padding-bottom: 68px;
+  }
+
+  .v19-trivia-page .app-nav {
+    min-height: 64px;
+    grid-template-columns: 1fr auto;
+    padding: 0 18px;
+  }
+  .v19-trivia-page .desktop-nav { display: none; }
+  .v19-trivia-page .v13-brand-copy { gap: 0; }
+  .v19-trivia-page .v13-brand-copy strong { font-size: 1.08rem; }
+  .v19-trivia-page .v13-brand-copy small { display: none; }
+  .v19-trivia-page .avatar { width: 35px; height: 35px; }
+
+  .v19-trivia-main {
+    width: calc(100% - 28px);
+    padding: 28px 0 30px;
+  }
+
+  .v19-trivia-heading {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: 18px;
+  }
+
+  .v19-trivia-context {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .v19-trivia-heading h1 {
+    font-size: clamp(2.7rem,12vw,4rem);
+  }
+
+  .v19-trivia-heading-mark {
+    display: none;
+  }
+
+  .v19-trivia-page .react-trivia-stage {
+    min-height: calc(100svh - 250px);
+    padding: 21px 17px 20px;
+    border-radius: 17px;
+    background:
+      linear-gradient(180deg,
+        rgba(3,8,12,.52) 0%,
+        rgba(3,8,12,.78) 50%,
+        rgba(3,8,12,.96) 100%),
+      url("../images/v14/trivia-mobile.jpg") center / cover no-repeat;
+  }
+
+  .v19-trivia-page .react-trivia-result,
+  .v19-trivia-page .react-trivia-upcoming {
+    min-height: calc(100svh - 250px);
+  }
+
+  .v19-trivia-page .react-trivia-question-wrap {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .v19-trivia-page .react-trivia-options {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin: 28px 0 22px;
+  }
+
+  .v19-trivia-page .react-trivia-feedback {
+    margin-left: 0;
+  }
+
+  .v19-trivia-page .mobile-bottom-nav {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 90;
+    height: 68px;
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    border-top: 1px solid rgba(255,255,255,.09);
+    background: rgba(2,8,12,.90);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+  }
+
+  .v19-trivia-page .mobile-bottom-nav a {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 4px;
+    color: rgba(190,202,216,.52);
+    font: 700 .46rem/1 Inter,sans-serif;
+    text-decoration: none;
+  }
+
+  .v19-trivia-page .mobile-bottom-nav a.active { color: #fff; }
+
+  .v19-trivia-page .mobile-bottom-nav .nav-icon svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}

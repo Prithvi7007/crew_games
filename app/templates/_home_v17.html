@@ -1,0 +1,168 @@
+{% set featured_ns = namespace(game=todays_game) %}
+{% set stats = namespace(points=0, completed=0) %}
+{% set next_ns = namespace(game=None) %}
+
+{% for game in games %}
+  {% if game.completed %}
+    {% set stats.completed = stats.completed + 1 %}
+    {% set stats.points = stats.points + (game.score or 0) %}
+  {% endif %}
+  {% if next_ns.game is none and game.date > today %}
+    {% set next_ns.game = game %}
+  {% endif %}
+  {% if todays_game is none and game.date <= today %}
+    {% set featured_ns.game = game %}
+  {% endif %}
+{% endfor %}
+
+{% set featured = featured_ns.game %}
+{% set feature_key = featured.key if featured else 'mystery' %}
+{% set progress_map = {'mystery':'0%', 'trivia':'33.333%', 'word':'66.666%', 'tick_tock':'100%'} %}
+{% set meta_map = {
+  'mystery': ('1 CASE', '~5 MIN'),
+  'trivia': ('10 QUESTIONS', '~3 MIN'),
+  'word': ('6 TRIES', '~5 MIN'),
+  'tick_tock': ('1 TIMER', '<1 MIN')
+} %}
+
+<div class="v17-today-shell v17-current-{{ feature_key }}" style="--journey-progress: {{ progress_map.get(feature_key, '0%') }};">
+  {% include "_app_header.html" %}
+
+  <main class="v17-today-main">
+    <header class="v17-intro">
+      <div class="v17-intro-copy">
+        <span class="v17-eyebrow">WEEK 01</span>
+        <h1>Your week.<br><span>In play.</span></h1>
+        <p>Past games stay open. Future games unlock on their day.</p>
+      </div>
+
+      <aside class="v17-score" style="--score-progress: {{ stats.completed * 25 }}%;" aria-label="Weekly score">
+        <div class="v17-score-value"><strong>{{ stats.points }}</strong><span>/ 400</span></div>
+        <small>POINTS THIS WEEK</small>
+        <div class="v17-score-rail" aria-hidden="true"><i></i></div>
+        <p>{{ stats.completed }} OF 4 COMPLETED</p>
+      </aside>
+    </header>
+
+    <section class="v17-journey" aria-label="This week's CREW games">
+      <div class="v17-track" aria-hidden="true"><i></i></div>
+
+      <div class="v17-grid">
+        {% for game in games %}
+          {% set is_featured = featured and game.key == featured.key %}
+          {% set is_today = game.date == today %}
+          {% set is_future = game.date > today %}
+          {% set meta = meta_map.get(game.key, ('DAILY GAME', '')) %}
+          {% if is_future %}
+            {% set state = 'future' %}
+            {% set state_label = 'LOCKED' %}
+          {% elif game.completed %}
+            {% set state = 'completed' %}
+            {% set state_label = 'COMPLETED' %}
+          {% elif is_today %}
+            {% set state = 'current' %}
+            {% set state_label = 'TODAY' %}
+          {% else %}
+            {% set state = 'available' %}
+            {% set state_label = 'AVAILABLE' %}
+          {% endif %}
+          {% set action_label = 'View result' if game.completed else (game.action or 'Play') %}
+
+          <article class="v17-day v17-tone-{{ game.key }} {{ state }}{% if is_featured %} featured{% endif %}">
+            <div class="v17-top-slot">
+              {% if is_featured %}
+                <div class="v17-card v17-feature-card">
+                  <div class="v17-card-art v17-art-{{ game.key }}" aria-hidden="true"></div>
+                  <div class="v17-card-shade" aria-hidden="true"></div>
+
+                  <div class="v17-card-head">
+                    <span>{% if is_today %}TODAY{% else %}LATEST{% endif %}</span>
+                    <span class="v17-status">{{ state_label }}</span>
+                  </div>
+
+                  <div class="v17-card-copy">
+                    <h2>{{ game.title }}</h2>
+                    <p>{{ game.description }}</p>
+                    <div class="v17-card-meta">
+                      <span>{{ meta[0] }}</span>
+                      <span>{{ meta[1] }}</span>
+                    </div>
+                  </div>
+
+                  <div class="v17-card-foot">
+                    <div class="v17-points{% if not game.completed %} muted{% endif %}">
+                      <strong>{{ game.score if game.completed else game.points }}</strong>
+                      <span>{% if game.completed %}PTS EARNED{% else %}PTS AVAILABLE{% endif %}</span>
+                    </div>
+                    <a class="v17-action" href="{{ game.url }}"><span>{{ action_label }}</span><span aria-hidden="true">→</span></a>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="v17-node-wrap">
+              <span class="v17-node" aria-hidden="true"><i></i></span>
+              <span class="v17-node-label">{{ game.day[:3]|upper }}</span>
+            </div>
+
+            <div class="v17-bottom-slot">
+              {% if not is_featured %}
+                {% if is_future %}
+                  <div class="v17-card v17-secondary-card locked" aria-label="{{ game.title }}, unlocks {{ game.day }}">
+                    <div class="v17-card-art v17-art-{{ game.key }}" aria-hidden="true"></div>
+                    <div class="v17-card-shade" aria-hidden="true"></div>
+
+                    <div class="v17-card-head">
+                      <span>DAY {{ '%02d'|format(loop.index) }}</span>
+                      <span class="v17-status">LOCKED</span>
+                    </div>
+
+                    <div class="v17-lock" aria-hidden="true">
+                      <svg viewBox="0 0 24 24">
+                        <rect x="5.5" y="10" width="13" height="10" rx="2"></rect>
+                        <path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10"></path>
+                      </svg>
+                    </div>
+
+                    <div class="v17-card-copy">
+                      <h2>{{ game.title }}</h2>
+                      <p>{{ game.description }}</p>
+                    </div>
+
+                    <div class="v17-locked-foot">
+                      <span>UNLOCKS {{ game.date.strftime('%b %d')|upper }}</span>
+                      <span>{{ game.points }} PTS</span>
+                    </div>
+                  </div>
+                {% else %}
+                  <a class="v17-card v17-secondary-card unlocked" href="{{ game.url }}">
+                    <div class="v17-card-art v17-art-{{ game.key }}" aria-hidden="true"></div>
+                    <div class="v17-card-shade" aria-hidden="true"></div>
+
+                    <div class="v17-card-head">
+                      <span>DAY {{ '%02d'|format(loop.index) }}</span>
+                      <span class="v17-status">{{ state_label }}</span>
+                    </div>
+
+                    <div class="v17-card-copy">
+                      <h2>{{ game.title }}</h2>
+                      <p>{{ game.description }}</p>
+                    </div>
+
+                    <div class="v17-card-foot compact">
+                      <div class="v17-points{% if not game.completed %} muted{% endif %}">
+                        <strong>{{ game.score if game.completed else game.points }}</strong>
+                        <span>{% if game.completed %}PTS EARNED{% else %}PTS AVAILABLE{% endif %}</span>
+                      </div>
+                      <span class="v17-small-action">{{ action_label }} →</span>
+                    </div>
+                  </a>
+                {% endif %}
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+</div>

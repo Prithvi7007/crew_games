@@ -103,19 +103,22 @@
     function showResult(result) {
         locked = true;
         lockKeyboard();
-        resultCard.hidden = false;
-        resultIcon.textContent = result.won ? '✓' : '◇';
-        resultTitle.textContent = result.won ? 'Nice work.' : "Tomorrow's another round.";
-        solutionLabel.textContent = result.solution;
-        resultPoints.textContent = result.score;
         scoreLabel.textContent = result.score;
-        setMessage(
-            result.won ? `Solved in ${result.guess_count} ${result.guess_count === 1 ? 'guess' : 'guesses'} — ${result.score} points.` : `The word was ${result.solution}. You earned ${result.score} participation points.`,
-            result.won ? 'success' : 'neutral'
-        );
-        if (!reducedMotion) {
-            window.setTimeout(() => resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 850);
-        }
+
+        const mount = document.querySelector('.word-layout');
+        if (!mount || !window.CREWGameResult) return;
+
+        const guesses = Number(result.guess_count || 0);
+        window.CREWGameResult.render(mount, {
+            game: 'word',
+            icon: result.won ? '✓' : '◇',
+            kicker: result.won ? 'WORD SOLVED' : 'ROUND COMPLETE',
+            score: result.score,
+            meta: result.won
+                ? [`${guesses} ${guesses === 1 ? 'GUESS' : 'GUESSES'}`, String(result.solution || '').toUpperCase()]
+                : [`WORD · ${String(result.solution || '').toUpperCase()}`, '6 GUESSES'],
+            copy: 'Wednesday is in the books.'
+        });
     }
 
     async function submitGuess() {
@@ -189,11 +192,7 @@
         lockKeyboard();
         setMessage('This challenge has not opened yet.', 'neutral');
     } else if (state.completed) {
-        lockKeyboard();
-        setMessage(
-            state.won ? `${state.archive ? 'Archive word' : 'Today\'s word'} is complete — ${state.score} points earned.` : `Today's word is complete. The word was ${state.solution}.`,
-            state.won ? 'success' : 'neutral'
-        );
+        showResult(state);
     }
 
     keyboard.addEventListener('click', (event) => {

@@ -6,14 +6,24 @@
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   function resultItem(value, label){ const box=document.createElement('div'); const strong=document.createElement('strong'); strong.textContent=value; const span=document.createElement('span'); span.textContent=label; box.append(strong,span); return box; }
   function showResult(){
-    result.hidden=false;
+    running=false;
     const signed = Number(state.signed_difference);
-    result.replaceChildren(
-      resultItem(Number(state.elapsed).toFixed(2),'YOUR TIME'),
-      resultItem(`${signed>=0?'+':'−'}${Math.abs(signed).toFixed(2)}`,signed>=0?'LATE':'EARLY'),
-      resultItem(String(state.score),'POINTS')
-    );
-    display.textContent='STOP'; action.disabled=true; action.textContent='Round complete'; message.className='game-message success'; message.textContent=`Target ${state.target.toFixed(2)} sec · You stopped at ${Number(state.elapsed).toFixed(2)} sec.`;
+    const delta = Math.abs(signed);
+    const mount = root.querySelector('.timer-stage');
+
+    if (!mount || !window.CREWGameResult) return;
+
+    window.CREWGameResult.render(mount, {
+      game: 'tick_tock',
+      icon: delta <= 0.05 ? '✓' : '◇',
+      kicker: delta <= 0.05 ? 'PERFECT TIMING' : 'TIME LOCKED',
+      score: state.score,
+      meta: [
+        `${Number(state.elapsed).toFixed(2)} SEC`,
+        `${delta.toFixed(2)} SEC ${signed >= 0 ? 'LATE' : 'EARLY'}`
+      ],
+      copy: 'Thursday is in the books.'
+    });
   }
   async function request(url){const r=await fetch(url,{method:'POST',headers:{'Accept':'application/json','X-CSRFToken':csrfToken}});const d=await r.json();if(!r.ok)throw new Error(d.message||'Try again.');return d;}
   async function begin(){if(busy||running)return;busy=true;action.disabled=true;for(const t of ['3','2','1']){display.textContent=t;await sleep(650);} try{const d=await request(root.dataset.startUrl);state=d.state;running=true;display.textContent='GO';message.textContent='The timer is hidden. Stop when your internal clock says it is time.';action.textContent='STOP';action.disabled=false;}catch(e){message.className='game-message error';message.textContent=e.message;}busy=false;}

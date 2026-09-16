@@ -140,7 +140,6 @@ function TriviaApp({ initialState, answerUrl, returnUrl, rankingsUrl, csrfToken 
         <p className="react-result-copy">Tuesday is in the books.</p>
         <div className="react-result-actions">
           <a className="react-trivia-primary" href={rankingsUrl}>View Rankings <span>→</span></a>
-          <a className="react-trivia-secondary" href={returnUrl}>Back to Today</a>
         </div>
       </section>
     );

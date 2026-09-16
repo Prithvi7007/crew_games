@@ -1,37 +1,98 @@
 {% extends "base.html" %}
-{% block title %}Leaderboard · CREW{% endblock %}
-{% block body_class %}leaderboard-page{% endblock %}
+{% block title %}Rankings · CREW{% endblock %}
+{% block body_class %}v19-rankings-page{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v19-rankings.css', v='19.0.0') }}">
+{% endblock %}
 {% block body %}
-<div class="app-shell">
+<div class="v19-rankings-shell">
   {% include "_app_header.html" %}
-  <main class="leaderboard-main" data-leaderboard data-api-url="{{ url_for('main.leaderboard_api') }}">
-    <section class="page-intro compact-page-intro"><span class="eyebrow">CREW STANDINGS</span><h1>Leaderboard</h1><p>See who is setting the pace — by week, month, or game.</p></section>
-    <section class="leaderboard-toolbar glass-card">
-      <label><span>TIME PERIOD</span><select id="leader-period">
-        {% for value,label in [('this_week','This Week'),('last_week','Last Week'),('this_month','This Month'),('all_time','All Time')] %}<option value="{{ value }}" {% if value==selected_period %}selected{% endif %}>{{ label }}</option>{% endfor %}
-      </select></label>
-      <label><span>GAME</span><select id="leader-game">
-        {% for value,label in [('all','All Games'),('mystery','Mystery Monday'),('trivia','Trivia Tuesday'),('word','Wordle Wednesday'),('tick_tock','Tick-Tock Thursday')] %}<option value="{{ value }}" {% if value==selected_game %}selected{% endif %}>{{ label }}</option>{% endfor %}
-      </select></label>
-      <div class="leader-filter-copy"><span id="leader-period-label">{{ board.period_label|upper }}</span><strong id="leader-count">{{ board.total_ranked }} ranked</strong></div>
+
+  <main class="v19-rankings-main" data-leaderboard data-api-url="{{ url_for('main.leaderboard_api') }}">
+    <header class="v19-rankings-hero">
+      <div class="v19-rankings-title">
+        <span class="v19-kicker">CREW STANDINGS</span>
+        <h1>THE<br>BOARD.</h1>
+      </div>
+      <div class="v19-rankings-copy">
+        <p>See who's setting the pace across the CREW week. Filter by time period or game, then chase the next spot.</p>
+        <div class="v19-live-stat">
+          <span id="leader-period-label">{{ board.period_label|upper }}</span>
+          <strong id="leader-count">{{ board.total_ranked }} ranked</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="v19-filterbar" aria-label="Leaderboard filters">
+      <label>
+        <span>TIME PERIOD</span>
+        <select id="leader-period">
+          {% for value,label in [('this_week','This Week'),('last_week','Last Week'),('this_month','This Month'),('all_time','All Time')] %}
+          <option value="{{ value }}" {% if value==selected_period %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>
+        <span>GAME</span>
+        <select id="leader-game">
+          {% for value,label in [('all','All Games'),('mystery','Mystery Monday'),('trivia','Trivia Tuesday'),('word','Wordle Wednesday'),('tick_tock','Tick-Tock Thursday')] %}
+          <option value="{{ value }}" {% if value==selected_game %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <div class="v19-filter-note">
+        <span>LIVE VIEW</span>
+        <strong>Rankings update with your filters.</strong>
+      </div>
     </section>
 
-    <section class="leaderboard-podium-section">
-      <div class="flow-heading"><div><span class="eyebrow">TOP CREW</span><h2>Leading the board.</h2></div></div>
-      <div class="leader-podium" id="leader-podium"></div>
+    <section class="v19-section v19-top-section">
+      <div class="v19-section-head">
+        <div>
+          <span class="v19-section-kicker">TOP CREW</span>
+          <h2>Leading the board.</h2>
+        </div>
+        <span class="v19-section-rule" aria-hidden="true"></span>
+      </div>
+      <div class="v19-podium" id="leader-podium"></div>
     </section>
 
-    <section class="leaderboard-me-section" id="leader-me-wrap">
-      <div class="flow-heading"><div><span class="eyebrow">YOUR POSITION</span><h2>Your place in the run.</h2></div></div>
-      <article class="glass-card pinned-player" id="leader-me"></article>
+    <section class="v19-section v19-me-section" id="leader-me-wrap">
+      <div class="v19-section-head">
+        <div>
+          <span class="v19-section-kicker">YOUR POSITION</span>
+          <h2>Your place in the run.</h2>
+        </div>
+        <span class="v19-section-rule" aria-hidden="true"></span>
+      </div>
+      <div class="v19-me-card" id="leader-me"></div>
     </section>
 
-    <section class="leaderboard-standings-section">
-      <div class="flow-heading"><div><span class="eyebrow">FULL STANDINGS</span><h2>Every ranked player.</h2></div></div>
-      <article class="glass-card flow-leaderboard"><div class="leaderboard-list full-leaderboard" id="leader-list"></div><div class="leaderboard-empty" id="leader-empty" hidden><span class="empty-icon">✦</span><div><h3>No scores here yet.</h3><p>Try another time period or game.</p></div></div></article>
+    <section class="v19-section v19-standings-section">
+      <div class="v19-section-head">
+        <div>
+          <span class="v19-section-kicker">FULL STANDINGS</span>
+          <h2>Every ranked player.</h2>
+        </div>
+        <span class="v19-section-rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="v19-standings-card">
+        <div class="v19-standings-labels" aria-hidden="true">
+          <span>RANK</span><span>PLAYER</span><span>SCORE</span>
+        </div>
+        <div class="leaderboard-list full-leaderboard" id="leader-list"></div>
+        <div class="leaderboard-empty" id="leader-empty" hidden>
+          <span class="empty-icon">✦</span>
+          <div><h3>No scores here yet.</h3><p>Try another time period or game.</p></div>
+        </div>
+      </div>
     </section>
   </main>
 </div>
+
 <script nonce="{{ csp_nonce }}" id="leaderboard-initial" type="application/json">{{ board|tojson }}</script>
 {% endblock %}
 {% block scripts %}<script src="{{ url_for('static', filename='js/leaderboard.js', v='11') }}"></script>{% endblock %}
