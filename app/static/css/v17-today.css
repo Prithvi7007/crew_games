@@ -746,3 +746,43 @@ a.v17-secondary-card:hover {
 @media (prefers-reduced-motion:reduce) {
   .v17-secondary-card { transition:none; }
 }
+
+/* v22 — fluid desktop scaling
+   Keep the v17 journey, but let it use desktop space more like the Games page. */
+@media (min-width:761px) {
+  .v17-today-main {
+    width:min(1440px,calc(100% - 64px));
+  }
+
+  .v17-intro {
+    grid-template-columns:minmax(0,1fr) minmax(320px,470px);
+    gap:clamp(40px,4vw,64px);
+  }
+
+  .v17-journey {
+    height:clamp(540px,calc(100svh - 300px),760px);
+    min-height:0;
+  }
+
+  .v17-feature-card {
+    width:min(190%,700px);
+    height:min(100%,380px);
+    min-height:280px;
+  }
+
+  .v17-secondary-card {
+    width:100%;
+    max-width:none;
+    min-height:220px;
+  }
+
+  .v17-day:first-child .v17-top-slot { justify-content:flex-start; }
+  .v17-day:last-child .v17-top-slot { justify-content:flex-end; }
+}
+
+@media (min-width:761px) and (max-width:1120px) {
+  .v17-today-main { width:calc(100% - 40px); }
+  .v17-intro {
+    grid-template-columns:minmax(0,1fr) minmax(240px,300px);
+    gap:42px;
+  }

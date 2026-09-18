@@ -1,0 +1,135 @@
+{% set v22_meta_map = {
+  'mystery': ('1 CASE', 'ABOUT 5 MIN'),
+  'trivia': ('10 QUESTIONS', 'ABOUT 3 MIN'),
+  'word': ('6 TRIES', 'ABOUT 5 MIN'),
+  'tick_tock': ('1 ROUND', 'ABOUT 1 MIN')
+} %}
+
+<section class="v22-today-desktop" aria-label="This week's CREW overview">
+  {% if featured %}
+    {% set feature_is_today = featured.date == today %}
+    {% set feature_is_future = featured.date > today %}
+    {% set feature_meta = v22_meta_map.get(featured.key, ('DAILY CHALLENGE', '')) %}
+    {% if feature_is_future %}
+      {% set feature_state = 'future' %}
+      {% set feature_state_label = 'LOCKED' %}
+    {% elif featured.completed %}
+      {% set feature_state = 'completed' %}
+      {% set feature_state_label = 'COMPLETED' %}
+    {% elif feature_is_today %}
+      {% set feature_state = 'current' %}
+      {% set feature_state_label = 'TODAY' %}
+    {% else %}
+      {% set feature_state = 'available' %}
+      {% set feature_state_label = 'AVAILABLE' %}
+    {% endif %}
+    {% set feature_action = 'View result' if featured.completed else (featured.action or 'Play') %}
+
+    <article class="v22-feature v22-tone-{{ featured.key }} {{ feature_state }}">
+      <div class="v22-card-art v22-art-{{ featured.key }}" aria-hidden="true"></div>
+      <div class="v22-feature-shade" aria-hidden="true"></div>
+
+      <div class="v22-feature-top">
+        <span>FEATURED CHALLENGE · {{ featured.day|upper }}</span>
+        <span class="v22-status">{{ feature_state_label }}</span>
+      </div>
+
+      <div class="v22-feature-copy">
+        <span class="v22-feature-date">{{ featured.date.strftime('%b %d')|upper }}</span>
+        <h2>{{ featured.title }}</h2>
+        <p>{{ featured.description }}</p>
+        <div class="v22-meta">
+          <span>{{ feature_meta[0] }}</span>
+          <span>{{ feature_meta[1] }}</span>
+        </div>
+      </div>
+
+      <div class="v22-feature-foot">
+        <div class="v22-points{% if not featured.completed %} muted{% endif %}">
+          <strong>{{ featured.score if featured.completed else featured.points }}</strong>
+          <span>{% if featured.completed %}PTS EARNED{% else %}PTS AVAILABLE{% endif %}</span>
+        </div>
+        <a class="v22-primary-action" href="{{ featured.url }}">
+          <span>{{ feature_action }}</span><span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </article>
+  {% endif %}
+
+  <div class="v22-week-progress" aria-label="Weekly progress">
+    <div class="v22-progress-rail" aria-hidden="true"><i></i></div>
+    {% for game in games %}
+      {% set is_today = game.date == today %}
+      {% set is_future = game.date > today %}
+      {% if is_future %}
+        {% set state = 'future' %}
+      {% elif game.completed %}
+        {% set state = 'completed' %}
+      {% elif is_today %}
+        {% set state = 'current' %}
+      {% else %}
+        {% set state = 'available' %}
+      {% endif %}
+      <div class="v22-progress-stop v22-tone-{{ game.key }} {{ state }}{% if featured and game.key == featured.key %} featured{% endif %}">
+        <span class="v22-progress-dot" aria-hidden="true"><i></i></span>
+        <span>{{ game.day[:3]|upper }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="v22-week-grid{% if featured %} has-featured{% endif %}">
+    {% for game in games %}
+      {% set is_today = game.date == today %}
+      {% set is_future = game.date > today %}
+      {% if is_future %}
+        {% set state = 'future' %}
+        {% set state_label = 'LOCKED' %}
+      {% elif game.completed %}
+        {% set state = 'completed' %}
+        {% set state_label = 'COMPLETED' %}
+      {% elif is_today %}
+        {% set state = 'current' %}
+        {% set state_label = 'TODAY' %}
+      {% else %}
+        {% set state = 'available' %}
+        {% set state_label = 'AVAILABLE' %}
+      {% endif %}
+      {% set action_label = 'View result' if game.completed else (game.action or 'Play') %}
+
+      {% if is_future %}
+      <article class="v22-day-card v22-tone-{{ game.key }} {{ state }}{% if featured and game.key == featured.key %} is-featured{% endif %}" aria-label="{{ game.title }}, unlocks {{ game.day }}">
+      {% else %}
+      <a class="v22-day-card v22-tone-{{ game.key }} {{ state }}{% if featured and game.key == featured.key %} is-featured{% endif %}" href="{{ game.url }}">
+      {% endif %}
+        <div class="v22-card-art v22-art-{{ game.key }}" aria-hidden="true"></div>
+        <div class="v22-day-shade" aria-hidden="true"></div>
+
+        <div class="v22-day-top">
+          <span>DAY {{ '%02d'|format(loop.index) }} · {{ game.date.strftime('%b %d')|upper }}</span>
+          <span class="v22-status">{{ state_label }}</span>
+        </div>
+
+        <div class="v22-day-copy">
+          <h3>{{ game.title }}</h3>
+          <p>{{ game.description }}</p>
+        </div>
+
+        <div class="v22-day-foot">
+          <div class="v22-points{% if not game.completed %} muted{% endif %}">
+            <strong>{{ game.score if game.completed else game.points }}</strong>
+            <span>{% if game.completed %}PTS EARNED{% else %}PTS AVAILABLE{% endif %}</span>
+          </div>
+          {% if is_future %}
+            <span class="v22-card-action">UNLOCKS {{ game.date.strftime('%b %d')|upper }}</span>
+          {% else %}
+            <span class="v22-card-action">{{ action_label }} →</span>
+          {% endif %}
+        </div>
+      {% if is_future %}
+      </article>
+      {% else %}
+      </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
