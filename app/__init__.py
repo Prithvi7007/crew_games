@@ -34,6 +34,9 @@ def create_app():
 
     db.init_app(app)
 
+    from . import content_import
+    content_import.init_app(app)
+
     from .auth.routes import auth_bp
     from .main.routes import main_bp
     from .mystery.routes import mystery_bp

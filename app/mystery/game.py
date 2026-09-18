@@ -9,7 +9,6 @@ PUZZLES = (
         "answer": "JURASSIC WORLD",
         "accepted": {"JURASSIC WORLD", "JURASSICWORLD"},
         "clues": (
-            "This world asks what happens when wonder, science and ambition collide.",
             "Its stars have been gone for millions of years, but they never stay quiet for long.",
             "A fictional park sits at the center of the adventure.",
             "Velociraptors and a T. rex are unmistakable residents.",
@@ -21,7 +20,6 @@ PUZZLES = (
         "answer": "MINIONS",
         "accepted": {"MINION", "MINIONS"},
         "clues": (
-            "This CREW is famous for chaotic teamwork and an unusual vocabulary.",
             "Their loyalty tends to follow whoever looks most villainous at the time.",
             "Bananas are a recurring obsession.",
             "Blue overalls are part of the uniform.",
@@ -33,7 +31,6 @@ PUZZLES = (
         "answer": "SHREK",
         "accepted": {"SHREK"},
         "clues": (
-            "This unlikely hero would rather keep visitors away from home.",
             "A talkative best friend makes solitude nearly impossible.",
             "Fairy-tale characters repeatedly complicate the journey.",
             "The hero lives in a swamp.",
@@ -45,7 +42,6 @@ PUZZLES = (
         "answer": "OPTIMUS PRIME",
         "accepted": {"OPTIMUS PRIME", "OPTIMUSPRIME", "OPTIMUS"},
         "clues": (
-            "This leader is known as much for conviction as for power.",
             "The character belongs to a conflict between two factions from Cybertron.",
             "He leads the Autobots.",
             "His alternate form is famously a truck.",
@@ -55,7 +51,7 @@ PUZZLES = (
 )
 
 
-SCORE_BY_CLUES = {1: 100, 2: 80, 3: 60, 4: 40, 5: 20}
+SCORE_BY_CLUES = {1: 100, 2: 75, 3: 50, 4: 25}
 
 
 def get_puzzle(game_day):
@@ -65,7 +61,7 @@ def get_puzzle(game_day):
         clues = tuple(content.get("clues") or ())
         answer = str(content.get("answer") or "").strip()
         accepted = {str(item).strip() for item in (content.get("accepted") or []) if str(item).strip()}
-        if answer and len(clues) == 5:
+        if answer and len(clues) == 4:
             accepted.add(answer)
             return {
                 "theme": scheduled["theme_label"],
@@ -85,5 +81,8 @@ def is_correct_answer(value, puzzle):
     return any(normalized == normalize_answer(answer) for answer in puzzle["accepted"])
 
 
-def score_for_clues(revealed_count):
-    return SCORE_BY_CLUES.get(max(1, min(5, revealed_count)), 10)
+def score_for_clues(revealed_count, total_clues=4):
+    if int(total_clues) != 4:
+        raise ValueError("Mystery Monday requires exactly four clues")
+    revealed_count = max(1, min(4, int(revealed_count)))
+    return SCORE_BY_CLUES[revealed_count]

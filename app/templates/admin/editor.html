@@ -40,13 +40,14 @@
 
       {% if definition.key == 'mystery' %}
       <section class="glass-card admin-form-section">
-        <div class="admin-form-heading"><div><span class="eyebrow">MYSTERY</span><h2>Answer &amp; clues</h2></div><p>Clue one should be hardest. Clue five should make the answer approachable.</p></div>
+        {% set mystery_scores = [100,75,50,25] %}
+        <div class="admin-form-heading"><div><span class="eyebrow">MYSTERY</span><h2>Answer &amp; clues</h2></div><p>Clue one should be hardest. The final clue should make the answer approachable.</p></div>
         <div class="admin-form-grid two">
           <label class="admin-field"><span>Answer</span><input name="answer" maxlength="80" value="{{ payload.content.answer }}" required {% if locked %}disabled{% endif %}></label>
           <label class="admin-field"><span>Accepted answers</span><input name="accepted" value="{{ payload.content.accepted|join(', ') }}" placeholder="Comma-separated variants" {% if locked %}disabled{% endif %}></label>
         </div>
         <div class="admin-clue-stack">
-          {% for clue in payload.content.clues %}<label class="admin-field clue-field"><span>Clue {{ loop.index }} <em>{{ [100,80,60,40,20][loop.index0] }} pts</em></span><textarea name="clue_{{ loop.index }}" rows="2" required {% if locked %}disabled{% endif %}>{{ clue }}</textarea></label>{% endfor %}
+          {% for clue in payload.content.clues %}<label class="admin-field clue-field"><span>Clue {{ loop.index }} <em>{{ mystery_scores[loop.index0] }} pts</em></span><textarea name="clue_{{ loop.index }}" rows="2" required {% if locked %}disabled{% endif %}>{{ clue }}</textarea></label>{% endfor %}
         </div>
       </section>
 

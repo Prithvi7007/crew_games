@@ -26,7 +26,7 @@ def serialize_state(user_key, game_day):
         "completed": bool(attempt["completed"]),
         "won": bool(attempt["won"]),
         "score": int(attempt["score"]),
-        "potential_score": score_for_clues(revealed_count),
+        "potential_score": score_for_clues(revealed_count, len(puzzle["clues"])),
         "playable": playable,
         "competitive": competitive,
         "archive": playable and not competitive,
@@ -87,9 +87,9 @@ def guess():
     guesses = load_json_list(attempt, "guesses_json"); revealed_count = int(attempt["revealed_count"])
     won = is_correct_answer(answer, puzzle); guesses.append({"answer": answer, "correct": won, "clue": revealed_count})
     if won:
-        score, completed = score_for_clues(revealed_count), True
+        score, completed = score_for_clues(revealed_count, len(puzzle["clues"])), True
     elif revealed_count >= len(puzzle["clues"]):
-        score, completed = 10, True
+        score, completed = 0, True
     else:
         score, completed, revealed_count = 0, False, revealed_count + 1
     save_mystery_attempt(user_key, game_date, revealed_count, guesses, completed, won, score)

@@ -167,11 +167,11 @@ def _parse_content_form(game_key):
     if game_key == "mystery":
         answer = _plain_text(request.form.get("answer", ""), 80)
         accepted = _split_accepted(request.form.get("accepted", ""))
-        clues = [_plain_text(request.form.get(f"clue_{i}", ""), 280) for i in range(1, 6)]
+        clues = [_plain_text(request.form.get(f"clue_{i}", ""), 280) for i in range(1, 5)]
         if not answer or len(answer) > 80:
             return None, None, "Enter a mystery answer of 80 characters or fewer."
         if any(not clue for clue in clues):
-            return None, None, "Mystery Monday needs all five clues."
+            return None, None, "Mystery Monday needs all four clues."
         if not accepted:
             accepted = [answer]
         if answer.casefold() not in {item.casefold() for item in accepted}:
