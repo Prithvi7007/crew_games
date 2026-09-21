@@ -468,6 +468,9 @@
   gap:18px;
   color:var(--r-muted);
 }
+.v19-rankings-page .leaderboard-empty[hidden] {
+  display:none !important;
+}
 .v19-rankings-page .leaderboard-empty h3 {
   margin:0 0 5px;
   color:#fff;

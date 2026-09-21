@@ -310,3 +310,12 @@ def test_games_page_copy_matches_catch_up_scoring_rules():
     assert "Past leaderboards stay locked." not in template
     assert "Catch-up scores count toward the week" in template
     assert "Catch-up play does not create, extend, or repair a streak." in template
+
+def test_rankings_empty_state_respects_hidden_attribute():
+    root = Path(__file__).parents[1]
+    css = (root / 'app' / 'static' / 'css' / 'v19-rankings.css').read_text(encoding='utf-8')
+    template = (root / 'app' / 'templates' / 'leaderboard.html').read_text(encoding='utf-8')
+
+    assert '.v19-rankings-page .leaderboard-empty[hidden]' in css
+    assert 'display:none !important;' in css
+    assert "v='19.0.2'" in template
