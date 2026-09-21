@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Test {{ definition.title }} · CREW Admin{% endblock %}
+{% block body_class %}admin-page v2-test-page{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">{% endblock %}
+{% block body %}
+<div class="admin-shell v2-test-shell">
+  <header class="glass-nav admin-nav">
+    <a class="nav-brand" href="{{ dashboard_url }}"><span class="brand-parent">CREW ADMIN</span><span class="crew-mark small">TEST MODE</span></a>
+    <span class="v2-test-badge">ADMIN TEST MODE · NO SCORES SAVED</span>
+    <a class="admin-quiet-button" href="{{ edit_url }}">Edit content</a>
+  </header>
+  {% include "admin/_mobile_nav.html" %}
+
+  <main class="admin-main v2-test-main">
+    <section class="v2-test-heading">
+      <div><span class="eyebrow">{{ game_day.strftime('%A · %B %d, %Y')|upper }}</span><h1>{{ definition.title }}</h1><p>Interactive practice uses this week's {{ payload.status }} content. It never creates attempts, rankings, streaks, or content locks.</p></div>
+      <button class="admin-card-button" type="button" data-v2-test-reset>Reset test</button>
+    </section>
+
+    <section class="glass-card v2-test-stage">
+      <div id="v2-test-app"></div>
+    </section>
+  </main>
+</div>
+<script nonce="{{ csp_nonce }}" id="v2-test-payload" type="application/json">{{ {
+  'game_key': definition.key,
+  'title': definition.title,
+  'theme': payload.theme_label,
+  'content': payload.content
+}|tojson }}</script>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/v2-admin-test.js', v='2.0.0') }}"></script>{% endblock %}

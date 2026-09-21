@@ -334,6 +334,52 @@ def update_profile_recovery_code(profile_id, recovery_code_hash):
     db.commit()
 
 
+PROFILE_ROLES = {"player", "admin", "owner"}
+
+
+def update_profile_role(profile_id, role):
+    role = str(role or "").strip().lower()
+    if role not in PROFILE_ROLES:
+        raise ValueError("Invalid CREW profile role")
+    db = get_db()
+    db.execute(
+        "UPDATE profiles SET role = ?, session_version = session_version + 1 WHERE id = ?",
+        (role, int(profile_id)),
+    )
+    db.commit()
+    return get_profile_by_id(profile_id)
+
+
+def delete_profile(profile_id):
+    db = get_db()
+    result = db.execute("DELETE FROM profiles WHERE id = ?", (int(profile_id),))
+    db.commit()
+    return result.rowcount > 0
+
+
+def get_setting(setting_key):
+    row = get_db().execute(
+        "SELECT setting_value FROM system_settings WHERE setting_key = ?",
+        (str(setting_key),),
+    ).fetchone()
+    return row["setting_value"] if row else None
+
+
+def set_setting(setting_key, setting_value):
+    db = get_db()
+    db.execute(
+        """
+        INSERT INTO system_settings (setting_key, setting_value, updated_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT (setting_key) DO UPDATE SET
+            setting_value = excluded.setting_value,
+            updated_at = excluded.updated_at
+        """,
+        (str(setting_key), str(setting_value), _db_timestamp()),
+    )
+    db.commit()
+
+
 def profile_user_key(profile_id):
     return f"profile:{int(profile_id)}"
 

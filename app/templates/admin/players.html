@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Players · CREW Admin{% endblock %}
 {% block body_class %}admin-page admin-players-page{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v21-admin-players.css', v='21.0.0') }}">{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v21-admin-players.css', v='21.0.0') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">
+{% endblock %}
 {% block body %}
 <div class="admin-shell admin-players-shell">
   <header class="glass-nav admin-nav admin-players-nav">
@@ -9,7 +12,7 @@
       <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
       <span class="crew-mark small">CREW <em>CONTENT STUDIO</em></span>
     </a>
-    <nav class="desktop-nav"><a href="{{ url_for('admin.dashboard') }}">Schedule</a><a class="active" href="{{ url_for('admin.players') }}">Players</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
+    <nav class="desktop-nav"><a href="{{ url_for('admin.dashboard') }}">Schedule</a><a class="active" href="{{ url_for('admin.players') }}">Players</a><a href="{{ url_for('admin.settings') }}">Settings</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
     <form method="post" action="{{ url_for('admin.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-quiet-button" type="submit">Exit admin ↗</button></form>
   </header>
   {% include "admin/_mobile_nav.html" %}
@@ -42,11 +45,12 @@
       {% if players %}
       <div class="admin-player-table-wrap">
         <table class="admin-player-table">
-          <thead><tr><th>Player</th><th>Last activity</th><th>Games</th><th>Points</th><th>Streak</th><th></th></tr></thead>
+          <thead><tr><th>Player</th><th>Role</th><th>Last activity</th><th>Games</th><th>Points</th><th>Streak</th><th></th></tr></thead>
           <tbody>
             {% for player in players %}
             <tr>
               <td><a class="admin-player-identity" href="{{ url_for('admin.player_detail', profile_id=player.id) }}"><span class="admin-player-avatar">{{ player.avatar }}</span><span><strong>{{ player.username }}</strong><small>Account #{{ player.id }}</small></span></a></td>
+              <td><span class="v2-role-badge role-{{ player.role }}">{{ player.role|upper }}</span></td>
               <td><strong>{{ player.last_activity[:10] if player.last_activity else 'Never' }}</strong><small>{% if player.last_played_at %}Last play {{ player.last_played_at[:10] }}{% elif player.last_login_at %}Login activity{% else %}No activity yet{% endif %}</small></td>
               <td>{{ player.games_completed }}</td>
               <td>{{ player.total_points }}</td>

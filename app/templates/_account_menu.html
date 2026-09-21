@@ -1,4 +1,6 @@
 <div class="account-menu" data-account-menu>
+  {% set account_role = user.role|default('player') %}
+  {% set account_role_label = 'CREW Owner' if account_role == 'owner' else ('CREW Admin' if account_role == 'admin' else 'CREW Player') %}
   <button
     class="profile-menu account-trigger{% if request.endpoint == 'auth.profile' %} active-profile{% endif %}"
     type="button"
@@ -7,16 +9,21 @@
     aria-controls="crew-account-menu"
     data-account-trigger
   >
-    <span class="profile-copy"><strong>{{ user.username }}</strong><span>CREW Player</span></span>
+    <span class="profile-copy"><strong>{{ user.username }}</strong><span>{{ account_role_label }}</span></span>
     <span class="avatar" aria-hidden="true">{{ user.avatar }}</span>
     <span class="account-chevron" aria-hidden="true">⌄</span>
   </button>
   <div class="account-dropdown" id="crew-account-menu" role="menu" data-account-panel hidden>
     <div class="account-identity">
       <span class="account-avatar" aria-hidden="true">{{ user.avatar }}</span>
-      <span><strong>{{ user.username }}</strong><small>CREW Player</small></span>
+      <span><strong>{{ user.username }}</strong><small>{{ account_role_label }}</small></span>
     </div>
     <div class="account-divider" aria-hidden="true"></div>
+    {% if account_role in ['admin', 'owner'] %}
+    <a class="account-action" role="menuitem" href="{{ url_for('admin.dashboard') }}">
+      <span>Open Admin Studio</span><span aria-hidden="true">→</span>
+    </a>
+    {% endif %}
     <a class="account-action" role="menuitem" href="{{ url_for('auth.profile') }}">
       <span>View profile</span><span aria-hidden="true">→</span>
     </a>

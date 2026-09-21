@@ -18,6 +18,7 @@ from app.db import (
     get_profile_by_id,
     get_profile_by_username,
     get_profile_history_summary,
+    get_setting,
     profile_user_key,
     touch_profile_login,
     update_profile_avatar,
@@ -101,6 +102,7 @@ def _profile_session(profile):
         "profile_id": int(profile["id"]),
         "username": profile["username"],
         "avatar": profile["avatar"],
+        "role": str(profile["role"] or "player"),
         "user_key": profile_user_key(profile["id"]),
         "session_version": int(profile["session_version"] or 1),
     }
@@ -231,7 +233,13 @@ def create_profile_view():
         confirmation = request.form.get("password_confirm", "")
         error = None
 
-        if not hmac.compare_digest(invite_code, current_app.config["CREW_INVITE_CODE"]):
+        stored_invite_hash = get_setting("invite_code_hash")
+        invite_ok = (
+            check_password_hash(stored_invite_hash, invite_code)
+            if stored_invite_hash
+            else hmac.compare_digest(invite_code, current_app.config["CREW_INVITE_CODE"])
+        )
+        if not invite_ok:
             error = "That CREW invitation code isn't valid."
         elif not USERNAME_RE.fullmatch(entered_username):
             error = "CREW names must be 3–24 characters using letters, numbers, _ or -."

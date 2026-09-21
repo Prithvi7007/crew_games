@@ -1,12 +1,15 @@
 {% extends "base.html" %}
 {% block title %}{{ player.username }} · CREW Admin{% endblock %}
 {% block body_class %}admin-page admin-players-page{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v21-admin-players.css', v='21.0.0') }}">{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v21-admin-players.css', v='21.0.0') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">
+{% endblock %}
 {% block body %}
 <div class="admin-shell admin-players-shell">
   <header class="glass-nav admin-nav admin-players-nav">
     <a class="nav-brand" href="{{ url_for('admin.dashboard') }}"><span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span><span class="crew-mark small">CREW <em>CONTENT STUDIO</em></span></a>
-    <nav class="desktop-nav"><a href="{{ url_for('admin.dashboard') }}">Schedule</a><a class="active" href="{{ url_for('admin.players') }}">Players</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
+    <nav class="desktop-nav"><a href="{{ url_for('admin.dashboard') }}">Schedule</a><a class="active" href="{{ url_for('admin.players') }}">Players</a><a href="{{ url_for('admin.settings') }}">Settings</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
     <form method="post" action="{{ url_for('admin.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-quiet-button" type="submit">Exit admin ↗</button></form>
   </header>
   {% include "admin/_mobile_nav.html" %}
@@ -29,7 +32,7 @@
 
     <section class="admin-player-hero">
       <div class="admin-player-hero-avatar">{{ player.avatar }}</div>
-      <div><span class="eyebrow">PLAYER ACCOUNT #{{ player.id }}</span><h1>{{ player.username }}</h1><p>Joined {{ player.created_at[:10] }}{% if player.last_login_at %} · Last login {{ player.last_login_at[:10] }}{% endif %}</p></div>
+      <div><span class="eyebrow">PLAYER ACCOUNT #{{ player.id }}</span><h1>{{ player.username }}</h1><p><span class="v2-role-badge role-{{ player.role }}">{{ player.role|upper }}</span> · Joined {{ player.created_at[:10] }}{% if player.last_login_at %} · Last login {{ player.last_login_at[:10] }}{% endif %}</p></div>
     </section>
 
     <section class="admin-player-metrics admin-player-detail-metrics">
@@ -64,6 +67,38 @@
           <span class="eyebrow">RECOVERY</span><h2>Replace recovery code</h2><p>Generates a new recovery code and makes the previous code unusable.</p>
           <form method="post" action="{{ url_for('admin.player_reset_recovery', profile_id=player.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-account-button" type="submit">Generate recovery code</button></form>
         </section>
+
+        {% if player.role != 'owner' and admin_actor.profile_id != player.id %}
+        <section class="glass-card admin-account-card v2-role-control">
+          <span class="eyebrow">ROLE</span>
+          <h2>{% if player.role == 'admin' %}Revoke Admin access{% else %}Grant Admin access{% endif %}</h2>
+          <p>Role changes invalidate the player's active sessions immediately.</p>
+          <form method="post" action="{{ url_for('admin.player_role', profile_id=player.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="role" value="{{ 'player' if player.role == 'admin' else 'admin' }}">
+            <button class="admin-account-button{% if player.role != 'admin' %} primary{% endif %}" type="submit">{{ 'Make Player' if player.role == 'admin' else 'Make Admin' }}</button>
+          </form>
+          {% if admin_actor.kind == 'breakglass' %}
+          <form method="post" action="{{ url_for('admin.player_role', profile_id=player.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="role" value="owner">
+            <button class="admin-account-button" type="submit">Make Owner</button>
+          </form>
+          {% endif %}
+        </section>
+        {% endif %}
+
+        {% if player.role == 'player' and admin_actor.profile_id != player.id %}
+        <section class="glass-card admin-account-card v2-danger-zone">
+          <span class="eyebrow">DANGER ZONE</span><h2>Delete player</h2>
+          <p>Deletes the account and all linked attempts, completions, stats, and history. Type the CREW name to confirm.</p>
+          <form method="post" action="{{ url_for('admin.player_delete', profile_id=player.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input class="v2-confirm-input" name="confirm_username" autocomplete="off" placeholder="{{ player.username }}" required>
+            <button class="admin-account-button danger" type="submit">Delete {{ player.username }}</button>
+          </form>
+        </section>
+        {% endif %}
       </aside>
     </div>
   </main>

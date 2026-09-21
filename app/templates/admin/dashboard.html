@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}CREW Content Studio{% endblock %}
 {% block body_class %}admin-page{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">{% endblock %}
 {% block body %}
 <div class="admin-shell">
   <header class="glass-nav admin-nav">
@@ -8,7 +9,7 @@
       <span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span>
       <span class="crew-mark small">CREW <em>CONTENT STUDIO</em></span>
     </a>
-    <nav class="desktop-nav"><a class="active" href="{{ url_for('admin.dashboard') }}">Schedule</a><a href="{{ url_for('admin.players') }}">Players</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
+    <nav class="desktop-nav"><a class="active" href="{{ url_for('admin.dashboard') }}">Schedule</a><a href="{{ url_for('admin.players') }}">Players</a><a href="{{ url_for('admin.settings') }}">Settings</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
     <form method="post" action="{{ url_for('admin.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-quiet-button" type="submit">Exit admin ↗</button></form>
   </header>
   {% include "admin/_mobile_nav.html" %}
@@ -54,6 +55,7 @@
         </div>
         <div class="admin-card-actions">
           <a class="admin-card-button primary" href="{{ item.edit_url }}">{% if item.locked %}View content{% else %}Edit content{% endif %} →</a>
+          <a class="admin-card-button" href="{{ item.test_url }}">Test game</a>
           <a class="admin-card-button" href="{{ item.preview_url }}">Preview</a>
         </div>
       </article>

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Settings · CREW Admin{% endblock %}
+{% block body_class %}admin-page{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">{% endblock %}
+{% block body %}
+<div class="admin-shell">
+  <header class="glass-nav admin-nav">
+    <a class="nav-brand" href="{{ url_for('admin.dashboard') }}"><span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span><span class="crew-mark small">CREW <em>ADMIN</em></span></a>
+    <nav class="desktop-nav"><a href="{{ url_for('admin.dashboard') }}">Schedule</a><a href="{{ url_for('admin.players') }}">Players</a><a class="active" href="{{ url_for('admin.settings') }}">Settings</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
+    <form method="post" action="{{ url_for('admin.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-quiet-button" type="submit">Exit admin ↗</button></form>
+  </header>
+  {% include "admin/_mobile_nav.html" %}
+
+  <main class="admin-main v2-settings-main">
+    <section class="admin-title-row">
+      <div><span class="eyebrow">ACCESS CONTROL</span><h1>Admin settings.</h1><p>Manage the invitation gate used to create new CREW player profiles.</p></div>
+      <div class="v2-actor-card glass-card"><span>SIGNED IN AS</span><strong>{{ admin_actor.username }}</strong><small>{{ admin_actor.role|upper }}</small></div>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}<div class="admin-flash {{ category }}">{{ message }}</div>{% endfor %}
+    {% endwith %}
+
+    <section class="glass-card v2-settings-card">
+      <div class="v2-settings-copy">
+        <span class="eyebrow">PLAYER INVITE CODE</span>
+        <h2>Change the invite code.</h2>
+        <p>Changing this takes effect immediately for new profile creation. Existing player accounts are not affected.</p>
+        <div class="v2-setting-state"><span class="status-dot published"></span><strong>{% if invite_is_database_managed %}Admin-managed code active{% else %}Environment fallback active{% endif %}</strong></div>
+      </div>
+      <form method="post" class="v2-invite-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label><span>New invite code</span><input type="password" name="invite_code" minlength="6" maxlength="64" autocomplete="new-password" required></label>
+        <label><span>Confirm invite code</span><input type="password" name="invite_code_confirm" minlength="6" maxlength="64" autocomplete="new-password" required></label>
+        <button class="admin-card-button primary" type="submit">Change invite code →</button>
+      </form>
+    </section>
+
+    <section class="glass-card admin-note">
+      <span class="eyebrow">SECURITY</span><h2>The code is stored as a one-way hash.</h2>
+      <p>CREW does not store or display the current invite code. If it is forgotten, set a new one here.</p>
+      {% if admin_actor.kind == 'profile' %}
+      <p><a class="admin-card-button" href="{{ url_for('admin.login', breakglass=1) }}">Use break-glass Owner →</a></p>
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}

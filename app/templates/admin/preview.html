@@ -19,7 +19,7 @@
 
     {% if definition.key == 'mystery' %}
     <article class="glass-card preview-stage game-tone-mystery">
-      <div class="preview-stage-top"><span>CLUE PROGRESSION</span><strong>100 → 20 PTS</strong></div>
+      <div class="preview-stage-top"><span>CLUE PROGRESSION</span><strong>100 → 25 PTS</strong></div>
       <div class="preview-clues">{% for clue in payload.content.clues %}<div><span>{{ loop.index }}</span><p>{{ clue }}</p></div>{% endfor %}</div>
       <div class="preview-answer"><span>ANSWER</span><strong>{{ payload.content.answer }}</strong><small>Accepted: {{ payload.content.accepted|join(', ') }}</small></div>
     </article>

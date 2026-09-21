@@ -11,6 +11,7 @@ from flask import (
     Blueprint,
     current_app,
     flash,
+    g,
     redirect,
     render_template,
     request,
@@ -20,13 +21,17 @@ from flask import (
 
 from app.db import (
     count_game_attempts,
+    delete_profile,
     get_db,
     get_game_content,
     get_profile_by_id,
+    get_setting,
     save_game_content,
     set_game_content_status,
+    set_setting,
     update_profile_password,
     update_profile_recovery_code,
+    update_profile_role,
 )
 from app.mystery.game import get_puzzle
 from app.schedule import crew_today, GAME_DEFINITIONS, get_game_definition, get_week_start
@@ -47,25 +52,75 @@ from app.security import (
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
+def _breakglass_admin():
+    fingerprint = session.get("crew_admin")
+    authenticated_at = float(session.get("crew_admin_at", 0) or 0)
+    max_age = current_app.config["ADMIN_SESSION_HOURS"] * 3600
+    valid = (
+        fingerprint
+        and hmac.compare_digest(str(fingerprint), admin_session_fingerprint())
+        and authenticated_at > 0
+        and time.time() - authenticated_at <= max_age
+    )
+    if not valid:
+        return None
+    return {
+        "kind": "breakglass",
+        "role": "owner",
+        "profile_id": None,
+        "username": "Break-glass Owner",
+    }
+
+
+def _profile_admin():
+    user = session.get("user") or {}
+    profile_id = user.get("profile_id")
+    if not profile_id:
+        return None
+    profile = get_profile_by_id(profile_id)
+    if not profile:
+        return None
+    if int(profile["session_version"] or 1) != int(user.get("session_version", 0)):
+        return None
+    role = str(profile["role"] or "player").lower()
+    if role not in {"admin", "owner"}:
+        return None
+    return {
+        "kind": "profile",
+        "role": role,
+        "profile_id": int(profile["id"]),
+        "username": profile["username"],
+    }
+
+
+def current_admin_actor():
+    # An explicit break-glass session must outrank a profile Admin/Owner session.
+    # This lets an already-signed-in admin temporarily assume protected Owner
+    # privileges without signing out of their normal CREW profile.
+    return _breakglass_admin() or _profile_admin()
+
+
 def admin_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        fingerprint = session.get("crew_admin")
-        authenticated_at = float(session.get("crew_admin_at", 0) or 0)
-        max_age = current_app.config["ADMIN_SESSION_HOURS"] * 3600
-        valid = (
-            fingerprint
-            and hmac.compare_digest(str(fingerprint), admin_session_fingerprint())
-            and authenticated_at > 0
-            and time.time() - authenticated_at <= max_age
-        )
-        if not valid:
-            session.pop("crew_admin", None)
-            session.pop("crew_admin_at", None)
-            return redirect(url_for("admin.login", next=request.path))
-        return view(*args, **kwargs)
+        actor = current_admin_actor()
+        if actor:
+            g.admin_actor = actor
+            return view(*args, **kwargs)
+
+        session.pop("crew_admin", None)
+        session.pop("crew_admin_at", None)
+        if session.get("user"):
+            flash("Admin access is required for that page.", "error")
+            return redirect(url_for("main.home"))
+        return redirect(url_for("admin.login", next=request.path))
 
     return wrapped
+
+
+@admin_bp.context_processor
+def admin_template_context():
+    return {"admin_actor": getattr(g, "admin_actor", None)}
 
 
 def _parse_day(value):
@@ -229,6 +284,10 @@ def _content_summary(game_key, payload):
 
 @admin_bp.route("/login", methods=["GET", "POST"])
 def login():
+    force_breakglass = request.args.get("breakglass") == "1"
+    if _profile_admin() and not force_breakglass:
+        return redirect(url_for("admin.dashboard"))
+
     policy = limit_policy(
         "admin-login",
         "content-studio",
@@ -259,9 +318,12 @@ def login():
 @admin_bp.post("/logout")
 @admin_required
 def logout():
-    audit_security_event("admin_logout", "content-studio")
+    actor = g.admin_actor
+    audit_security_event("admin_logout", actor["username"], {"role": actor["role"]})
     session.pop("crew_admin", None)
     session.pop("crew_admin_at", None)
+    if actor["kind"] == "profile":
+        return redirect(url_for("main.home"))
     return redirect(url_for("admin.login"))
 
 
@@ -284,6 +346,7 @@ def dashboard():
             "locked": attempts > 0,
             "edit_url": url_for("admin.edit_game", game_key=definition["key"], game_date=game_day.isoformat()),
             "preview_url": url_for("admin.preview_game", game_key=definition["key"], game_date=game_day.isoformat()),
+            "test_url": url_for("admin.test_game", game_key=definition["key"], game_date=game_day.isoformat()),
         })
 
     return render_template(
@@ -384,7 +447,7 @@ def _player_admin_rows(search=""):
     rows = get_db().execute(
         f"""
         SELECT
-            p.id, p.username, p.avatar, p.created_at, p.last_login_at, p.session_version,
+            p.id, p.username, p.avatar, p.role, p.created_at, p.last_login_at, p.session_version,
             COALESCE(us.current_streak, 0) AS current_streak,
             COALESCE(us.longest_streak, 0) AS longest_streak,
             COALESCE(us.total_points, 0) AS total_points,
@@ -552,3 +615,134 @@ def player_reset_recovery(profile_id):
         "value": recovery_code,
         "message": "This replaces the player's previous recovery code. Show it once and store it securely.",
     })
+
+
+@admin_bp.post("/players/<int:profile_id>/role")
+@admin_required
+def player_role(profile_id):
+    actor = g.admin_actor
+    player = get_profile_by_id(profile_id)
+    if not player:
+        flash("That player account no longer exists.", "error")
+        return redirect(url_for("admin.players"))
+
+    requested = str(request.form.get("role", "")).strip().lower()
+    current_role = str(player["role"] or "player").lower()
+
+    if actor["profile_id"] == profile_id:
+        flash("You cannot change your own admin role.", "error")
+        return redirect(url_for("admin.player_detail", profile_id=profile_id))
+
+    if current_role == "owner":
+        flash("The Owner profile is protected.", "error")
+        return redirect(url_for("admin.player_detail", profile_id=profile_id))
+
+    if requested == "owner":
+        if actor["kind"] != "breakglass":
+            flash("Only the break-glass Owner can assign the Owner role.", "error")
+            return redirect(url_for("admin.player_detail", profile_id=profile_id))
+    elif requested not in {"player", "admin"}:
+        flash("Choose a valid CREW role.", "error")
+        return redirect(url_for("admin.player_detail", profile_id=profile_id))
+
+    update_profile_role(profile_id, requested)
+    audit_security_event(
+        "admin_player_role_changed",
+        player["username"],
+        {
+            "profile_id": profile_id,
+            "from": current_role,
+            "to": requested,
+            "actor_role": actor["role"],
+            "actor_profile_id": actor["profile_id"],
+        },
+    )
+    flash(
+        f"{player['username']} is now a CREW {requested}. Their existing sessions were invalidated.",
+        "success",
+    )
+    return redirect(url_for("admin.player_detail", profile_id=profile_id))
+
+
+@admin_bp.post("/players/<int:profile_id>/delete")
+@admin_required
+def player_delete(profile_id):
+    actor = g.admin_actor
+    player = get_profile_by_id(profile_id)
+    if not player:
+        flash("That player account no longer exists.", "error")
+        return redirect(url_for("admin.players"))
+
+    role = str(player["role"] or "player").lower()
+    if actor["profile_id"] == profile_id:
+        flash("You cannot delete your own account from Admin.", "error")
+        return redirect(url_for("admin.player_detail", profile_id=profile_id))
+    if role != "player":
+        flash("Only Player accounts can be deleted. Revoke Admin access first.", "error")
+        return redirect(url_for("admin.player_detail", profile_id=profile_id))
+
+    confirmation = str(request.form.get("confirm_username", "")).strip()
+    if confirmation.casefold() != str(player["username"]).casefold():
+        flash("Type the exact CREW name to confirm deletion.", "error")
+        return redirect(url_for("admin.player_detail", profile_id=profile_id))
+
+    username = player["username"]
+    if delete_profile(profile_id):
+        audit_security_event(
+            "admin_player_deleted",
+            username,
+            {
+                "profile_id": profile_id,
+                "actor_role": actor["role"],
+                "actor_profile_id": actor["profile_id"],
+            },
+        )
+        flash(f"{username} and their CREW game history were deleted.", "success")
+    return redirect(url_for("admin.players"))
+
+
+@admin_bp.route("/settings", methods=["GET", "POST"])
+@admin_required
+def settings():
+    if request.method == "POST":
+        new_code = str(request.form.get("invite_code", "")).strip()
+        confirmation = str(request.form.get("invite_code_confirm", "")).strip()
+        if len(new_code) < 6 or len(new_code) > 64:
+            flash("Use an invite code between 6 and 64 characters.", "error")
+        elif new_code != confirmation:
+            flash("The invite code confirmation does not match.", "error")
+        else:
+            set_setting("invite_code_hash", generate_password_hash(new_code))
+            actor = g.admin_actor
+            audit_security_event(
+                "admin_invite_code_changed",
+                actor["username"],
+                {"actor_role": actor["role"], "actor_profile_id": actor["profile_id"]},
+            )
+            flash("Invite code changed. The previous code is no longer valid.", "success")
+            return redirect(url_for("admin.settings"))
+
+    return render_template(
+        "admin/settings.html",
+        invite_is_database_managed=bool(get_setting("invite_code_hash")),
+    )
+
+
+@admin_bp.get("/test/<game_key>/<game_date>")
+@admin_required
+def test_game(game_key, game_date):
+    game_day = _parse_day(game_date)
+    definition = _validate_slot(game_key, game_day) if game_day else None
+    if not definition:
+        flash("That CREW game slot isn't valid.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    payload = _editor_payload(game_key, game_day)
+    return render_template(
+        "admin/test_game.html",
+        definition=definition,
+        game_day=game_day,
+        payload=payload,
+        dashboard_url=url_for("admin.dashboard", week=get_week_start(game_day).isoformat()),
+        edit_url=url_for("admin.edit_game", game_key=game_key, game_date=game_date),
+    )

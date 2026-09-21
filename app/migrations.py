@@ -8,7 +8,7 @@ from alembic.config import Config as AlembicConfig
 from sqlalchemy import create_engine, inspect, text
 
 BASELINE_REVISION = "v11_baseline"
-HEAD_REVISION = "v12_platform"
+HEAD_REVISION = "v13_access"
 ROOT = Path(__file__).resolve().parents[1]
 
 
