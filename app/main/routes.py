@@ -12,7 +12,14 @@ from app.db import (
     get_leaderboard,
     get_weekly_points,
 )
-from app.schedule import ARCHIVE_START_DATE, GAME_DEFINITIONS, crew_today, get_game_date, get_week_start
+from app.schedule import (
+    ARCHIVE_START_DATE,
+    GAME_DEFINITIONS,
+    crew_today,
+    get_crew_week_number,
+    get_game_date,
+    get_week_start,
+)
 
 main_bp = Blueprint("main", __name__)
 
@@ -88,8 +95,18 @@ def home():
         "streak": stats_row["current_streak"], "rank": my_rank, "weekly_points": weekly["points"],
         "games_completed": weekly["completed"], "progress_percent": min(100, round((weekly["points"] / 400) * 100)),
     }
-    return render_template("home.html", today=today, stats=stats, games=games, todays_game=todays_game,
-                           home_phase=home_phase, next_week_start=next_week_start, leaderboard=leaderboard, user=user)
+    return render_template(
+        "home.html",
+        today=today,
+        stats=stats,
+        games=games,
+        todays_game=todays_game,
+        home_phase=home_phase,
+        next_week_start=next_week_start,
+        leaderboard=leaderboard,
+        user=user,
+        week_number=get_crew_week_number(today),
+    )
 
 
 @main_bp.get("/games")
@@ -100,7 +117,7 @@ def games():
     for definition in GAME_DEFINITIONS:
         item = dict(definition); game_day = monday + timedelta(days=item["weekday"]); game_date = game_day.isoformat()
         summary = get_game_attempt_summary(user_key, item["key"], game_date); completion = get_game_completion(user_key, item["key"], game_date)
-        content = get_game_content(item["key"], game_date, published_only=True)
+        content = get_game_content(item["key"], game_date, published_only=True) if game_day <= today else None
         item.update(summary); item["date"] = game_day; item["theme_label"] = content["theme_label"] if content else ""
         item["url"] = url_for(item["endpoint"], date=game_date)
         if completion:
@@ -109,7 +126,7 @@ def games():
             item["status_label"] = "Completed live" if int(completion["competitive"]) else "Completed later"
             item["action"] = "View result"; item["score"] = int(completion["score"])
         elif game_day > today:
-            item["status"] = "upcoming"; item["status_label"] = "Upcoming"; item["action"] = "Preview"
+            item["status"] = "upcoming"; item["status_label"] = "Upcoming"; item["action"] = "Locked"
         elif summary["started"]:
             item["status"] = "in-progress"; item["status_label"] = "In progress"; item["action"] = "Continue"
         elif monday == current_monday and today.weekday() <= 3:

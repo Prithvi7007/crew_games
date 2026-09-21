@@ -1,8 +1,8 @@
-from flask import Blueprint, abort, jsonify, render_template, request, session, url_for
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.db import finalize_game_stats, get_or_create_trivia_attempt, load_json_list, save_trivia_attempt
-from app.schedule import game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
+from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import get_quiz
 
 trivia_bp = Blueprint("trivia", __name__, url_prefix="/trivia")
@@ -15,7 +15,7 @@ def serialize_state(user_key, game_day):
         "date": game_date, "theme": quiz["theme"], "index": index, "total": len(quiz["questions"]),
         "score": int(attempt["score"]), "correct_count": sum(1 for a in answers if a.get("correct")),
         "completed": completed, "answers": answers, "playable": game_is_playable(game_day),
-        "competitive": game_is_competitive(game_day), "archive": game_is_playable(game_day) and not game_is_competitive(game_day),
+        "competitive": game_is_competitive(game_day), "archive": game_is_archive(game_day),
     }
     if not completed and index < len(quiz["questions"]):
         q = quiz["questions"][index]; state["question"] = {"prompt": q["prompt"], "options": list(q["options"])}
@@ -33,6 +33,8 @@ def _day():
 @login_required
 def play():
     game_day = _day()
+    if not game_is_playable(game_day):
+        return redirect(url_for("main.games"))
     return render_template("trivia.html", user=session["user"], game_day=game_day, state=serialize_state(current_user_key(), game_day),
                            return_url=url_for("main.games", week=game_day.isoformat()) if request.args.get("date") else url_for("main.home"))
 

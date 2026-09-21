@@ -567,6 +567,21 @@
   box-shadow: 0 10px 25px rgba(0,0,0,.20);
 }
 
+.v14-game-locked-action {
+  min-width: 162px;
+  min-height: 48px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 11px;
+  color: rgba(220,229,239,.46);
+  background: rgba(255,255,255,.035);
+  font: 800 .72rem/1 Inter, sans-serif;
+}
+
 .v14-history-note {
   margin-top: 24px;
   display: grid;

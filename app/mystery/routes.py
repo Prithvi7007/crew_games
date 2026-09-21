@@ -1,8 +1,8 @@
-from flask import Blueprint, abort, jsonify, render_template, request, session, url_for
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.db import finalize_game_stats, get_or_create_mystery_attempt, load_json_list, save_mystery_attempt
-from app.schedule import game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
+from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import get_puzzle, is_correct_answer, score_for_clues
 
 mystery_bp = Blueprint("mystery", __name__, url_prefix="/mystery")
@@ -29,7 +29,7 @@ def serialize_state(user_key, game_day):
         "potential_score": score_for_clues(revealed_count, len(puzzle["clues"])),
         "playable": playable,
         "competitive": competitive,
-        "archive": playable and not competitive,
+        "archive": game_is_archive(game_day),
     }
     if state["completed"]:
         state["answer"] = puzzle["answer"]
@@ -48,6 +48,8 @@ def _day():
 def play():
     user = session["user"]
     game_day = _day()
+    if not game_is_playable(game_day):
+        return redirect(url_for("main.games"))
     return render_template(
         "mystery.html", user=user, game_day=game_day,
         state=serialize_state(current_user_key(), game_day),
@@ -89,7 +91,7 @@ def guess():
     if won:
         score, completed = score_for_clues(revealed_count, len(puzzle["clues"])), True
     elif revealed_count >= len(puzzle["clues"]):
-        score, completed = 0, True
+        score, completed = 10, True
     else:
         score, completed, revealed_count = 0, False, revealed_count + 1
     save_mystery_attempt(user_key, game_date, revealed_count, guesses, completed, won, score)

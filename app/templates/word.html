@@ -21,7 +21,7 @@
             </div>
         </section>
 
-        {% if state.archive %}<div class="archive-play-banner"><strong>Archive play</strong><span>Your result is saved to history and will not change the original weekly leaderboard.</span></div>{% elif not state.playable %}<div class="archive-play-banner upcoming"><strong>Coming soon</strong><span>This challenge opens on {{ today.strftime('%A, %B %d') }}.</span></div>{% endif %}<section class="word-layout">
+        {% if not state.archive and not state.playable %}<div class="archive-play-banner upcoming"><strong>Coming soon</strong><span>This challenge opens on {{ today.strftime('%A, %B %d') }}.</span></div>{% endif %}<section class="word-layout">
             <article class="glass-card word-game-panel">
                 <div class="word-panel-top">
                     <div><span class="game-kicker">CREW WORD #{{ today.toordinal() }}</span><span class="word-attempt-label" id="attemptLabel">{{ state.guess_count }} / 6 guesses</span></div>

@@ -31,7 +31,7 @@
   <main class="v17-today-main">
     <header class="v17-intro">
       <div class="v17-intro-copy">
-        <span class="v17-eyebrow">WEEK 01</span>
+        <span class="v17-eyebrow">{% if week_number > 0 %}WEEK {{ '%02d'|format(week_number) }}{% else %}PRESEASON{% endif %}</span>
         <h1>Your week.<br><span>In play.</span></h1>
         <p>Past games stay open. Future games unlock on their day.</p>
       </div>

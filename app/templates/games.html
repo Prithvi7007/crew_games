@@ -15,7 +15,7 @@
         <span class="v14-games-kicker">THE WEEKLY LINEUP</span>
         <h1>Four days.<br>Four challenges.</h1>
       </div>
-      <p>Replay completed games or catch up on something you missed. Archive scores stay in your personal history without changing past weekly rankings.</p>
+      <p>Replay completed games or catch up on something you missed. Catch-up scores count toward the week the challenge belongs to, but they do not repair streaks.</p>
     </header>
 
     <nav class="v14-week-switcher" aria-label="Archive week">
@@ -60,17 +60,21 @@
           {% else %}
             <div class="v14-game-score muted"><strong>{{ game.points }}</strong><span>PTS</span></div>
           {% endif %}
-          <a href="{{ game.url }}"><span>{{ game.action }}</span><span aria-hidden="true">→</span></a>
+          {% if game.status == 'upcoming' %}
+            <span class="v14-game-locked-action"><span>Locked</span><span aria-hidden="true">•</span></span>
+          {% else %}
+            <a href="{{ game.url }}"><span>{{ game.action }}</span><span aria-hidden="true">→</span></a>
+          {% endif %}
         </div>
       </article>
       {% endfor %}
     </section>
 
     <section class="v14-history-note">
-      <span>HOW HISTORY WORKS</span>
+      <span>HOW CATCH-UP WORKS</span>
       <div>
-        <h2>Past leaderboards stay locked.</h2>
-        <p>Finish a missed challenge whenever you like. Your result is saved to CREW history, but the original week's standings never change.</p>
+        <h2>Missed a game? It can still count.</h2>
+        <p>Finish an opened challenge later and its points are credited to the original game week. Catch-up play does not create, extend, or repair a streak.</p>
       </div>
     </section>
   </main>

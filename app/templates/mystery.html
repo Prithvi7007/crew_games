@@ -27,12 +27,7 @@
       </div>
     </section>
 
-    {% if state.archive %}
-    <div class="archive-play-banner">
-      <strong>Archive play</strong>
-      <span>Your result is saved to history and will not change this week's original leaderboard.</span>
-    </div>
-    {% elif not state.playable %}
+    {% if not state.archive and not state.playable %}
     <div class="archive-play-banner upcoming">
       <strong>Coming soon</strong>
       <span>This challenge opens on {{ game_day.strftime('%A, %B %d') }}.</span>
@@ -62,8 +57,9 @@
           {% for points in score_ladder %}
           <span>{{ loop.index }} clue{% if loop.index != 1 %}s{% endif %} <b>{{ points }}</b></span>
           {% endfor %}
+          <span>Unsolved <b>10</b></span>
         </div>
-        <p>Each additional clue reduces the available score by 25 points. An unsolved mystery scores 0.</p>
+        <p>Each additional clue reduces the available score by 25 points. Finish the mystery unsolved and you still earn 10 participation points.</p>
       </aside>
     </section>
   </main>

@@ -25,13 +25,6 @@
       </div>
     </header>
 
-    {% if state.archive %}
-    <div class="v19-archive-banner">
-      <strong>Archive play</strong>
-      <span>This result goes to your personal history, not the original weekly standings.</span>
-    </div>
-    {% endif %}
-
     <div
       id="crew-trivia-root"
       data-answer-url="{{ url_for('trivia.answer', date=state.date) }}"

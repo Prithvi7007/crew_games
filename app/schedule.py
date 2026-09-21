@@ -10,8 +10,12 @@ def crew_today():
     return datetime.now(ZoneInfo(CREW_TIMEZONE)).date()
 
 
-# CREW production archive begins with the launch week.
+# CREW production archive begins with the original soft-launch history.
 ARCHIVE_START_DATE = date(2026, 9, 7)
+
+# The curated CREW season/question-bank launch starts Monday, September 21.
+# This is WEEK 01 in the player-facing experience.
+CREW_WEEK_ONE_DATE = date(2026, 9, 21)
 
 
 GAME_DEFINITIONS = (
@@ -65,6 +69,16 @@ GAME_DEFINITIONS = (
 def get_week_start(day=None):
     day = day or crew_today()
     return day - timedelta(days=day.weekday())
+
+
+def get_crew_week_number(day=None):
+    # Week 01 begins on 2026-09-21, when the curated question bank launches.
+    # Dates before that are preseason and return 0.
+    day = day or crew_today()
+    week_start = get_week_start(day)
+    if week_start < CREW_WEEK_ONE_DATE:
+        return 0
+    return ((week_start - CREW_WEEK_ONE_DATE).days // 7) + 1
 
 
 def get_game_definition(game_key):
@@ -122,13 +136,19 @@ def game_is_playable(game_day, today=None):
 
 
 def game_is_competitive(game_day, today=None):
-    """Competitive scoring is open Monday-Thursday of the current CREW week only."""
+    """Return whether this completion is timely enough to count toward streaks."""
     today = today or crew_today()
     return (
         today.weekday() <= 3
         and game_day <= today
         and get_week_start(game_day) == get_week_start(today)
     )
+
+
+def game_is_archive(game_day, today=None):
+    """A challenge is an archive play when it belongs to an earlier CREW week."""
+    today = today or crew_today()
+    return game_day < get_week_start(today)
 
 
 def game_is_in_archive(game_day):

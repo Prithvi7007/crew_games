@@ -1,8 +1,8 @@
-from flask import Blueprint, abort, jsonify, render_template, request, session, url_for
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.db import ensure_user_stats, finalize_word_stats, get_game_content, get_or_create_word_attempt, load_guesses, save_word_attempt
-from app.schedule import game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
+from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import evaluate_guess, get_daily_solution, score_for_result, validate_guess
 
 word_bp = Blueprint("word", __name__, url_prefix="/word")
@@ -17,7 +17,7 @@ def serialize_state(user_key, game_day):
         "completed": bool(attempt["completed"]), "won": bool(attempt["won"]), "score": int(attempt["score"]),
         "potential_score": score_for_result(len(guesses) + 1, True) if not attempt["completed"] else int(attempt["score"]),
         "theme": scheduled["theme_label"] if scheduled else "", "playable": game_is_playable(game_day),
-        "competitive": game_is_competitive(game_day), "archive": game_is_playable(game_day) and not game_is_competitive(game_day),
+        "competitive": game_is_competitive(game_day), "archive": game_is_archive(game_day),
     }
     if state["completed"]: state["solution"] = solution
     return state
@@ -33,7 +33,10 @@ def _day():
 @word_bp.get("")
 @login_required
 def play():
-    game_day = _day(); ensure_user_stats(current_user_key()); state = serialize_state(current_user_key(), game_day)
+    game_day = _day()
+    if not game_is_playable(game_day):
+        return redirect(url_for("main.games"))
+    ensure_user_stats(current_user_key()); state = serialize_state(current_user_key(), game_day)
     return render_template("word.html", user=session["user"], today=game_day, state=state,
                            return_url=url_for("main.games", week=game_day.isoformat()) if request.args.get("date") else url_for("main.home"))
 

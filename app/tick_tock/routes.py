@@ -1,9 +1,9 @@
 import time
-from flask import Blueprint, abort, jsonify, render_template, request, session, url_for
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.db import finalize_game_stats, finish_tick_tock_attempt, get_or_create_tick_tock_attempt, start_tick_tock_attempt
-from app.schedule import game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
+from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import get_target, get_timer_config, score_for_difference
 
 tick_tock_bp = Blueprint("tick_tock", __name__, url_prefix="/tick-tock")
@@ -20,7 +20,7 @@ def serialize_state(user_key, game_day):
         "completed": bool(attempt["completed"]), "score": int(attempt["score"]), "elapsed": attempt["elapsed_seconds"],
         "difference": attempt["difference_seconds"], "signed_difference": signed_difference, "theme": config["theme"],
         "playable": game_is_playable(game_day), "competitive": game_is_competitive(game_day),
-        "archive": game_is_playable(game_day) and not game_is_competitive(game_day),
+        "archive": game_is_archive(game_day),
     }
 
 
@@ -35,6 +35,8 @@ def _day():
 @login_required
 def play():
     game_day = _day()
+    if not game_is_playable(game_day):
+        return redirect(url_for("main.games"))
     return render_template("tick_tock.html", user=session["user"], game_day=game_day, state=serialize_state(current_user_key(), game_day),
                            return_url=url_for("main.games", week=game_day.isoformat()) if request.args.get("date") else url_for("main.home"))
 

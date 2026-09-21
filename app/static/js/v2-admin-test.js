@@ -32,7 +32,7 @@
           return;
         }
         if (index >= clues.length - 1) {
-          mount.innerHTML = `<div class="v2-test-result"><span>CASE COMPLETE</span><strong>0</strong><small>PTS · ANSWER ${esc(content.answer)}</small><p>Test complete. Nothing was saved.</p></div>`;
+          mount.innerHTML = `<div class="v2-test-result"><span>CASE COMPLETE</span><strong>10</strong><small>PTS · ANSWER ${esc(content.answer)}</small><p>Test complete. Nothing was saved.</p></div>`;
           return;
         }
         index += 1;

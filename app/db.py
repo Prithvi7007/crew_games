@@ -635,7 +635,7 @@ def finish_tick_tock_attempt(user_key, game_date, elapsed_seconds, difference_se
 # ---------- Shared progress / scoring ----------
 
 def finalize_game_stats(user_key, game_key, game_date, score, won=True, competitive=True):
-    """Record a game completion once. Archive completions never alter competitive totals/streaks."""
+    """Record a completion once. All completions score; only timely ones affect streaks."""
     db = get_db()
     profile_id = _profile_id_from_user_key(user_key)
     stats = ensure_user_stats(user_key)
@@ -653,42 +653,49 @@ def finalize_game_stats(user_key, game_key, game_date, score, won=True, competit
     if cursor.rowcount == 0:
         return ensure_user_stats(user_key)
 
-    if not competitive:
-        db.commit()
-        return ensure_user_stats(user_key)
-
-    completion_rows = db.execute(
-        "SELECT DISTINCT game_date FROM game_completions WHERE profile_id = ? AND competitive = 1 ORDER BY game_date ASC",
-        (profile_id,),
-    ).fetchall()
-    completion_days = []
-    for item in completion_rows:
-        try:
-            completion_days.append(date.fromisoformat(item["game_date"]))
-        except (TypeError, ValueError):
-            continue
-    current_streak, calculated_longest, last_completed_date = _calculate_streaks(completion_days)
-    longest_streak = max(int(stats["longest_streak"]), calculated_longest)
-
     word_points = score if game_key == "word" else 0
     word_completed = 1 if game_key == "word" else 0
     word_won = 1 if game_key == "word" and won else 0
 
+    # Points and participation totals count for every completed game, including catch-up/archive play.
     db.execute(
         """
         UPDATE user_stats
-        SET current_streak = ?,
-            longest_streak = ?,
-            total_points = total_points + ?,
+        SET total_points = total_points + ?,
             games_completed = games_completed + 1,
             total_word_points = total_word_points + ?,
             word_games_completed = word_games_completed + ?,
-            word_games_won = word_games_won + ?,
-            last_completed_date = ?
+            word_games_won = word_games_won + ?
         WHERE profile_id = ?
         """,
-        (current_streak, longest_streak, score, word_points, word_completed, word_won, last_completed_date, profile_id),
+        (score, word_points, word_completed, word_won, profile_id),
     )
+
+    # Streaks only use timely/current-week completions. Archive play cannot repair a missed streak.
+    if competitive:
+        completion_rows = db.execute(
+            "SELECT DISTINCT game_date FROM game_completions WHERE profile_id = ? AND competitive = 1 ORDER BY game_date ASC",
+            (profile_id,),
+        ).fetchall()
+        completion_days = []
+        for item in completion_rows:
+            try:
+                completion_days.append(date.fromisoformat(item["game_date"]))
+            except (TypeError, ValueError):
+                continue
+        current_streak, calculated_longest, last_completed_date = _calculate_streaks(completion_days)
+        longest_streak = max(int(stats["longest_streak"]), calculated_longest)
+        db.execute(
+            """
+            UPDATE user_stats
+            SET current_streak = ?,
+                longest_streak = ?,
+                last_completed_date = ?
+            WHERE profile_id = ?
+            """,
+            (current_streak, longest_streak, last_completed_date, profile_id),
+        )
+
     db.commit()
     return ensure_user_stats(user_key)
 
@@ -712,7 +719,7 @@ def get_weekly_points(user_key, reference_day=None):
         """
         SELECT COALESCE(SUM(score), 0) AS points, COUNT(*) AS completed
         FROM game_completions
-        WHERE profile_id = ? AND competitive = 1 AND game_date BETWEEN ? AND ?
+        WHERE profile_id = ? AND game_date BETWEEN ? AND ?
         """,
         (profile_id, monday.isoformat(), thursday.isoformat()),
     ).fetchone()
@@ -827,7 +834,7 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
     start, end, period_label = _period_bounds(period, reference_day)
     db = get_db()
 
-    join_conditions = ["gc.profile_id = p.id", "gc.competitive = 1"]
+    join_conditions = ["gc.profile_id = p.id"]
     params = []
     if game_key != "all":
         join_conditions.append("gc.game_key = ?")

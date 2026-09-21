@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash
 
 from app.db import (
     create_profile,
+    ensure_user_stats,
     finalize_game_stats,
     get_game_completion,
     profile_user_key,
@@ -176,3 +177,136 @@ def test_db_upgrade_releases_preflight_connection_before_alembic(app, monkeypatc
 
     assert result.exit_code == 0, result.output
     assert observed["request_scoped_connection_open"] is False
+
+def test_crew_week_number_starts_with_curated_bank_launch():
+    from datetime import date
+    from app.schedule import get_crew_week_number
+
+    assert get_crew_week_number(date(2026, 9, 20)) == 0
+    assert get_crew_week_number(date(2026, 9, 21)) == 1
+    assert get_crew_week_number(date(2026, 9, 27)) == 1
+    assert get_crew_week_number(date(2026, 9, 28)) == 2
+    assert get_crew_week_number(date(2026, 10, 5)) == 3
+
+
+def test_archive_games_score_but_do_not_qualify_for_streaks():
+    from datetime import date
+    from app.schedule import game_is_archive, game_is_competitive
+
+    today = date(2026, 9, 21)
+    old_game = date(2026, 9, 14)
+    assert game_is_archive(old_game, today=today) is True
+    assert game_is_competitive(old_game, today=today) is False
+    assert game_is_competitive(date(2026, 9, 21), today=today) is True
+    assert game_is_competitive(date(2026, 9, 22), today=today) is False
+
+
+def test_archive_completion_counts_points_in_original_week(app):
+    from datetime import date
+    from app.db import get_weekly_points
+    from app.schedule import game_is_competitive
+
+    profile_id = _profile(app, username="ArchiveScorer")
+    user_key = profile_user_key(profile_id)
+    game_day = date(2026, 9, 14)
+
+    with app.app_context():
+        finalize_game_stats(
+            user_key,
+            "mystery",
+            game_day.isoformat(),
+            75,
+            True,
+            competitive=game_is_competitive(game_day, today=date(2026, 9, 21)),
+        )
+        weekly = get_weekly_points(user_key, game_day)
+        stats = ensure_user_stats(user_key)
+        assert weekly["points"] == 75
+        assert weekly["completed"] == 1
+        assert stats["total_points"] == 75
+        assert stats["games_completed"] == 1
+        assert stats["current_streak"] == 0
+        assert stats["longest_streak"] == 0
+
+
+def test_archive_play_banners_are_removed_from_game_templates():
+    root = Path(__file__).parents[1]
+    for name in ("mystery.html", "trivia.html", "word.html", "tick_tock.html"):
+        template = (root / "app" / "templates" / name).read_text(encoding="utf-8")
+        assert ">Archive play<" not in template
+
+def test_tick_tock_page_explains_scoring_ladder():
+    root = Path(__file__).parents[1]
+    template = (root / 'app' / 'templates' / 'tick_tock.html').read_text(encoding='utf-8')
+    assert 'class="glass-card game-side-panel timer-score-panel"' in template
+    assert 'HOW IT SCORES' in template
+    for label, score in (
+        ('Within 0.10 sec', '100'),
+        ('Within 0.25 sec', '90'),
+        ('Within 0.50 sec', '80'),
+        ('Within 1.00 sec', '60'),
+        ('Within 1.50 sec', '40'),
+        ('Within 2.50 sec', '20'),
+        ('More than 2.50 sec', '10'),
+    ):
+        assert label in template
+        assert f'<b>{score}</b>' in template
+
+def test_mystery_unsolved_completion_awards_participation_points():
+    root = Path(__file__).parents[1]
+
+    routes = (root / "app" / "mystery" / "routes.py").read_text(encoding="utf-8")
+    template = (root / "app" / "templates" / "mystery.html").read_text(encoding="utf-8")
+    admin_test = (root / "app" / "static" / "js" / "v2-admin-test.js").read_text(encoding="utf-8")
+
+    assert 'score, completed = 10, True' in routes
+    assert 'Unsolved <b>10</b>' in template
+    assert '10 participation points' in template
+    assert '<strong>10</strong><small>PTS · ANSWER' in admin_test
+
+def test_future_player_game_urls_redirect_without_loading_attempts(app, monkeypatch):
+    from datetime import date
+    import app.schedule as schedule
+    from app.db import get_db, get_profile_by_id
+
+    profile_id = _profile(app, username="FutureGuardTester")
+    user_key = profile_user_key(profile_id)
+    with app.app_context():
+        profile = get_profile_by_id(profile_id)
+
+    client = app.test_client()
+    client.get("/login")
+    with client.session_transaction() as session:
+        session["user"] = {
+            "profile_id": profile_id,
+            "username": profile["username"],
+            "avatar": profile["avatar"],
+            "role": profile["role"],
+            "user_key": user_key,
+            "session_version": int(profile["session_version"]),
+        }
+
+    monkeypatch.setattr(schedule, "crew_today", lambda: date(2026, 9, 20))
+
+    for url in (
+        "/mystery?date=2026-09-21",
+        "/trivia?date=2026-09-22",
+        "/word?date=2026-09-23",
+        "/tick-tock?date=2026-09-24",
+    ):
+        response = client.get(url)
+        assert response.status_code == 302
+        assert response.headers["Location"].endswith("/games")
+
+    with app.app_context():
+        for table in ("mystery_attempts", "trivia_attempts", "word_attempts", "tick_tock_attempts"):
+            row = get_db().execute(f"SELECT COUNT(*) AS count FROM {table}").fetchone()
+            assert int(row["count"]) == 0
+
+
+def test_games_page_copy_matches_catch_up_scoring_rules():
+    root = Path(__file__).parents[1]
+    template = (root / "app" / "templates" / "games.html").read_text(encoding="utf-8")
+    assert "Past leaderboards stay locked." not in template
+    assert "Catch-up scores count toward the week" in template
+    assert "Catch-up play does not create, extend, or repair a streak." in template
