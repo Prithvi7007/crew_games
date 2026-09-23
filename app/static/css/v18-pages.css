@@ -1904,3 +1904,46 @@
     transition:none;
   }
 }
+/* Wordle evaluated state colors */
+.word-page .word-tile.correct {
+  background: linear-gradient(145deg, rgba(70,225,166,.42), rgba(28,121,90,.32));
+  border-color: rgba(120,255,203,.53);
+  box-shadow: 0 0 24px rgba(78,226,169,.09), inset 0 1px rgba(255,255,255,.12);
+}
+
+.word-page .word-tile.present {
+  background: linear-gradient(145deg, rgba(255,201,105,.35), rgba(155,105,28,.28));
+  border-color: rgba(255,218,145,.48);
+}
+
+.word-page .word-tile.absent {
+  background: linear-gradient(145deg, rgba(95,113,135,.30), rgba(39,49,62,.38));
+  border-color: rgba(179,197,219,.19);
+  color: rgba(241,247,255,.76);
+}
+
+.word-page .key.correct {
+  background: linear-gradient(180deg, #1c986f 0%, #11684f 100%);
+  border-color: #70efc0;
+  color: #fff;
+  box-shadow:
+    inset 0 -3px 0 rgba(5,52,39,.34),
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 0 18px rgba(43,212,157,.24);
+}
+
+.word-page .key.present {
+  background: linear-gradient(180deg, #c78924 0%, #925e12 100%);
+  border-color: #ffd06a;
+  color: #fff;
+  box-shadow:
+    inset 0 -3px 0 rgba(90,54,5,.32),
+    inset 0 1px 0 rgba(255,255,255,.17),
+    0 0 18px rgba(236,169,49,.20);
+}
+
+.word-page .key.absent {
+  background: linear-gradient(180deg, #151e29 0%, #101720 100%);
+  border-color: rgba(127,148,168,.18);
+  color: #90a0af;
+}
