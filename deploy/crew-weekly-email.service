@@ -1,0 +1,28 @@
+[Unit]
+Description=CREW Monday leaderboard and new-week email
+After=network-online.target postgresql.service
+Wants=network-online.target postgresql.service
+
+[Service]
+Type=oneshot
+User=crew
+Group=www-data
+WorkingDirectory=/opt/crew
+EnvironmentFile=/etc/crew/crew.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/crew/.venv/bin/flask --app run.py send-weekly-kickoff
+TimeoutStartSec=60
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

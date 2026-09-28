@@ -1,0 +1,11 @@
+[Unit]
+Description=Send CREW Monday kickoff email
+
+[Timer]
+OnCalendar=Mon *-*-* 08:00:00 America/New_York
+Persistent=true
+AccuracySec=1min
+Unit=crew-weekly-email.service
+
+[Install]
+WantedBy=timers.target

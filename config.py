@@ -41,6 +41,11 @@ class Config:
     DB_POOL_TIMEOUT = int(os.getenv("DB_POOL_TIMEOUT", "10"))
     AUTO_DB_MIGRATE = _env_flag("AUTO_DB_MIGRATE", "false" if IS_PRODUCTION else "true")
 
+    RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
+    CREW_EMAIL_FROM = os.getenv("CREW_EMAIL_FROM", "").strip()
+    CREW_WEEKLY_EMAIL_TO = os.getenv("CREW_WEEKLY_EMAIL_TO", "").strip()
+    CREW_PUBLIC_URL = os.getenv("CREW_PUBLIC_URL", "https://cadacrew.fun").strip().rstrip("/")
+
     PASSWORD_MIN_LENGTH = int(os.getenv("PASSWORD_MIN_LENGTH", "12"))
     PASSWORD_MAX_LENGTH = int(os.getenv("PASSWORD_MAX_LENGTH", "128"))
     ADMIN_SESSION_HOURS = int(os.getenv("ADMIN_SESSION_HOURS", "4"))

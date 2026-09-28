@@ -9,3 +9,6 @@ instance/
 .DS_Store
 
 frontend/node_modules/
+
+# Databricks temporary notebooks
+New Notebook*.ipynb

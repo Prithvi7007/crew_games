@@ -754,6 +754,39 @@ def get_weekly_leaderboard(reference_day=None, limit=25):
         for row in rows
     ]
 
+def get_competitive_rankings_between(start_date, end_date, limit=10):
+    """Return ranked competitive points for an explicit inclusive date range."""
+    rows = get_db().execute(
+        """
+        SELECT
+            p.id, p.username, p.avatar,
+            SUM(gc.score) AS points,
+            COUNT(gc.id) AS completed
+        FROM profiles p
+        JOIN game_completions gc
+          ON gc.profile_id = p.id
+         AND gc.competitive = 1
+         AND gc.game_date BETWEEN ? AND ?
+        GROUP BY p.id, p.username, p.avatar
+        HAVING SUM(gc.score) > 0
+        ORDER BY points DESC, completed DESC, LOWER(p.username) ASC
+        LIMIT ?
+        """,
+        (start_date.isoformat(), end_date.isoformat(), int(limit)),
+    ).fetchall()
+    return [
+        {
+            "profile_id": int(row["id"]),
+            "username": row["username"],
+            "avatar": row["avatar"],
+            "points": int(row["points"]),
+            "completed": int(row["completed"]),
+            "rank": index,
+        }
+        for index, row in enumerate(rows, 1)
+    ]
+
+
 def get_home_leaderboard(reference_day=None, current_profile_id=None):
     """Return the top three plus the current player's exact weekly rank in one query."""
     reference_day = reference_day or crew_today()
