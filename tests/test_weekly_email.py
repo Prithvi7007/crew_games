@@ -74,9 +74,12 @@ def test_weekly_email_renders_outlook_safe_html(app):
     assert rendered["subject"] == "CREW Games Weekly | Week 02 is Live"
     assert "<table" in rendered["html"]
     assert "Alpha" in rendered["html"]
-    assert "Cumulative Standings" in rendered["html"]
+    assert "Season Standings" in rendered["html"]
     assert "Week 02 is" in rendered["html"]
     assert ">Live</span>" in rendered["html"]
+    assert "October Prize Update" in rendered["html"]
+    assert "randomly selected participant" in rendered["html"]
+    assert "Season Standings" in rendered["html"]
     assert "OPEN CREW GAMES" in rendered["html"]
 
 

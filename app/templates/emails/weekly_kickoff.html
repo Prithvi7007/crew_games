@@ -19,7 +19,7 @@
 </head>
 <body style="margin:0;padding:0;background:#edf2f7;font-family:Arial,Helvetica,sans-serif;color:#f4f8fc;">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    Week {{ previous_week_number_label }} results, cumulative standings, and this week's games.
+    Week {{ previous_week_number_label }} results, season standings, and this week's games.
   </div>
 
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#edf2f7;">
@@ -50,8 +50,30 @@
                 Week {{ current_week_number_label }} is <span style="color:#2aa8ff;">Live</span>
               </div>
               <div style="padding-top:12px;font-size:16px;line-height:24px;color:#adc0d1;max-width:540px;">
-                Week {{ previous_week_number_label }} results, cumulative standings, and this week's games.
+                Week {{ previous_week_number_label }} results, season standings, and this week's games.
               </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="mobile-pad" style="padding:0 26px 18px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                     style="border:1px solid #d9a323;background:#151f2c;border-radius:10px;">
+                <tr>
+                  <td width="50" valign="top" style="padding:17px 0 17px 18px;font-size:25px;line-height:30px;">
+                    🎁
+                  </td>
+                  <td style="padding:16px 18px 16px 10px;">
+                    <div style="font-size:12px;font-weight:900;letter-spacing:.8px;color:#ffd45e;text-transform:uppercase;">
+                      October Prize Update
+                    </div>
+                    <div style="padding-top:5px;font-size:13px;line-height:20px;color:#d7e5f1;">
+                      At the end of October, we'll award a gift card to the monthly CREW Games winner
+                      <strong style="color:#ffffff;">and</strong> another gift card to one randomly selected participant.
+                    </div>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
@@ -140,10 +162,10 @@
                 <tr>
                   <td style="padding:20px 20px 12px;">
                     <div style="font-size:18px;font-weight:800;color:#ffffff;">
-                      <span style="padding-right:7px;">📊</span>Cumulative Standings
+                      <span style="padding-right:7px;">📊</span>Season Standings
                     </div>
                     <div style="padding-top:5px;font-size:11px;line-height:17px;color:#8fa8bf;">
-                      Overall rankings through Week {{ previous_week_number_label }}
+                      Season rankings through Week {{ previous_week_number_label }}
                     </div>
                   </td>
                 </tr>
@@ -166,7 +188,7 @@
                         {% endfor %}
                       {% else %}
                         <tr>
-                          <td colspan="3" style="padding:14px 10px;font-size:13px;color:#8fa8bf;">No cumulative scores yet.</td>
+                          <td colspan="3" style="padding:14px 10px;font-size:13px;color:#8fa8bf;">No season scores yet.</td>
                         </tr>
                       {% endif %}
                     </table>

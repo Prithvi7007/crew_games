@@ -133,7 +133,10 @@ def _plain_text(context):
         context["reference_date_label"],
         "",
         f"Week {context['current_week_number_label']} is Live",
-        f"Week {context['previous_week_number_label']} results, cumulative standings, and this week's games.",
+        f"Week {context['previous_week_number_label']} results, season standings, and this week's games.",
+        "",
+        "OCTOBER PRIZE UPDATE",
+        "At the end of October, we'll award a gift card to the monthly CREW Games winner and another gift card to one randomly selected participant.",
         "",
         f"WEEK {context['previous_week_number_label']} FINAL STANDINGS",
         context["previous_week_range"],
@@ -145,12 +148,12 @@ def _plain_text(context):
     else:
         lines.append("No competitive scores were recorded.")
 
-    lines.extend(["", f"CUMULATIVE STANDINGS — THROUGH WEEK {context['previous_week_number_label']}"])
+    lines.extend(["", f"SEASON STANDINGS — THROUGH WEEK {context['previous_week_number_label']}"])
     if context["season_leaders"]:
         for player in context["season_leaders"]:
             lines.append(f"{player['rank']}. {player['username']} — {player['points']} pts")
     else:
-        lines.append("No cumulative scores yet.")
+        lines.append("No season scores yet.")
 
     lines.extend(["", f"WEEK {context['current_week_number_label']} GAMES", "Four games. Up to 400 points available."])
     for game in context["games"]:
