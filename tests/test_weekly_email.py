@@ -7,8 +7,13 @@ from app.db import (
     finalize_game_stats,
     get_competitive_rankings_between,
     profile_user_key,
+    set_setting,
 )
-from app.weekly_email import build_weekly_kickoff_context, render_weekly_kickoff
+from app.weekly_email import (
+    build_weekly_kickoff_context,
+    render_weekly_kickoff,
+    send_weekly_kickoff,
+)
 
 
 def _profile(app, username):
@@ -72,3 +77,30 @@ def test_weekly_email_renders_outlook_safe_html(app):
     assert "Cumulative Standings" in rendered["html"]
     assert "Week 02 is Live" in rendered["html"]
     assert "OPEN CREW GAMES" in rendered["html"]
+
+
+def test_weekly_email_can_be_disabled_from_admin_setting(app):
+    with app.app_context():
+        set_setting("email.weekly_kickoff.enabled", "0")
+        result = send_weekly_kickoff(
+            reference_day=date(2026, 9, 28),
+            force=True,
+            dry_run=True,
+        )
+
+    assert result["status"] == "disabled"
+    assert "disabled in Admin Studio" in result["reason"]
+
+
+def test_weekly_email_uses_admin_recipient_override(app):
+    with app.app_context():
+        set_setting("email.weekly_kickoff.enabled", "1")
+        set_setting("email.weekly_kickoff.to", "crew-list@example.com")
+        result = send_weekly_kickoff(
+            reference_day=date(2026, 9, 28),
+            force=True,
+            dry_run=True,
+        )
+
+    assert result["status"] == "dry_run"
+    assert result["recipients"] == ["crew-list@example.com"]

@@ -45,6 +45,19 @@ def _recipients(raw):
     return [value.strip() for value in str(raw or "").replace(";", ",").split(",") if value.strip()]
 
 
+def _weekly_email_enabled():
+    raw = get_setting("email.weekly_kickoff.enabled")
+    if raw is None:
+        return True
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _weekly_email_recipients():
+    admin_value = get_setting("email.weekly_kickoff.to")
+    raw = admin_value if admin_value is not None else current_app.config.get("CREW_WEEKLY_EMAIL_TO", "")
+    return _recipients(raw)
+
+
 def build_weekly_kickoff_context(reference_day=None):
     """Build a frozen Monday recap through the previous CREW Thursday."""
     reference_day = reference_day or crew_today()
@@ -215,6 +228,12 @@ def _send_with_resend(subject, html_body, text_body, recipients, send_key):
 
 
 def send_weekly_kickoff(reference_day=None, force=False, dry_run=False):
+    if not _weekly_email_enabled():
+        return {
+            "status": "disabled",
+            "reason": "Weekly CREW email is disabled in Admin Studio.",
+        }
+
     rendered = render_weekly_kickoff(reference_day)
     if rendered["status"] != "ready":
         return rendered
@@ -235,9 +254,11 @@ def send_weekly_kickoff(reference_day=None, force=False, dry_run=False):
             "context": context,
         }
 
-    recipients = _recipients(current_app.config.get("CREW_WEEKLY_EMAIL_TO", ""))
+    recipients = _weekly_email_recipients()
     if not recipients:
-        raise RuntimeError("CREW_WEEKLY_EMAIL_TO is not configured.")
+        raise RuntimeError(
+            "Weekly email recipient is not configured in Admin Studio or CREW_WEEKLY_EMAIL_TO."
+        )
 
     if dry_run:
         return {**rendered, "status": "dry_run", "recipients": recipients, "send_key": send_key}

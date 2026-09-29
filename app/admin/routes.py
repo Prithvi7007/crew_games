@@ -701,30 +701,96 @@ def player_delete(profile_id):
     return redirect(url_for("admin.players"))
 
 
+def _admin_weekly_email_enabled():
+    raw = get_setting("email.weekly_kickoff.enabled")
+    if raw is None:
+        return True
+    return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _admin_weekly_email_to():
+    database_value = get_setting("email.weekly_kickoff.to")
+    if database_value is not None:
+        return str(database_value).strip(), True
+    return str(current_app.config.get("CREW_WEEKLY_EMAIL_TO", "") or "").strip(), False
+
+
+def _parse_admin_email_recipients(raw):
+    recipients = [
+        item.strip()
+        for item in str(raw or "").replace(";", ",").split(",")
+        if item.strip()
+    ]
+    invalid = [
+        item for item in recipients
+        if not re.fullmatch(r"[^@\s,;]+@[^@\s,;]+\.[^@\s,;]+", item)
+    ]
+    return recipients, invalid
+
+
 @admin_bp.route("/settings", methods=["GET", "POST"])
 @admin_required
 def settings():
     if request.method == "POST":
-        new_code = str(request.form.get("invite_code", "")).strip()
-        confirmation = str(request.form.get("invite_code_confirm", "")).strip()
-        if len(new_code) < 6 or len(new_code) > 64:
-            flash("Use an invite code between 6 and 64 characters.", "error")
-        elif new_code != confirmation:
-            flash("The invite code confirmation does not match.", "error")
-        else:
-            set_setting("invite_code_hash", generate_password_hash(new_code))
-            actor = g.admin_actor
-            audit_security_event(
-                "admin_invite_code_changed",
-                actor["username"],
-                {"actor_role": actor["role"], "actor_profile_id": actor["profile_id"]},
-            )
-            flash("Invite code changed. The previous code is no longer valid.", "success")
-            return redirect(url_for("admin.settings"))
+        action = str(request.form.get("action", "invite_code")).strip()
 
+        if action == "weekly_email":
+            enabled = request.form.get("weekly_email_enabled") == "1"
+            raw_to = str(request.form.get("weekly_email_to", "")).strip()
+            recipients, invalid = _parse_admin_email_recipients(raw_to)
+
+            if invalid:
+                flash(
+                    "Enter a valid email address or comma-separated recipient list.",
+                    "error",
+                )
+            elif enabled and not recipients:
+                flash("Add at least one recipient before enabling the weekly email.", "error")
+            else:
+                set_setting("email.weekly_kickoff.enabled", "1" if enabled else "0")
+                if recipients:
+                    set_setting("email.weekly_kickoff.to", ",".join(recipients))
+
+                actor = g.admin_actor
+                audit_security_event(
+                    "admin_weekly_email_settings_changed",
+                    actor["username"],
+                    {
+                        "actor_role": actor["role"],
+                        "actor_profile_id": actor["profile_id"],
+                        "enabled": enabled,
+                        "recipient_count": len(recipients),
+                    },
+                )
+                state = "enabled" if enabled else "disabled"
+                flash(f"Weekly email {state}. Recipient settings saved.", "success")
+                return redirect(url_for("admin.settings"))
+
+        else:
+            new_code = str(request.form.get("invite_code", "")).strip()
+            confirmation = str(request.form.get("invite_code_confirm", "")).strip()
+            if len(new_code) < 6 or len(new_code) > 64:
+                flash("Use an invite code between 6 and 64 characters.", "error")
+            elif new_code != confirmation:
+                flash("The invite code confirmation does not match.", "error")
+            else:
+                set_setting("invite_code_hash", generate_password_hash(new_code))
+                actor = g.admin_actor
+                audit_security_event(
+                    "admin_invite_code_changed",
+                    actor["username"],
+                    {"actor_role": actor["role"], "actor_profile_id": actor["profile_id"]},
+                )
+                flash("Invite code changed. The previous code is no longer valid.", "success")
+                return redirect(url_for("admin.settings"))
+
+    weekly_email_to, weekly_email_database_managed = _admin_weekly_email_to()
     return render_template(
         "admin/settings.html",
         invite_is_database_managed=bool(get_setting("invite_code_hash")),
+        weekly_email_enabled=_admin_weekly_email_enabled(),
+        weekly_email_to=weekly_email_to,
+        weekly_email_database_managed=weekly_email_database_managed,
     )
 
 
