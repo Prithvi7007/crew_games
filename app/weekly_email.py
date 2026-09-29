@@ -2,6 +2,7 @@ import json
 from datetime import date, timedelta
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from uuid import uuid4
 
 import click
 from flask import current_app
@@ -221,6 +222,9 @@ def send_weekly_kickoff(reference_day=None, force=False, dry_run=False):
     context = rendered["context"]
     send_key = f"crew-weekly-kickoff-{context['current_week_start'].isoformat()}"
     setting_key = f"email.weekly_kickoff.{context['current_week_start'].isoformat()}"
+
+    if force:
+        send_key = f"{send_key}-force-{uuid4().hex[:12]}"
 
     if get_setting(setting_key) and not force:
         return {
