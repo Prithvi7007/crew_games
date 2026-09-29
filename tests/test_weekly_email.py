@@ -66,7 +66,7 @@ def test_weekly_email_renders_outlook_safe_html(app):
         rendered = render_weekly_kickoff(date(2026, 9, 28))
 
     assert rendered["status"] == "ready"
-    assert rendered["subject"] == "CREW Weekly | Week 02 is Live"
+    assert rendered["subject"] == "CREW Games Weekly | Week 02 is Live"
     assert "<table" in rendered["html"]
     assert "Alpha" in rendered["html"]
     assert "Cumulative Standings" in rendered["html"]

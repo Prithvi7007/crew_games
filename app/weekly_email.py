@@ -111,12 +111,12 @@ def build_weekly_kickoff_context(reference_day=None):
 
 
 def _subject(context):
-    return f"CREW Weekly | Week {context['current_week_number_label']} is Live"
+    return f"CREW Games Weekly | Week {context['current_week_number_label']} is Live"
 
 
 def _plain_text(context):
     lines = [
-        "CREW WEEKLY",
+        "CREW GAMES WEEKLY",
         context["reference_date_label"],
         "",
         f"Week {context['current_week_number_label']} is Live",
