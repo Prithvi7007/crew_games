@@ -36,6 +36,10 @@ def _week_range_label(monday):
     return f"{monday.strftime('%b %d')}–{thursday.strftime('%b %d')}, {monday.year}"
 
 
+def _long_date_label(day):
+    return f"{day.strftime('%B')} {day.day}, {day.year}"
+
+
 def _recipients(raw):
     return [value.strip() for value in str(raw or "").replace(";", ",").split(",") if value.strip()]
 
@@ -68,11 +72,12 @@ def build_weekly_kickoff_context(reference_day=None):
         games.append({
             "key": definition["key"],
             "day": definition["day"],
+            "date_label": f"{game_date.strftime('%b')} {game_date.day}",
             "title": definition["title"],
             "points": int(definition["points"]),
             "icon": meta["icon"],
             "url": public_url + meta["path"],
-            "status": "Available now" if game_date <= reference_day else f"Opens {definition['day']}",
+            "status": "Available now" if game_date <= reference_day else f"Available {definition['day']}",
         })
 
     podium = []
@@ -84,6 +89,7 @@ def build_weekly_kickoff_context(reference_day=None):
 
     return {
         "reference_day": reference_day,
+        "reference_date_label": _long_date_label(reference_day),
         "current_week_start": current_week_start,
         "previous_week_start": previous_week_start,
         "previous_week_end": previous_week_end,
@@ -104,20 +110,19 @@ def build_weekly_kickoff_context(reference_day=None):
 
 
 def _subject(context):
-    return (
-        f"🏆 CREW Week {context['previous_week_number_label']} Results — "
-        f"Week {context['current_week_number_label']} Is Open"
-    )
+    return f"CREW Weekly | Week {context['current_week_number_label']} is Live"
 
 
 def _plain_text(context):
     lines = [
-        "CREW GAMES — MONDAY KICKOFF",
+        "CREW WEEKLY",
+        context["reference_date_label"],
         "",
-        f"WEEK {context['previous_week_number_label']} RESULTS — WEEK {context['current_week_number_label']} IS OPEN",
-        f"Previous week: {context['previous_week_range']}",
+        f"Week {context['current_week_number_label']} is Live",
+        f"Week {context['previous_week_number_label']} results, cumulative standings, and this week's games.",
         "",
         f"WEEK {context['previous_week_number_label']} FINAL STANDINGS",
+        context["previous_week_range"],
     ]
 
     if context["previous_leaders"]:
@@ -126,26 +131,18 @@ def _plain_text(context):
     else:
         lines.append("No competitive scores were recorded.")
 
-    lines.extend(["", f"SEASON LEADERBOARD — THROUGH WEEK {context['previous_week_number_label']}"])
+    lines.extend(["", f"CUMULATIVE STANDINGS — THROUGH WEEK {context['previous_week_number_label']}"])
     if context["season_leaders"]:
         for player in context["season_leaders"]:
             lines.append(f"{player['rank']}. {player['username']} — {player['points']} pts")
     else:
-        lines.append("No season scores yet.")
+        lines.append("No cumulative scores yet.")
 
-    lines.extend([
-        "",
-        f"WEEK {context['current_week_number_label']} STARTS NOW",
-        "A fresh leaderboard. 400 points up for grabs.",
-    ])
+    lines.extend(["", f"WEEK {context['current_week_number_label']} GAMES", "Four games. Up to 400 points available."])
     for game in context["games"]:
-        lines.append(f"{game['title']} — {game['status']} — up to {game['points']} pts")
+        lines.append(f"{game['day']} · {game['title']} · {game['status']} · up to {game['points']} pts")
 
-    lines.extend([
-        "",
-        f"Play this week: {context['play_url']}",
-        f"View full leaderboard: {context['leaderboard_url']}",
-    ])
+    lines.extend(["", f"Open CREW Games: {context['play_url']}", f"View full leaderboard: {context['leaderboard_url']}"])
     return "\n".join(lines)
 
 
@@ -241,9 +238,7 @@ def send_weekly_kickoff(reference_day=None, force=False, dry_run=False):
     if dry_run:
         return {**rendered, "status": "dry_run", "recipients": recipients, "send_key": send_key}
 
-    result = _send_with_resend(
-        rendered["subject"], rendered["html"], rendered["text"], recipients, send_key
-    )
+    result = _send_with_resend(rendered["subject"], rendered["html"], rendered["text"], recipients, send_key)
     receipt = {
         "resend_id": result["id"],
         "subject": rendered["subject"],

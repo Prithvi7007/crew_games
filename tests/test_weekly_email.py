@@ -54,6 +54,8 @@ def test_monday_context_freezes_rankings_at_previous_thursday(app):
     assert context["current_week_number"] == 2
     assert context["previous_leaders"][0]["points"] == 80
     assert context["season_leaders"][0]["points"] == 80
+    assert context["reference_date_label"] == "September 28, 2026"
+    assert context["games"][0]["date_label"] == "Sep 28"
 
 
 def test_weekly_email_renders_outlook_safe_html(app):
@@ -64,9 +66,9 @@ def test_weekly_email_renders_outlook_safe_html(app):
         rendered = render_weekly_kickoff(date(2026, 9, 28))
 
     assert rendered["status"] == "ready"
-    assert "CREW Week 01 Results" in rendered["subject"]
-    assert "Week 02 Is Open" in rendered["subject"]
+    assert rendered["subject"] == "CREW Weekly | Week 02 is Live"
     assert "<table" in rendered["html"]
     assert "Alpha" in rendered["html"]
-    assert "SEASON LEADERBOARD" in rendered["html"]
-    assert "WEEK 02" in rendered["html"]
+    assert "Cumulative Standings" in rendered["html"]
+    assert "Week 02 is Live" in rendered["html"]
+    assert "OPEN CREW GAMES" in rendered["html"]
