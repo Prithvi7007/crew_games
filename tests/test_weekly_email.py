@@ -75,7 +75,8 @@ def test_weekly_email_renders_outlook_safe_html(app):
     assert "<table" in rendered["html"]
     assert "Alpha" in rendered["html"]
     assert "Cumulative Standings" in rendered["html"]
-    assert "Week 02 is Live" in rendered["html"]
+    assert "Week 02 is" in rendered["html"]
+    assert ">Live</span>" in rendered["html"]
     assert "OPEN CREW GAMES" in rendered["html"]
 
 
