@@ -62,13 +62,13 @@
 
                 <label class="v14-auth-field">
                     <span>CREW name</span>
-                    <input type="text" name="username" placeholder="Your CREW name" autocomplete="username" maxlength="24" required autofocus>
+                    <input class="crew-field" type="text" name="username" placeholder="Your CREW name" autocomplete="username" maxlength="24" required autofocus>
                 </label>
 
                 <label class="v14-auth-field">
                     <span>Password</span>
                     <span class="v14-auth-password">
-                        <input id="loginPassword" type="password" name="password" placeholder="Your password" autocomplete="current-password" required>
+                        <input id="loginPassword" class="crew-field" type="password" name="password" placeholder="Your password" autocomplete="current-password" required>
                         <button class="password-toggle" type="button" data-password-toggle="loginPassword" aria-label="Show password">Show</button>
                     </span>
                 </label>
@@ -77,7 +77,7 @@
                     <a href="{{ url_for('auth.recover') }}">Forgot password?</a>
                 </div>
 
-                <button class="v14-auth-submit" type="submit">
+                <button class="crew-button v14-auth-submit" type="submit">
                     <span>Enter CREW</span><span aria-hidden="true">→</span>
                 </button>
             </form>

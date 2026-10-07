@@ -1,0 +1,79 @@
+/* CREW Phase 1E — shared control behavior
+   Structural/interaction rules only. Page and game styles continue to own
+   color, typography, shape, and personality. */
+
+:where(.crew-button, .crew-chip, .crew-field, .crew-select) {
+  box-sizing: border-box;
+}
+
+.crew-button,
+.crew-chip {
+  min-height: var(--crew-control-min);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.crew-button:not(:disabled):not([aria-disabled="true"]),
+.crew-chip:not(:disabled):not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+.crew-button:disabled,
+.crew-chip:disabled,
+.crew-button[aria-disabled="true"],
+.crew-chip[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .56;
+}
+
+a.crew-button[aria-disabled="true"],
+a.crew-chip[aria-disabled="true"] {
+  pointer-events: none;
+}
+
+.crew-field,
+.crew-select {
+  min-height: var(--crew-control-min);
+  font-family: var(--crew-font-body);
+}
+
+.crew-field:disabled,
+.crew-select:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
+.crew-select:not(:disabled) {
+  cursor: pointer;
+}
+
+.crew-status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--crew-radius-pill);
+}
+
+.crew-progress-track {
+  overflow: hidden;
+  border-radius: var(--crew-radius-pill);
+}
+
+.crew-progress-track > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width var(--crew-motion-standard) var(--crew-ease-standard);
+}
+
+@media (max-width: 760px) {
+  .crew-app-page .app-nav {
+    min-height: calc(64px + var(--crew-safe-top));
+    padding-top: var(--crew-safe-top);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crew-progress-track > i {
+    transition: none;
+  }
+}

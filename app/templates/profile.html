@@ -78,7 +78,7 @@
             {% endfor %}
           </div>
 
-          <button class="v20-primary" type="submit"><span>Save avatar</span><span>→</span></button>
+          <button class="crew-button v20-primary" type="submit"><span>Save avatar</span><span>→</span></button>
         </form>
       </article>
 
@@ -95,19 +95,19 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <label>
               <span>Current password</span>
-              <input type="password" name="current_password" required autocomplete="current-password">
+              <input class="crew-field" type="password" name="current_password" required autocomplete="current-password">
             </label>
             <div class="v20-form-split">
               <label>
                 <span>New password</span>
-                <input type="password" name="new_password" required minlength="{{ password_min_length }}" autocomplete="new-password">
+                <input class="crew-field" type="password" name="new_password" required minlength="{{ password_min_length }}" autocomplete="new-password">
               </label>
               <label>
                 <span>Confirm password</span>
-                <input type="password" name="new_password_confirm" required minlength="{{ password_min_length }}" autocomplete="new-password">
+                <input class="crew-field" type="password" name="new_password_confirm" required minlength="{{ password_min_length }}" autocomplete="new-password">
               </label>
             </div>
-            <button class="v20-primary" type="submit"><span>Update password</span><span>→</span></button>
+            <button class="crew-button v20-primary" type="submit"><span>Update password</span><span>→</span></button>
           </form>
         </article>
 
@@ -122,9 +122,9 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <label>
               <span>Current password</span>
-              <input type="password" name="current_password" required autocomplete="current-password">
+              <input class="crew-field" type="password" name="current_password" required autocomplete="current-password">
             </label>
-            <button class="v20-secondary" type="submit">Generate new code</button>
+            <button class="crew-button v20-secondary" type="submit">Generate new code</button>
           </form>
         </article>
       </div>

@@ -26,7 +26,7 @@
     <section class="v19-filterbar" aria-label="Leaderboard filters">
       <label>
         <span>TIME PERIOD</span>
-        <select id="leader-period">
+        <select id="leader-period" class="crew-select">
           {% for value,label in [('this_week','This Week'),('last_week','Last Week'),('this_month','This Month'),('all_time','All Time')] %}
           <option value="{{ value }}" {% if value==selected_period %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
@@ -35,7 +35,7 @@
 
       <label>
         <span>GAME</span>
-        <select id="leader-game">
+        <select id="leader-game" class="crew-select">
           {% for value,label in [('all','All Games'),('mystery','Mystery Monday'),('trivia','Trivia Tuesday'),('word','Wordle Wednesday'),('tick_tock','Tick-Tock Thursday')] %}
           <option value="{{ value }}" {% if value==selected_game %}selected{% endif %}>{{ label }}</option>
           {% endfor %}

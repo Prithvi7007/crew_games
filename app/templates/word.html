@@ -25,7 +25,7 @@
             <article class="glass-card word-game-panel">
                 <div class="word-panel-top">
                     <div><span class="game-kicker">CREW WORD #{{ today.toordinal() }}</span><span class="word-attempt-label" id="attemptLabel">{{ state.guess_count }} / 6 guesses</span></div>
-                    <button class="help-chip" type="button" id="helpButton" aria-expanded="false" aria-controls="helpPanel">How to play</button>
+                    <button class="crew-chip help-chip" type="button" id="helpButton" aria-expanded="false" aria-controls="helpPanel">How to play</button>
                 </div>
 
                 <div class="word-help" id="helpPanel" hidden>
@@ -87,7 +87,7 @@
                     <h2 id="resultTitle">{% if state.won %}Nice work.{% else %}Tomorrow's another round.{% endif %}</h2>
                     <p id="resultCopy">The word was <strong id="solutionLabel">{{ state.solution if state.completed else '' }}</strong>.</p>
                     <div class="result-points"><strong id="resultPoints">{{ state.score }}</strong><span>PTS</span></div>
-                    <a class="primary-button result-home" href="{{ return_url }}"><span>Back to {% if state.archive %}game archive{% else %}CREW home{% endif %}</span><span>→</span></a>
+                    <a class="crew-button primary-button result-home" href="{{ return_url }}"><span>Back to {% if state.archive %}game archive{% else %}CREW home{% endif %}</span><span>→</span></a>
                 </article>
             </aside>
         </section>
