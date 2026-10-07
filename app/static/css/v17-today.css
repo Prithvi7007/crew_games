@@ -3,12 +3,12 @@
    featured challenge, and a progression line that distinguishes open/locked. */
 
 :root {
-  --v17-bg: #02070b;
-  --v17-text: #f7f9fc;
-  --v17-muted: rgba(214,225,236,.66);
-  --v17-soft: rgba(181,198,215,.44);
-  --v17-line: rgba(140,160,181,.28);
-  --v17-accent: #ffbd45;
+  --v17-bg: var(--crew-color-bg);
+  --v17-text: var(--crew-color-text);
+  --v17-muted: var(--crew-color-muted-strong);
+  --v17-soft: var(--crew-color-soft-warm);
+  --v17-line: var(--crew-color-line-emphasis);
+  --v17-accent: var(--crew-game-trivia);
 }
 
 body.v17-today-page {
@@ -29,10 +29,10 @@ body.v17-today-page {
     radial-gradient(58rem 28rem at 50% 0%, color-mix(in srgb,var(--v17-accent) 7%,transparent), transparent 66%),
     #02070b;
 }
-.v17-current-mystery { --v17-accent:#55e6ac; }
-.v17-current-trivia { --v17-accent:#ffbd45; }
-.v17-current-word { --v17-accent:#55b9ff; }
-.v17-current-tick_tock { --v17-accent:#c55cff; }
+.v17-current-mystery { --v17-accent:var(--crew-game-mystery); }
+.v17-current-trivia { --v17-accent:var(--crew-game-trivia); }
+.v17-current-word { --v17-accent:var(--crew-game-word); }
+.v17-current-tick_tock { --v17-accent:var(--crew-game-tick-tock); }
 
 /* Match the stronger Games chrome. */
 .v17-today-page .app-nav {

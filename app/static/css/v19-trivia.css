@@ -4,11 +4,11 @@
    inside the React card. */
 
 .v19-trivia-page {
-  --tt-bg: #02070b;
-  --tt-gold: #ffbd45;
-  --tt-text: #f7f9fc;
-  --tt-muted: rgba(212,223,234,.62);
-  --tt-soft: rgba(180,197,214,.43);
+  --tt-bg: var(--crew-color-bg);
+  --tt-gold: var(--crew-game-trivia);
+  --tt-text: var(--crew-color-text);
+  --tt-muted: var(--crew-color-muted);
+  --tt-soft: var(--crew-color-soft);
   min-height: 100svh;
   margin: 0;
   color: var(--tt-text);

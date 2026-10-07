@@ -3,15 +3,15 @@
    a clearer separation between identity and security. */
 
 .v20-profile-page {
-  --p-bg: #02070b;
-  --p-panel: rgba(6,13,19,.72);
-  --p-panel-strong: rgba(5,12,18,.88);
-  --p-line: rgba(255,255,255,.10);
-  --p-line-soft: rgba(255,255,255,.065);
-  --p-text: #f7f9fc;
-  --p-muted: rgba(210,221,232,.62);
-  --p-soft: rgba(181,197,214,.43);
-  --p-blue: #63c5ff;
+  --p-bg: var(--crew-color-bg);
+  --p-panel: var(--crew-color-surface-raised);
+  --p-panel-strong: var(--crew-color-surface-strong-alt);
+  --p-line: var(--crew-color-line);
+  --p-line-soft: var(--crew-color-line-soft);
+  --p-text: var(--crew-color-text);
+  --p-muted: var(--crew-color-muted);
+  --p-soft: var(--crew-color-soft);
+  --p-blue: var(--crew-accent-profile);
   min-height: 100svh;
   margin: 0;
   color: var(--p-text);

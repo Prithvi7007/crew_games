@@ -32,10 +32,10 @@
     --v22-tone: #9aadc0;
   }
 
-  .v22-tone-mystery { --v22-tone: #55e6ac; }
-  .v22-tone-trivia { --v22-tone: #ffbd45; }
-  .v22-tone-word { --v22-tone: #55b9ff; }
-  .v22-tone-tick_tock { --v22-tone: #c55cff; }
+  .v22-tone-mystery { --v22-tone: var(--crew-game-mystery); }
+  .v22-tone-trivia { --v22-tone: var(--crew-game-trivia); }
+  .v22-tone-word { --v22-tone: var(--crew-game-word); }
+  .v22-tone-tick_tock { --v22-tone: var(--crew-game-tick-tock); }
 
   .v22-feature {
     position: relative;

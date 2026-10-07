@@ -3,9 +3,9 @@
    without redesigning or prematurely rewriting page CSS. */
 
 :root {
-  --crew-focus-ring: #8fe8ff;
-  --crew-focus-ring-shadow: rgba(143, 232, 255, .24);
-  --crew-tap-target: 44px;
+  --crew-focus-ring: var(--crew-accent-focus);
+  --crew-focus-ring-shadow: var(--crew-accent-focus-shadow);
+  --crew-tap-target: var(--crew-control-min);
   --crew-safe-top: env(safe-area-inset-top, 0px);
   --crew-safe-right: env(safe-area-inset-right, 0px);
   --crew-safe-bottom: env(safe-area-inset-bottom, 0px);

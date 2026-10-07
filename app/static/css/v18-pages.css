@@ -3,18 +3,18 @@
    Intentionally does not target locked Login (v14-login-page) or Today (v17-today-page). */
 
 :root {
-  --crew18-bg: #02070b;
-  --crew18-panel: rgba(6,13,19,.70);
-  --crew18-panel-strong: rgba(4,10,15,.88);
-  --crew18-line: rgba(255,255,255,.10);
-  --crew18-line-soft: rgba(255,255,255,.065);
-  --crew18-text: #f7f9fc;
-  --crew18-muted: rgba(209,220,232,.62);
-  --crew18-soft: rgba(179,196,213,.43);
-  --crew18-green: #55e6ac;
-  --crew18-gold: #ffbd45;
-  --crew18-blue: #55b9ff;
-  --crew18-purple: #c55cff;
+  --crew18-bg: var(--crew-color-bg);
+  --crew18-panel: var(--crew-color-surface);
+  --crew18-panel-strong: var(--crew-color-surface-strong);
+  --crew18-line: var(--crew-color-line);
+  --crew18-line-soft: var(--crew-color-line-soft);
+  --crew18-text: var(--crew-color-text);
+  --crew18-muted: var(--crew-color-muted);
+  --crew18-soft: var(--crew-color-soft);
+  --crew18-green: var(--crew-game-mystery);
+  --crew18-gold: var(--crew-game-trivia);
+  --crew18-blue: var(--crew-game-word);
+  --crew18-purple: var(--crew-game-tick-tock);
 }
 
 /* Hide legacy ambience on the pages this system owns. */

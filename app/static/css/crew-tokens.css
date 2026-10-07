@@ -1,0 +1,68 @@
+/* CREW Phase 1C — shared design tokens
+   This layer centralizes the values already used across the public CREW UI.
+   Values intentionally match the current production design. */
+
+:root {
+  /* Typography */
+  --crew-font-body: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --crew-font-display: Manrope, Inter, sans-serif;
+
+  /* Core surfaces */
+  --crew-color-bg: #02070b;
+  --crew-color-surface: rgba(6, 13, 19, .70);
+  --crew-color-surface-raised: rgba(6, 13, 19, .72);
+  --crew-color-surface-strong: rgba(4, 10, 15, .88);
+  --crew-color-surface-strong-alt: rgba(5, 12, 18, .88);
+  --crew-color-nav: rgba(2, 8, 12, .82);
+
+  /* Text */
+  --crew-color-text: #f7f9fc;
+  --crew-color-muted: rgba(210, 221, 232, .62);
+  --crew-color-muted-strong: rgba(214, 225, 236, .66);
+  --crew-color-soft: rgba(179, 196, 213, .43);
+  --crew-color-soft-warm: rgba(181, 198, 215, .44);
+
+  /* Borders */
+  --crew-color-line: rgba(255, 255, 255, .10);
+  --crew-color-line-soft: rgba(255, 255, 255, .065);
+  --crew-color-line-nav: rgba(255, 255, 255, .08);
+  --crew-color-line-emphasis: rgba(140, 160, 181, .28);
+
+  /* Game identity */
+  --crew-game-mystery: #55e6ac;
+  --crew-game-trivia: #ffbd45;
+  --crew-game-word: #55b9ff;
+  --crew-game-tick-tock: #c55cff;
+  --crew-accent-profile: #63c5ff;
+
+  /* Accessibility */
+  --crew-accent-focus: #8fe8ff;
+  --crew-accent-focus-shadow: rgba(143, 232, 255, .24);
+  --crew-control-min: 44px;
+
+  /* Radius */
+  --crew-radius-sm: 10px;
+  --crew-radius-md: 14px;
+  --crew-radius-lg: 18px;
+  --crew-radius-xl: 22px;
+  --crew-radius-pill: 999px;
+
+  /* Spacing */
+  --crew-space-1: 4px;
+  --crew-space-2: 8px;
+  --crew-space-3: 12px;
+  --crew-space-4: 16px;
+  --crew-space-5: 24px;
+  --crew-space-6: 32px;
+  --crew-space-7: 48px;
+  --crew-space-8: 64px;
+
+  /* Motion */
+  --crew-motion-fast: 180ms;
+  --crew-motion-standard: 200ms;
+  --crew-ease-standard: cubic-bezier(.2, .7, .2, 1);
+
+  /* Shared shadow language */
+  --crew-shadow-panel: 0 28px 84px rgba(0, 0, 0, .24);
+  --crew-shadow-focus: 0 0 0 3px var(--crew-accent-focus-shadow);
+}

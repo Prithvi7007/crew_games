@@ -3,14 +3,14 @@
    leaderboard cascade while preserving the existing leaderboard.js contract. */
 
 .v19-rankings-page {
-  --r-bg: #02070b;
-  --r-panel: rgba(6,13,19,.72);
-  --r-line: rgba(255,255,255,.10);
-  --r-line-soft: rgba(255,255,255,.065);
-  --r-text: #f7f9fc;
-  --r-muted: rgba(210,221,232,.62);
-  --r-soft: rgba(179,196,213,.43);
-  --r-gold: #ffbd45;
+  --r-bg: var(--crew-color-bg);
+  --r-panel: var(--crew-color-surface-raised);
+  --r-line: var(--crew-color-line);
+  --r-line-soft: var(--crew-color-line-soft);
+  --r-text: var(--crew-color-text);
+  --r-muted: var(--crew-color-muted);
+  --r-soft: var(--crew-color-soft);
+  --r-gold: var(--crew-game-trivia);
   min-height: 100svh;
   margin: 0;
   color: var(--r-text);
