@@ -8,7 +8,7 @@ from flask import current_app, g
 from sqlalchemy import create_engine, event, inspect, text
 
 from app.migrations import current_revision, upgrade_database
-from app.schedule import crew_today, get_week_start, previous_scheduled_game_day
+from app.schedule import CREW_WEEK_ONE_DATE, crew_today, get_week_start, previous_scheduled_game_day
 
 
 class _Result:
@@ -636,6 +636,15 @@ def finish_tick_tock_attempt(user_key, game_date, elapsed_seconds, difference_se
 
 def finalize_game_stats(user_key, game_key, game_date, score, won=True, competitive=True):
     """Record a completion once. All completions score; only timely ones affect streaks."""
+    try:
+        completion_day = date.fromisoformat(game_date)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Invalid CREW game date") from exc
+    if completion_day < CREW_WEEK_ONE_DATE:
+        raise ValueError(
+            f"CREW production scoring begins {CREW_WEEK_ONE_DATE.isoformat()}"
+        )
+
     db = get_db()
     profile_id = _profile_id_from_user_key(user_key)
     stats = ensure_user_stats(user_key)
@@ -756,6 +765,7 @@ def get_weekly_leaderboard(reference_day=None, limit=25):
 
 def get_competitive_rankings_between(start_date, end_date, limit=10):
     """Return ranked competitive points for an explicit inclusive date range."""
+    start_date = max(start_date, CREW_WEEK_ONE_DATE)
     rows = get_db().execute(
         """
         SELECT
@@ -856,8 +866,9 @@ def _period_bounds(period, reference_day=None):
 
 def _date_clause(start, end, prefix="game_date"):
     if not start or not end:
-        return "", []
-    return f" AND {prefix} BETWEEN ? AND ?", [start.isoformat(), end.isoformat()]
+        return f" AND {prefix} >= ?", [CREW_WEEK_ONE_DATE.isoformat()]
+    bounded_start = max(start, CREW_WEEK_ONE_DATE)
+    return f" AND {prefix} BETWEEN ? AND ?", [bounded_start.isoformat(), end.isoformat()]
 
 
 def get_leaderboard(period="this_week", game_key="all", reference_day=None, current_profile_id=None):
@@ -867,8 +878,8 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
     start, end, period_label = _period_bounds(period, reference_day)
     db = get_db()
 
-    join_conditions = ["gc.profile_id = p.id"]
-    params = []
+    join_conditions = ["gc.profile_id = p.id", "gc.game_date >= ?"]
+    params = [CREW_WEEK_ONE_DATE.isoformat()]
     if game_key != "all":
         join_conditions.append("gc.game_key = ?")
         params.append(game_key)
@@ -1054,8 +1065,9 @@ def get_profile_history_summary(user_key):
         """SELECT COUNT(*) AS completed,
                   COALESCE(SUM(CASE WHEN competitive = 1 THEN 1 ELSE 0 END), 0) AS live_completed,
                   COALESCE(SUM(CASE WHEN competitive = 0 THEN 1 ELSE 0 END), 0) AS archive_completed
-           FROM game_completions WHERE profile_id = ?""",
-        (profile_id,),
+           FROM game_completions
+           WHERE profile_id = ? AND game_date >= ?""",
+        (profile_id, CREW_WEEK_ONE_DATE.isoformat()),
     ).fetchone()
     return {
         "completed": int(row["completed"]),

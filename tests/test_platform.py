@@ -47,8 +47,8 @@ def test_new_game_rows_use_relational_profile_id(app):
     profile_id = _profile(app)
     user_key = profile_user_key(profile_id)
     with app.app_context():
-        finalize_game_stats(user_key, "word", "2026-09-09", 100, True, competitive=True)
-        row = get_game_completion(user_key, "word", "2026-09-09")
+        finalize_game_stats(user_key, "word", "2026-09-23", 100, True, competitive=True)
+        row = get_game_completion(user_key, "word", "2026-09-23")
         assert row["profile_id"] == profile_id
         assert row["user_key"] == user_key
 
@@ -101,12 +101,12 @@ def test_home_leaderboard_returns_top_three_plus_current_rank(app):
             finalize_game_stats(
                 profile_user_key(profile_id),
                 "word",
-                "2026-09-09",
+                "2026-09-23",
                 score,
                 True,
                 competitive=True,
             )
-        rows = get_home_leaderboard(date(2026, 9, 9), current_profile_id=ids[3])
+        rows = get_home_leaderboard(date(2026, 9, 23), current_profile_id=ids[3])
 
     assert [row["rank"] for row in rows] == [1, 2, 3, 4]
     assert [row["profile_id"] for row in rows] == ids
@@ -193,13 +193,12 @@ def test_archive_games_score_but_do_not_qualify_for_streaks():
     from datetime import date
     from app.schedule import game_is_archive, game_is_competitive
 
-    today = date(2026, 9, 21)
-    old_game = date(2026, 9, 14)
+    today = date(2026, 9, 28)
+    old_game = date(2026, 9, 21)
     assert game_is_archive(old_game, today=today) is True
     assert game_is_competitive(old_game, today=today) is False
-    assert game_is_competitive(date(2026, 9, 21), today=today) is True
-    assert game_is_competitive(date(2026, 9, 22), today=today) is False
-
+    assert game_is_competitive(date(2026, 9, 28), today=today) is True
+    assert game_is_competitive(date(2026, 9, 29), today=today) is False
 
 def test_archive_completion_counts_points_in_original_week(app):
     from datetime import date
@@ -208,7 +207,7 @@ def test_archive_completion_counts_points_in_original_week(app):
 
     profile_id = _profile(app, username="ArchiveScorer")
     user_key = profile_user_key(profile_id)
-    game_day = date(2026, 9, 14)
+    game_day = date(2026, 9, 21)
 
     with app.app_context():
         finalize_game_stats(
@@ -217,7 +216,7 @@ def test_archive_completion_counts_points_in_original_week(app):
             game_day.isoformat(),
             75,
             True,
-            competitive=game_is_competitive(game_day, today=date(2026, 9, 21)),
+            competitive=game_is_competitive(game_day, today=date(2026, 9, 28)),
         )
         weekly = get_weekly_points(user_key, game_day)
         stats = ensure_user_stats(user_key)
@@ -227,7 +226,6 @@ def test_archive_completion_counts_points_in_original_week(app):
         assert stats["games_completed"] == 1
         assert stats["current_streak"] == 0
         assert stats["longest_streak"] == 0
-
 
 def test_archive_play_banners_are_removed_from_game_templates():
     root = Path(__file__).parents[1]
@@ -319,3 +317,25 @@ def test_rankings_empty_state_respects_hidden_attribute():
     assert '.v19-rankings-page .leaderboard-empty[hidden]' in css
     assert 'display:none !important;' in css
     assert "v='19.0.2'" in template
+
+def test_prelaunch_dates_are_not_player_visible_or_playable():
+    from datetime import date
+    from app.schedule import game_is_archive, game_is_in_archive, game_is_playable
+
+    today = date(2026, 10, 7)
+    for game_day in (date(2026, 9, 7), date(2026, 9, 14)):
+        assert game_is_in_archive(game_day) is False
+        assert game_is_playable(game_day, today=today) is False
+        assert game_is_archive(game_day, today=today) is False
+
+    assert game_is_in_archive(date(2026, 9, 21)) is True
+    assert game_is_playable(date(2026, 9, 21), today=today) is True
+
+
+def test_prelaunch_completion_is_rejected(app):
+    import pytest
+
+    profile_id = _profile(app, username="PrelaunchScorer")
+    user_key = profile_user_key(profile_id)
+    with app.app_context(), pytest.raises(ValueError, match="production scoring begins"):
+        finalize_game_stats(user_key, "mystery", "2026-09-14", 100, True, competitive=False)
