@@ -1,0 +1,153 @@
+/* CREW Phase 1A — accessibility foundation
+   Loaded after legacy/versioned styles so we can harden the existing UI
+   without redesigning or prematurely rewriting page CSS. */
+
+:root {
+  --crew-focus-ring: #8fe8ff;
+  --crew-focus-ring-shadow: rgba(143, 232, 255, .24);
+  --crew-tap-target: 44px;
+  --crew-safe-top: env(safe-area-inset-top, 0px);
+  --crew-safe-right: env(safe-area-inset-right, 0px);
+  --crew-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --crew-safe-left: env(safe-area-inset-left, 0px);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+/* A consistent keyboard focus treatment across Flask pages and React islands. */
+:where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [tabindex]:not([tabindex="-1"])
+):focus-visible {
+  outline: 2px solid var(--crew-focus-ring) !important;
+  outline-offset: 3px;
+}
+
+/* Preserve a visible focus cue even where older CSS used outline:none. */
+:where(input, select, textarea):focus-visible {
+  border-color: rgba(143, 232, 255, .66) !important;
+  box-shadow: 0 0 0 3px var(--crew-focus-ring-shadow);
+}
+
+/* Interactive controls should have a comfortable pointer/touch target. */
+:where(
+  button,
+  select,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  [role="button"]
+) {
+  min-height: var(--crew-tap-target);
+}
+
+.icon-button {
+  width: var(--crew-tap-target);
+  height: var(--crew-tap-target);
+}
+
+.back-link,
+.text-button,
+.account-action {
+  min-height: var(--crew-tap-target);
+  display: inline-flex;
+  align-items: center;
+}
+
+.account-action {
+  width: 100%;
+}
+
+/* Raise the most player-facing microcopy that had fallen below a useful size.
+   Decorative labels stay compact; functional/status text becomes readable. */
+.leaderboard-page .leaderboard-toolbar label > span,
+.leaderboard-page .leader-filter-copy > span,
+.leaderboard-page .player-meta span,
+.leaderboard-page .leader-row .score small,
+.profile-page .avatar-choice small,
+.profile-page .profile-form label > span,
+.login-page .login-form label small,
+.game-page .back-link,
+.word-page .back-link,
+.game-page .game-title-row .eyebrow,
+.word-page .word-heading .eyebrow,
+.word-page .game-kicker,
+.word-page .keyboard-legend,
+.mobile-bottom-nav a,
+.v13-player small,
+.v13-points small {
+  font-size: max(.6875rem, 11px);
+}
+
+/* Small pills/status labels can remain visually compact without becoming tiny. */
+.leaderboard-page .you-pill,
+.day-pill,
+.status-dot,
+.v14-week-current small {
+  font-size: max(.60rem, 9.6px);
+}
+
+/* Mobile browser chrome/notches should not collide with persistent navigation. */
+@media (max-width: 760px) {
+  .mobile-bottom-nav.mobile-bottom-nav {
+    height: calc(68px + var(--crew-safe-bottom));
+    min-height: calc(68px + var(--crew-safe-bottom));
+    padding-bottom: var(--crew-safe-bottom);
+  }
+
+  .mobile-bottom-nav.mobile-bottom-nav a {
+    min-height: 52px;
+  }
+
+  .app-shell {
+    padding-left: var(--crew-safe-left);
+    padding-right: var(--crew-safe-right);
+  }
+
+  .v14-games-page .app-nav,
+  .leaderboard-page .app-nav,
+  .profile-page .app-nav,
+  .game-page .app-nav,
+  .word-page .app-nav {
+    padding-left: max(18px, var(--crew-safe-left));
+    padding-right: max(18px, var(--crew-safe-right));
+  }
+
+  .v14-games-page .v14-games-main,
+  .leaderboard-page .leaderboard-main,
+  .profile-page .profile-main,
+  .game-page .single-game-main,
+  .word-page .word-main,
+  .trivia-page .single-game-main.react-island-game {
+    padding-bottom: calc(92px + var(--crew-safe-bottom));
+  }
+}
+
+/* Motion stays expressive by default, but accessibility preferences win globally. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
