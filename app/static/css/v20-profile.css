@@ -30,84 +30,6 @@
   min-height:100svh;
 }
 
-/* Header */
-.v20-profile-page .app-nav {
-  position:sticky;
-  top:0;
-  z-index:80;
-  min-height:76px;
-  display:grid;
-  grid-template-columns:minmax(260px,1fr) auto minmax(260px,1fr);
-  align-items:center;
-  padding:0 clamp(30px,3vw,52px);
-  border:0;
-  border-bottom:1px solid rgba(255,255,255,.08);
-  border-radius:0;
-  background:rgba(2,8,12,.82);
-  box-shadow:none;
-  backdrop-filter:blur(18px) saturate(120%);
-  -webkit-backdrop-filter:blur(18px) saturate(120%);
-}
-.v20-profile-page .v13-brand-copy {
-  display:flex;
-  align-items:center;
-  gap:15px;
-}
-.v20-profile-page .v13-brand-copy strong {
-  color:#fff;
-  font:850 1.3rem/1 Manrope,Inter,sans-serif;
-  letter-spacing:.05em;
-}
-.v20-profile-page .v13-brand-copy small {
-  display:grid;
-  gap:2px;
-  color:rgba(225,234,243,.54);
-  font:800 .50rem/1.08 Inter,sans-serif;
-  letter-spacing:.17em;
-}
-.v20-profile-page .desktop-nav {
-  display:flex;
-  justify-content:center;
-  gap:31px;
-}
-.v20-profile-page .desktop-nav a {
-  position:relative;
-  padding:28px 0 23px;
-  color:rgba(212,223,235,.48);
-  background:transparent;
-  font:700 .84rem/1 Inter,sans-serif;
-  text-decoration:none;
-}
-.v20-profile-page .desktop-nav a:hover,
-.v20-profile-page .desktop-nav a.active { color:#fff; }
-.v20-profile-page .desktop-nav a.active::after {
-  content:"";
-  position:absolute;
-  left:0; right:0; bottom:18px;
-  height:2px;
-  border-radius:99px;
-  background:currentColor;
-  opacity:.70;
-}
-.v20-profile-page .profile-copy,
-.v20-profile-page .account-chevron { display:none; }
-.v20-profile-page .account-trigger {
-  justify-self:end;
-  min-width:40px;
-  padding:0;
-  border:0;
-  background:transparent;
-}
-.v20-profile-page .avatar {
-  width:39px;
-  height:39px;
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:50%;
-  color:#fff;
-  background:rgba(255,255,255,.05);
-}
-.v20-profile-page .mobile-bottom-nav { display:none; }
-
 /* Main */
 .v20-profile-main {
   width:min(1280px,calc(100% - 64px));
@@ -510,22 +432,6 @@
 }
 
 @media (max-width:760px) {
-  .v20-profile-page {
-    padding-bottom:68px;
-  }
-
-  .v20-profile-page .app-nav {
-    min-height:64px;
-    grid-template-columns:1fr auto;
-    padding:0 18px;
-  }
-
-  .v20-profile-page .desktop-nav { display:none; }
-  .v20-profile-page .v13-brand-copy { gap:0; }
-  .v20-profile-page .v13-brand-copy strong { font-size:1.08rem; }
-  .v20-profile-page .v13-brand-copy small { display:none; }
-  .v20-profile-page .avatar { width:35px; height:35px; }
-
   .v20-profile-main {
     width:calc(100% - 28px);
     padding:30px 0 34px;
@@ -605,42 +511,6 @@
     width:100%;
   }
 
-  .v20-profile-page .mobile-bottom-nav {
-    position:fixed;
-    inset:auto 0 0 0;
-    z-index:90;
-    height:68px;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    border-top:1px solid rgba(255,255,255,.09);
-    background:rgba(2,8,12,.90);
-    backdrop-filter:blur(18px) saturate(120%);
-    -webkit-backdrop-filter:blur(18px) saturate(120%);
-  }
-
-  .v20-profile-page .mobile-bottom-nav a {
-    display:grid;
-    place-items:center;
-    align-content:center;
-    gap:4px;
-    color:rgba(190,202,216,.52);
-    font:700 .46rem/1 Inter,sans-serif;
-    text-decoration:none;
-  }
-
-  .v20-profile-page .mobile-bottom-nav a.active {
-    color:#fff;
-  }
-
-  .v20-profile-page .mobile-bottom-nav .nav-icon svg {
-    width:17px;
-    height:17px;
-    fill:none;
-    stroke:currentColor;
-    stroke-width:1.8;
-    stroke-linecap:round;
-    stroke-linejoin:round;
-  }
 }
 
 @media (prefers-reduced-motion:reduce) {

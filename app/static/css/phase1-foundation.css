@@ -99,42 +99,6 @@ body {
   font-size: max(.60rem, 9.6px);
 }
 
-/* Mobile browser chrome/notches should not collide with persistent navigation. */
-@media (max-width: 760px) {
-  .mobile-bottom-nav.mobile-bottom-nav {
-    height: calc(68px + var(--crew-safe-bottom));
-    min-height: calc(68px + var(--crew-safe-bottom));
-    padding-bottom: var(--crew-safe-bottom);
-  }
-
-  .mobile-bottom-nav.mobile-bottom-nav a {
-    min-height: 52px;
-  }
-
-  .app-shell {
-    padding-left: var(--crew-safe-left);
-    padding-right: var(--crew-safe-right);
-  }
-
-  .v14-games-page .app-nav,
-  .leaderboard-page .app-nav,
-  .profile-page .app-nav,
-  .game-page .app-nav,
-  .word-page .app-nav {
-    padding-left: max(18px, var(--crew-safe-left));
-    padding-right: max(18px, var(--crew-safe-right));
-  }
-
-  .v14-games-page .v14-games-main,
-  .leaderboard-page .leaderboard-main,
-  .profile-page .profile-main,
-  .game-page .single-game-main,
-  .word-page .word-main,
-  .trivia-page .single-game-main.react-island-game {
-    padding-bottom: calc(92px + var(--crew-safe-bottom));
-  }
-}
-
 /* Motion stays expressive by default, but accessibility preferences win globally. */
 @media (prefers-reduced-motion: reduce) {
   html {

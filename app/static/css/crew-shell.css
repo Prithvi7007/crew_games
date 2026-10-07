@@ -1,0 +1,179 @@
+/* CREW Phase 1D — shared authenticated app shell
+   One source of truth for the reusable header, desktop navigation,
+   account trigger, and mobile bottom navigation. */
+
+.crew-app-page .app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto minmax(260px, 1fr);
+  align-items: center;
+  padding: 0 clamp(30px, 3vw, 52px);
+  border: 0;
+  border-bottom: 1px solid var(--crew-color-line-nav);
+  border-radius: 0;
+  background: var(--crew-color-nav);
+  box-shadow: none;
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+}
+
+.crew-app-page .v13-brand-copy {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.crew-app-page .v13-brand-copy strong {
+  color: #fff;
+  font: 850 1.3rem/1 var(--crew-font-display);
+  letter-spacing: .05em;
+}
+
+.crew-app-page .v13-brand-copy small {
+  display: grid;
+  gap: 2px;
+  color: rgba(225, 234, 243, .54);
+  font: 800 .50rem/1.08 var(--crew-font-body);
+  letter-spacing: .17em;
+}
+
+.crew-app-page .desktop-nav {
+  display: flex;
+  justify-content: center;
+  gap: 31px;
+}
+
+.crew-app-page .desktop-nav a {
+  position: relative;
+  padding: 28px 0 23px;
+  color: rgba(212, 223, 235, .48);
+  background: transparent;
+  font: 700 .84rem/1 var(--crew-font-body);
+  text-decoration: none;
+}
+
+.crew-app-page .desktop-nav a:hover,
+.crew-app-page .desktop-nav a.active {
+  color: #fff;
+}
+
+.crew-app-page .desktop-nav a.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  height: 2px;
+  border-radius: var(--crew-radius-pill);
+  background: currentColor;
+  opacity: .70;
+}
+
+.crew-app-page .profile-copy,
+.crew-app-page .account-chevron {
+  display: none;
+}
+
+.crew-app-page .account-trigger {
+  justify-self: end;
+  min-width: var(--crew-control-min);
+  min-height: var(--crew-control-min);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.crew-app-page .account-trigger .avatar {
+  width: 39px;
+  height: 39px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, .05);
+}
+
+.crew-app-page .mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  body.crew-app-page {
+    padding-bottom: calc(68px + var(--crew-safe-bottom));
+  }
+
+  .crew-app-page .app-nav {
+    min-height: 64px;
+    grid-template-columns: 1fr auto;
+    padding-left: max(18px, var(--crew-safe-left));
+    padding-right: max(18px, var(--crew-safe-right));
+    background: rgba(2, 8, 12, .90);
+  }
+
+  .crew-app-page .desktop-nav {
+    display: none;
+  }
+
+  .crew-app-page .v13-brand-copy {
+    gap: 0;
+  }
+
+  .crew-app-page .v13-brand-copy strong {
+    font-size: 1.08rem;
+  }
+
+  .crew-app-page .v13-brand-copy small {
+    display: none;
+  }
+
+  .crew-app-page .account-trigger .avatar {
+    width: 35px;
+    height: 35px;
+  }
+
+  .crew-app-page .mobile-bottom-nav {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 90;
+    width: 100%;
+    max-width: none;
+    height: calc(68px + var(--crew-safe-bottom));
+    min-height: calc(68px + var(--crew-safe-bottom));
+    padding: 0 0 var(--crew-safe-bottom);
+    border-radius: 0;
+    transform: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid rgba(255, 255, 255, .09);
+    background: rgba(2, 8, 12, .90);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+  }
+
+  .crew-app-page .mobile-bottom-nav a {
+    min-height: 52px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 4px;
+    color: rgba(190, 202, 216, .52);
+    font: 700 max(.6875rem, 11px)/1 var(--crew-font-body);
+    text-decoration: none;
+  }
+
+  .crew-app-page .mobile-bottom-nav a.active {
+    color: #fff;
+  }
+
+  .crew-app-page .mobile-bottom-nav .nav-icon svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
