@@ -18,3 +18,39 @@
 .v2-test-target{margin:20px 0 30px;color:#fff;font:850 clamp(4rem,10vw,8rem)/.85 Manrope,Inter,sans-serif;letter-spacing:-.07em}.v2-test-target small{margin-left:8px;color:rgba(211,223,234,.48);font:800 .7rem/1 Inter,sans-serif;letter-spacing:.1em}.v2-test-result{min-height:340px;display:grid;place-items:center;align-content:center;gap:8px;text-align:center}.v2-test-result>span{color:#c77cff;font:800 .56rem/1 Inter,sans-serif;letter-spacing:.16em}.v2-test-result>strong{color:#fff;font:850 clamp(5rem,12vw,9rem)/.8 Manrope,Inter,sans-serif;letter-spacing:-.08em}.v2-test-result>small{color:rgba(226,235,244,.65);font:800 .58rem/1.4 Inter,sans-serif;letter-spacing:.09em}.v2-test-result>p{margin:12px 0 0;color:rgba(202,216,230,.50);font:600 .68rem/1.4 Inter,sans-serif}
 .v2-admin-mobile-nav{grid-template-columns:repeat(4,1fr)!important}
 @media(max-width:760px){.v2-settings-card{grid-template-columns:1fr;gap:24px;padding:20px}.v2-test-heading{align-items:start;flex-direction:column}.v2-test-stage{min-height:440px;padding:20px}.v2-test-score{float:none;justify-items:start;margin:0 0 18px}.v2-test-options{grid-template-columns:1fr}.v2-test-answer{grid-template-columns:1fr}.v2-test-badge{display:none}}
+
+/* CREW v14 — season management. */
+.v2-season-current{margin-top:22px;padding:18px;border:1px solid rgba(85,230,172,.18);border-radius:12px;background:rgba(85,230,172,.045)}
+.v2-season-current.is-idle{border-color:rgba(255,255,255,.10);background:rgba(255,255,255,.025)}
+.v2-season-current-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+.v2-season-current-head span,.v2-season-form-title span{color:rgba(204,218,231,.52);font:800 .5rem/1 Inter,sans-serif;letter-spacing:.13em}
+.v2-season-current-head b{padding:5px 8px;border:1px solid rgba(85,230,172,.26);border-radius:999px;color:#82f2c0;background:rgba(85,230,172,.07);font:800 .46rem/1 Inter,sans-serif;letter-spacing:.12em}
+.v2-season-current>strong{display:block;color:#fff;font:800 1rem/1.2 Manrope,Inter,sans-serif}
+.v2-season-current>p{margin:7px 0 13px!important;font-size:.68rem!important}
+.v2-season-current>div:last-child{display:flex;flex-wrap:wrap;gap:8px}
+.v2-season-current>div:last-child span{padding:6px 8px;border-radius:8px;color:rgba(232,239,246,.68);background:rgba(255,255,255,.045);font:800 .47rem/1 Inter,sans-serif;letter-spacing:.08em}
+.v2-season-form-title{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:2px}
+.v2-season-form-title small,.v2-season-help{color:rgba(202,215,228,.46);font:600 .58rem/1.45 Inter,sans-serif}
+.v2-season-date-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.v2-season-create input,.v2-season-row input{width:100%;min-height:44px;box-sizing:border-box;padding:0 13px;border:1px solid rgba(255,255,255,.12);border-radius:10px;outline:none;color:#fff;background:rgba(0,0,0,.22);font:600 .75rem/1 Inter,sans-serif;color-scheme:dark}
+.v2-season-list-card{margin-top:24px;padding:28px}
+.v2-season-list-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:18px}
+.v2-season-list-head h2{margin:9px 0 0;color:#fff;font:800 1.5rem/1.05 Manrope,Inter,sans-serif}
+.v2-season-list-head>small{color:rgba(202,215,228,.48);font:600 .6rem/1.4 Inter,sans-serif}
+.v2-season-list{display:grid;gap:10px}
+.v2-season-row{display:grid;grid-template-columns:72px minmax(150px,1.25fr) minmax(260px,1.4fr) minmax(180px,1fr) auto;gap:14px;align-items:end;padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.025)}
+.v2-season-number{display:grid;gap:5px;align-self:center}
+.v2-season-number span,.v2-season-row label>span{color:rgba(202,215,228,.46);font:800 .46rem/1 Inter,sans-serif;letter-spacing:.12em}
+.v2-season-number strong{color:#fff;font:850 1.35rem/1 Manrope,Inter,sans-serif}
+.v2-season-name,.v2-season-dates label{display:grid;gap:7px}
+.v2-season-dates{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.v2-season-row input:disabled{opacity:.55;cursor:not-allowed}
+.v2-season-meta{display:grid;align-content:center;justify-items:start;gap:5px;min-height:44px}
+.v2-season-meta small{color:rgba(202,215,228,.48);font:650 .54rem/1.25 Inter,sans-serif}
+.v2-season-meta small.locked{color:#ffcf70}
+.v2-season-status{display:inline-flex;padding:5px 7px;border-radius:999px;color:rgba(222,232,241,.72);background:rgba(255,255,255,.055);font:800 .43rem/1 Inter,sans-serif;letter-spacing:.11em}
+.v2-season-status.is-active{color:#82f2c0;background:rgba(85,230,172,.08)}
+.v2-season-status.is-upcoming{color:#9dc9ff;background:rgba(88,156,255,.08)}
+.v2-season-empty{padding:18px;color:rgba(205,218,230,.52);font:650 .7rem/1.4 Inter,sans-serif}
+@media(max-width:980px){.v2-season-row{grid-template-columns:64px 1fr 1.4fr}.v2-season-meta{grid-column:2/4}.v2-season-row>.admin-card-button{grid-column:2/4;justify-self:start}}
+@media(max-width:760px){.v2-season-date-grid,.v2-season-dates{grid-template-columns:1fr}.v2-season-list-card{padding:20px}.v2-season-list-head{align-items:start;flex-direction:column}.v2-season-row{grid-template-columns:54px 1fr}.v2-season-name,.v2-season-dates,.v2-season-meta,.v2-season-row>.admin-card-button{grid-column:1/3}}

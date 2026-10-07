@@ -10,6 +10,7 @@ from app.db import (
     get_game_content,
     get_home_leaderboard,
     get_leaderboard,
+    get_season_summary,
     get_weekly_points,
 )
 from app.schedule import (
@@ -57,6 +58,7 @@ def home():
     today = crew_today()
     stats_row = ensure_user_stats(user_key)
     weekly = get_weekly_points(user_key, today)
+    season = get_season_summary(user_key, today)
 
     games = []
     for definition in GAME_DEFINITIONS:
@@ -106,6 +108,7 @@ def home():
         leaderboard=leaderboard,
         user=user,
         week_number=get_crew_week_number(today),
+        season=season,
     )
 
 

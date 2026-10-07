@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Settings · CREW Admin{% endblock %}
 {% block body_class %}admin-page{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.1') }}">{% endblock %}
 {% block body %}
 <div class="admin-shell">
   <header class="glass-nav admin-nav">
@@ -20,6 +20,114 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}<div class="admin-flash {{ category }}">{{ message }}</div>{% endfor %}
     {% endwith %}
+
+    <section class="glass-card v2-settings-card v2-season-settings-card">
+      <div class="v2-settings-copy">
+        <span class="eyebrow">SEASON MANAGEMENT</span>
+        <h2>Run the CREW competition.</h2>
+        <p>Seasons group complete CREW weeks into one standings race. Status changes automatically from the dates.</p>
+
+        {% if current_season %}
+        <div class="v2-season-current">
+          <div class="v2-season-current-head">
+            <span>CURRENT SEASON</span>
+            <b>ACTIVE</b>
+          </div>
+          <strong>SEASON {{ current_season.number }} · {{ current_season.name }}</strong>
+          <p>{{ current_season.start_date.strftime('%b %d') }} – {{ current_season.end_date.strftime('%b %d, %Y') }}</p>
+          <div>
+            <span>WEEK {{ current_season.week_number }} / {{ current_season.weeks_total }}</span>
+            <span>{{ current_season.games_total }} GAMES</span>
+            <span>{{ current_season.max_points }} MAX PTS</span>
+          </div>
+        </div>
+        {% else %}
+        <div class="v2-season-current is-idle">
+          <div class="v2-season-current-head"><span>CURRENT SEASON</span><b>OFFSEASON</b></div>
+          <strong>No season is active today.</strong>
+          <p>Create or schedule the next season from this page.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <form method="post" class="v2-invite-form v2-season-create">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="action" value="season_create">
+        <div class="v2-season-form-title">
+          <span>NEW SEASON</span>
+          <small>Season number is assigned automatically.</small>
+        </div>
+        <label>
+          <span>Season name</span>
+          <input type="text" name="season_name" maxlength="60" placeholder="November Season" required>
+        </label>
+        <div class="v2-season-date-grid">
+          <label>
+            <span>Starts Monday</span>
+            <input type="date" name="season_start_date" required>
+          </label>
+          <label>
+            <span>Closes Friday</span>
+            <input type="date" name="season_end_date" required>
+          </label>
+        </div>
+        <small class="v2-season-help">Use complete Monday–Friday CREW weeks. Competitive play runs Monday–Thursday.</small>
+        <button class="admin-card-button primary" type="submit">Create season →</button>
+      </form>
+    </section>
+
+    <section class="glass-card v2-season-list-card">
+      <div class="v2-season-list-head">
+        <div>
+          <span class="eyebrow">SEASON SCHEDULE</span>
+          <h2>Configured seasons.</h2>
+        </div>
+        <small>Dates lock once competitive results exist.</small>
+      </div>
+
+      <div class="v2-season-list">
+        {% for item in seasons %}
+        <form method="post" class="v2-season-row">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="action" value="season_update">
+          <input type="hidden" name="season_id" value="{{ item.id }}">
+
+          <div class="v2-season-number">
+            <span>SEASON</span>
+            <strong>{{ '%02d'|format(item.number) }}</strong>
+          </div>
+
+          <label class="v2-season-name">
+            <span>NAME</span>
+            <input type="text" name="season_name" value="{{ item.name }}" maxlength="60" required>
+          </label>
+
+          <div class="v2-season-dates">
+            <label>
+              <span>START</span>
+              {% if item.dates_locked %}<input type="hidden" name="season_start_date" value="{{ item.start_date.isoformat() }}">{% endif %}
+              <input type="date" name="season_start_date" value="{{ item.start_date.isoformat() }}" {% if item.dates_locked %}disabled{% endif %} required>
+            </label>
+            <label>
+              <span>END</span>
+              {% if item.dates_locked %}<input type="hidden" name="season_end_date" value="{{ item.end_date.isoformat() }}">{% endif %}
+              <input type="date" name="season_end_date" value="{{ item.end_date.isoformat() }}" {% if item.dates_locked %}disabled{% endif %} required>
+            </label>
+          </div>
+
+          <div class="v2-season-meta">
+            <span class="v2-season-status is-{{ item.status }}">{{ item.status|upper }}</span>
+            <small>{{ item.weeks_total }} weeks · {{ item.games_total }} games · {{ item.max_points }} max pts</small>
+            {% if item.dates_locked %}<small class="locked">DATES LOCKED · results exist</small>{% endif %}
+          </div>
+
+          <button class="admin-card-button" type="submit">Save →</button>
+        </form>
+        {% else %}
+        <div class="v2-season-empty">No seasons configured.</div>
+        {% endfor %}
+      </div>
+    </section>
 
     <section class="glass-card v2-settings-card">
       <div class="v2-settings-copy">

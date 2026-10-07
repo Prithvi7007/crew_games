@@ -27,7 +27,7 @@
       <label>
         <span>TIME PERIOD</span>
         <select id="leader-period" class="crew-select">
-          {% for value,label in [('this_week','This Week'),('last_week','Last Week'),('this_month','This Month'),('all_time','All Time')] %}
+          {% for value,label in [('this_week','This Week'),('season','Season'),('last_week','Last Week'),('this_month','This Month'),('all_time','All Time')] %}
           <option value="{{ value }}" {% if value==selected_period %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>

@@ -384,6 +384,252 @@ def profile_user_key(profile_id):
     return f"profile:{int(profile_id)}"
 
 
+# ---------- Seasons ----------
+
+def _season_date(value):
+    if isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(str(value))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Invalid season date") from exc
+
+
+def _season_payload(row, reference_day=None):
+    if not row:
+        return None
+    reference_day = reference_day or crew_today()
+    start_date = _season_date(row["start_date"])
+    end_date = _season_date(row["end_date"])
+    season_start_week = get_week_start(start_date)
+    season_end_week = get_week_start(end_date)
+    weeks_total = ((season_end_week - season_start_week).days // 7) + 1
+    current_week = get_week_start(reference_day)
+    week_number = ((current_week - season_start_week).days // 7) + 1
+    week_number = max(1, min(weeks_total, week_number))
+    status = (
+        "active"
+        if start_date <= reference_day <= end_date
+        else ("upcoming" if reference_day < start_date else "complete")
+    )
+    return {
+        "id": int(row["id"]),
+        "number": int(row["season_number"]),
+        "slug": row["slug"],
+        "name": row["name"],
+        "start_date": start_date,
+        "end_date": end_date,
+        "week_number": week_number,
+        "weeks_total": weeks_total,
+        "games_total": weeks_total * 4,
+        "max_points": weeks_total * 400,
+        "status": status,
+        "has_results": bool(row["has_results"]),
+        "dates_locked": bool(row["has_results"]),
+    }
+
+
+def list_seasons(reference_day=None):
+    rows = get_db().execute(
+        """
+        SELECT s.*,
+               EXISTS(
+                   SELECT 1
+                   FROM game_completions gc
+                   WHERE gc.competitive = 1
+                     AND gc.game_date BETWEEN s.start_date AND s.end_date
+               ) AS has_results
+        FROM seasons s
+        ORDER BY s.season_number DESC
+        """
+    ).fetchall()
+    return [_season_payload(row, reference_day=reference_day) for row in rows]
+
+
+def get_season_by_id(season_id, reference_day=None):
+    row = get_db().execute(
+        """
+        SELECT s.*,
+               EXISTS(
+                   SELECT 1
+                   FROM game_completions gc
+                   WHERE gc.competitive = 1
+                     AND gc.game_date BETWEEN s.start_date AND s.end_date
+               ) AS has_results
+        FROM seasons s
+        WHERE s.id = ?
+        """,
+        (int(season_id),),
+    ).fetchone()
+    return _season_payload(row, reference_day=reference_day) if row else None
+
+
+def get_season_for_date(reference_day=None):
+    reference_day = reference_day or crew_today()
+    day_iso = reference_day.isoformat()
+    row = get_db().execute(
+        """
+        SELECT s.*,
+               EXISTS(
+                   SELECT 1
+                   FROM game_completions gc
+                   WHERE gc.competitive = 1
+                     AND gc.game_date BETWEEN s.start_date AND s.end_date
+               ) AS has_results
+        FROM seasons s
+        WHERE s.start_date <= ? AND s.end_date >= ?
+        ORDER BY s.season_number DESC
+        LIMIT 1
+        """,
+        (day_iso, day_iso),
+    ).fetchone()
+    return _season_payload(row, reference_day=reference_day) if row else None
+
+
+def _validate_season_overlap(start_date, end_date, exclude_id=None):
+    sql = """
+        SELECT id, season_number, name
+        FROM seasons
+        WHERE NOT (end_date < ? OR start_date > ?)
+    """
+    params = [start_date.isoformat(), end_date.isoformat()]
+    if exclude_id is not None:
+        sql += " AND id <> ?"
+        params.append(int(exclude_id))
+    return get_db().execute(sql, params).fetchone()
+
+
+def create_season(name, start_date, end_date):
+    name = str(name or "").strip()
+    start_date = _season_date(start_date)
+    end_date = _season_date(end_date)
+    if not name:
+        raise ValueError("Season name is required.")
+    if _validate_season_overlap(start_date, end_date):
+        raise ValueError("Season dates overlap an existing season.")
+
+    db = get_db()
+    row = db.execute(
+        "SELECT COALESCE(MAX(season_number), 0) AS max_number FROM seasons"
+    ).fetchone()
+    season_number = int(row["max_number"]) + 1
+    slug = f"season-{season_number}"
+    db.execute(
+        """
+        INSERT INTO seasons (season_number, slug, name, start_date, end_date, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (
+            season_number,
+            slug,
+            name,
+            start_date.isoformat(),
+            end_date.isoformat(),
+            _db_timestamp(),
+        ),
+    )
+    db.commit()
+    created = db.execute(
+        "SELECT id FROM seasons WHERE season_number = ?",
+        (season_number,),
+    ).fetchone()
+    return get_season_by_id(created["id"])
+
+
+def update_season(season_id, name, start_date, end_date):
+    season = get_season_by_id(season_id)
+    if not season:
+        raise ValueError("Season not found.")
+
+    name = str(name or "").strip()
+    start_date = _season_date(start_date)
+    end_date = _season_date(end_date)
+    if not name:
+        raise ValueError("Season name is required.")
+
+    dates_changed = (
+        start_date != season["start_date"]
+        or end_date != season["end_date"]
+    )
+    if dates_changed and season["dates_locked"]:
+        raise ValueError("Season dates are locked because competitive results already exist.")
+    if _validate_season_overlap(start_date, end_date, exclude_id=season_id):
+        raise ValueError("Season dates overlap an existing season.")
+
+    db = get_db()
+    db.execute(
+        """
+        UPDATE seasons
+        SET name = ?, start_date = ?, end_date = ?
+        WHERE id = ?
+        """,
+        (name, start_date.isoformat(), end_date.isoformat(), int(season_id)),
+    )
+    db.commit()
+    return get_season_by_id(season_id)
+
+
+def get_season_summary(user_key, reference_day=None):
+    profile_id = _profile_id_from_user_key(user_key)
+    season = get_season_for_date(reference_day)
+    if not season:
+        return None
+
+    db = get_db()
+    start_iso = season["start_date"].isoformat()
+    end_iso = season["end_date"].isoformat()
+    row = db.execute(
+        """
+        SELECT COALESCE(SUM(score), 0) AS points, COUNT(*) AS completed
+        FROM game_completions
+        WHERE profile_id = ?
+          AND competitive = 1
+          AND game_date BETWEEN ? AND ?
+        """,
+        (profile_id, start_iso, end_iso),
+    ).fetchone()
+
+    rank_row = db.execute(
+        """
+        WITH season_scores AS (
+            SELECT
+                p.id AS profile_id,
+                p.username,
+                COALESCE(SUM(gc.score), 0) AS points,
+                COUNT(gc.id) AS completed
+            FROM profiles p
+            LEFT JOIN game_completions gc
+              ON gc.profile_id = p.id
+             AND gc.competitive = 1
+             AND gc.game_date BETWEEN ? AND ?
+            GROUP BY p.id, p.username
+        ), ranked AS (
+            SELECT
+                profile_id,
+                ROW_NUMBER() OVER (
+                    ORDER BY points DESC, completed DESC, LOWER(username) ASC
+                ) AS rank
+            FROM season_scores
+            WHERE points > 0
+        )
+        SELECT rank
+        FROM ranked
+        WHERE profile_id = ?
+        """,
+        (start_iso, end_iso, profile_id),
+    ).fetchone()
+
+    result = dict(season)
+    result.update(
+        {
+            "points": int(row["points"]),
+            "completed": int(row["completed"]),
+            "rank": int(rank_row["rank"]) if rank_row else None,
+        }
+    )
+    return result
+
+
 # ---------- Security state ----------
 
 def get_rate_limit(limiter_key, window_seconds, now=None):
@@ -853,6 +1099,16 @@ def _period_bounds(period, reference_day=None):
     if period == "this_week":
         start = get_week_start(reference_day)
         return start, start + timedelta(days=3), "This week"
+    if period == "season":
+        season = get_season_for_date(reference_day)
+        if season:
+            return (
+                season["start_date"],
+                season["end_date"],
+                f"Season {season['number']} · {season['name']}",
+            )
+        start = get_week_start(reference_day)
+        return start, start + timedelta(days=3), "This week"
     if period == "last_week":
         start = get_week_start(reference_day) - timedelta(days=7)
         return start, start + timedelta(days=3), "Last week"
@@ -878,7 +1134,7 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
     start, end, period_label = _period_bounds(period, reference_day)
     db = get_db()
 
-    join_conditions = ["gc.profile_id = p.id", "gc.game_date >= ?"]
+    join_conditions = ["gc.profile_id = p.id", "gc.competitive = 1", "gc.game_date >= ?"]
     params = [CREW_WEEK_ONE_DATE.isoformat()]
     if game_key != "all":
         join_conditions.append("gc.game_key = ?")

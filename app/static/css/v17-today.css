@@ -642,3 +642,5 @@ a.v17-secondary-card:hover {
     grid-template-columns:minmax(0,1fr) minmax(240px,300px);
     gap:42px;
   }
+
+.v17-score .v17-season-score{margin-top:7px;color:color-mix(in srgb,var(--v17-accent) 66%,rgba(218,228,238,.66))}

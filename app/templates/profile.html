@@ -37,10 +37,17 @@
     {% endwith %}
 
     <section class="v20-stat-strip" aria-label="CREW stats">
+      {% if season %}
+      <div><span>SEASON {{ season.number }} RANK</span><strong>{% if season.rank %}#{{ season.rank }}{% else %}—{% endif %}</strong></div>
+      <div><span>SEASON POINTS</span><strong>{{ season.points }}</strong></div>
+      <div><span>GAME STREAK</span><strong>{{ stats.current_streak }}</strong></div>
+      <div><span>ALL COMPLETED</span><strong>{{ history.completed }}</strong></div>
+      {% else %}
       <div><span>GAME STREAK</span><strong>{{ stats.current_streak }}</strong></div>
       <div><span>LIVE COMPLETIONS</span><strong>{{ history.live_completed }}</strong></div>
       <div><span>ARCHIVE PLAYS</span><strong>{{ history.archive_completed }}</strong></div>
       <div><span>ALL COMPLETED</span><strong>{{ history.completed }}</strong></div>
+      {% endif %}
     </section>
 
     <section class="v20-settings">

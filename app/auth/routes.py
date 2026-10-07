@@ -18,6 +18,7 @@ from app.db import (
     get_profile_by_id,
     get_profile_by_username,
     get_profile_history_summary,
+    get_season_summary,
     get_setting,
     profile_user_key,
     touch_profile_login,
@@ -379,6 +380,7 @@ def profile():
     profile_row = get_profile_by_id(session["user"]["profile_id"])
     stats = ensure_user_stats(current_user_key())
     history = get_profile_history_summary(current_user_key())
+    season = get_season_summary(current_user_key())
     return render_template(
         "profile.html",
         user=session["user"],
@@ -386,6 +388,7 @@ def profile():
         avatars=AVATARS,
         stats=stats,
         history=history,
+        season=season,
         password_min_length=current_app.config["PASSWORD_MIN_LENGTH"],
     )
 

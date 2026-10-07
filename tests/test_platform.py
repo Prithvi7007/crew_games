@@ -316,7 +316,7 @@ def test_rankings_empty_state_respects_hidden_attribute():
 
     assert '.v19-rankings-page .leaderboard-empty[hidden]' in css
     assert 'display:none !important;' in css
-    assert "v='19.0.2'" in template
+    assert "v='19.0.3'" in template
 
 def test_prelaunch_dates_are_not_player_visible_or_playable():
     from datetime import date

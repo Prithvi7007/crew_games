@@ -21,20 +21,25 @@ from flask import (
 
 from app.db import (
     count_game_attempts,
+    create_season,
     delete_profile,
     get_db,
     get_game_content,
     get_profile_by_id,
+    get_season_by_id,
+    get_season_for_date,
     get_setting,
+    list_seasons,
     save_game_content,
     set_game_content_status,
     set_setting,
     update_profile_password,
     update_profile_recovery_code,
     update_profile_role,
+    update_season,
 )
 from app.mystery.game import get_puzzle
-from app.schedule import crew_today, GAME_DEFINITIONS, get_game_definition, get_week_start
+from app.schedule import CREW_WEEK_ONE_DATE, crew_today, GAME_DEFINITIONS, get_game_definition, get_week_start
 from app.tick_tock.game import get_target
 from app.trivia.game import get_quiz
 from app.word.game import get_daily_solution
@@ -766,6 +771,64 @@ def settings():
                 flash(f"Weekly email {state}. Recipient settings saved.", "success")
                 return redirect(url_for("admin.settings"))
 
+        elif action in {"season_create", "season_update"}:
+            name = _plain_text(request.form.get("season_name", ""), 60)
+            start_date = _parse_day(request.form.get("season_start_date"))
+            end_date = _parse_day(request.form.get("season_end_date"))
+            error = None
+
+            if len(name) < 2:
+                error = "Enter a season name."
+            elif not start_date or not end_date:
+                error = "Enter valid season start and end dates."
+            elif start_date < CREW_WEEK_ONE_DATE:
+                error = f"Seasons cannot begin before {CREW_WEEK_ONE_DATE.strftime('%b %d, %Y')}."
+            elif start_date.weekday() != 0:
+                error = "A CREW season must start on a Monday."
+            elif end_date.weekday() != 4:
+                error = "A CREW season must close on a Friday."
+            elif end_date < start_date:
+                error = "Season end date must come after its start date."
+            elif (end_date - start_date).days < 4 or (end_date - start_date).days % 7 != 4:
+                error = "Season dates must contain complete Monday-through-Friday CREW weeks."
+
+            if error:
+                flash(error, "error")
+            else:
+                actor = g.admin_actor
+                try:
+                    if action == "season_create":
+                        season = create_season(name, start_date, end_date)
+                        event_type = "admin_season_created"
+                        message = f"Season {season['number']} created."
+                    else:
+                        try:
+                            season_id = int(request.form.get("season_id", ""))
+                        except (TypeError, ValueError):
+                            season_id = 0
+                        if not season_id or not get_season_by_id(season_id):
+                            raise ValueError("Season not found.")
+                        season = update_season(season_id, name, start_date, end_date)
+                        event_type = "admin_season_updated"
+                        message = f"Season {season['number']} updated."
+
+                    audit_security_event(
+                        event_type,
+                        actor["username"],
+                        {
+                            "actor_role": actor["role"],
+                            "actor_profile_id": actor["profile_id"],
+                            "season_id": season["id"],
+                            "season_number": season["number"],
+                            "start_date": season["start_date"].isoformat(),
+                            "end_date": season["end_date"].isoformat(),
+                        },
+                    )
+                    flash(message, "success")
+                    return redirect(url_for("admin.settings"))
+                except ValueError as exc:
+                    flash(str(exc), "error")
+
         else:
             new_code = str(request.form.get("invite_code", "")).strip()
             confirmation = str(request.form.get("invite_code_confirm", "")).strip()
@@ -785,14 +848,18 @@ def settings():
                 return redirect(url_for("admin.settings"))
 
     weekly_email_to, weekly_email_database_managed = _admin_weekly_email_to()
+    today = crew_today()
+    seasons = list_seasons(reference_day=today)
+    current_season = get_season_for_date(today)
     return render_template(
         "admin/settings.html",
         invite_is_database_managed=bool(get_setting("invite_code_hash")),
         weekly_email_enabled=_admin_weekly_email_enabled(),
         weekly_email_to=weekly_email_to,
         weekly_email_database_managed=weekly_email_database_managed,
+        seasons=seasons,
+        current_season=current_season,
     )
-
 
 @admin_bp.get("/test/<game_key>/<game_date>")
 @admin_required
