@@ -79,7 +79,7 @@ def test_launch_season_boundaries_and_week_numbers(app):
         assert get_season_for_date(date(2026, 10, 31)) is None
 
 
-def test_season_summary_uses_competitive_points_only(app):
+def test_season_summary_preserves_all_scored_points(app):
     profile_id = _profile(app, "SeasonScorer")
     user_key = profile_user_key(profile_id)
 
@@ -88,12 +88,12 @@ def test_season_summary_uses_competitive_points_only(app):
         finalize_game_stats(user_key, "mystery", "2026-09-28", 75, True, competitive=False)
         summary = get_season_summary(user_key, date(2026, 10, 7))
 
-    assert summary["points"] == 100
-    assert summary["completed"] == 1
+    assert summary["points"] == 175
+    assert summary["completed"] == 2
     assert summary["rank"] == 1
 
 
-def test_rankings_support_season_and_ignore_archive_points(app):
+def test_rankings_support_season_and_preserve_catch_up_points(app):
     alpha = _profile(app, "SeasonAlpha")
     beta = _profile(app, "SeasonBeta")
 
@@ -109,8 +109,8 @@ def test_rankings_support_season_and_ignore_archive_points(app):
         )
 
     assert board["period_label"] == "Season 1 · Launch Season"
-    assert [player["points"] for player in board["players"]] == [100, 80]
-    assert board["me"]["rank"] == 2
+    assert [player["points"] for player in board["players"]] == [180, 100]
+    assert board["me"]["rank"] == 1
 
 
 def test_admin_settings_show_seeded_season(app):

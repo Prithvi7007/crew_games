@@ -583,7 +583,6 @@ def get_season_summary(user_key, reference_day=None):
         SELECT COALESCE(SUM(score), 0) AS points, COUNT(*) AS completed
         FROM game_completions
         WHERE profile_id = ?
-          AND competitive = 1
           AND game_date BETWEEN ? AND ?
         """,
         (profile_id, start_iso, end_iso),
@@ -600,7 +599,6 @@ def get_season_summary(user_key, reference_day=None):
             FROM profiles p
             LEFT JOIN game_completions gc
               ON gc.profile_id = p.id
-             AND gc.competitive = 1
              AND gc.game_date BETWEEN ? AND ?
             GROUP BY p.id, p.username
         ), ranked AS (
@@ -1134,7 +1132,7 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
     start, end, period_label = _period_bounds(period, reference_day)
     db = get_db()
 
-    join_conditions = ["gc.profile_id = p.id", "gc.competitive = 1", "gc.game_date >= ?"]
+    join_conditions = ["gc.profile_id = p.id", "gc.game_date >= ?"]
     params = [CREW_WEEK_ONE_DATE.isoformat()]
     if game_key != "all":
         join_conditions.append("gc.game_key = ?")
