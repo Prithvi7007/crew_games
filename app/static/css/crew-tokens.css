@@ -60,7 +60,10 @@
   /* Motion */
   --crew-motion-fast: 180ms;
   --crew-motion-standard: 200ms;
+  --crew-motion-emphasis: 420ms;
+  --crew-motion-result: 560ms;
   --crew-ease-standard: cubic-bezier(.2, .7, .2, 1);
+  --crew-ease-emphasis: cubic-bezier(.16, 1, .3, 1);
 
   /* Shared shadow language */
   --crew-shadow-panel: 0 28px 84px rgba(0, 0, 0, .24);

@@ -1,0 +1,221 @@
+/* CREW Phase 1F — motion and interaction polish
+   Motion communicates state and hierarchy; it is not decorative wallpaper.
+   The global accessibility foundation remains the final authority for reduced motion. */
+
+/* Shared interactive response ------------------------------------------------ */
+.crew-button,
+.crew-chip,
+.crew-result-primary,
+.v17-action {
+  transition:
+    transform var(--crew-motion-fast) var(--crew-ease-standard),
+    background-color var(--crew-motion-standard) var(--crew-ease-standard),
+    border-color var(--crew-motion-standard) var(--crew-ease-standard),
+    box-shadow var(--crew-motion-standard) var(--crew-ease-standard),
+    color var(--crew-motion-standard) var(--crew-ease-standard),
+    opacity var(--crew-motion-standard) var(--crew-ease-standard);
+}
+
+.crew-button:not(:disabled):not([aria-disabled="true"]):hover,
+.crew-chip:not(:disabled):not([aria-disabled="true"]):hover,
+.crew-result-primary:hover,
+a.v17-action:hover {
+  transform: translateY(-1px);
+}
+
+.crew-button:not(:disabled):not([aria-disabled="true"]):active,
+.crew-chip:not(:disabled):not([aria-disabled="true"]):active,
+.crew-result-primary:active,
+a.v17-action:active {
+  transform: scale(.985);
+}
+
+/* Progress should visibly advance rather than snap. -------------------------- */
+.v17-score-rail i,
+.v17-track i,
+.react-trivia-progress i,
+.crew-progress-track > i {
+  transition: width var(--crew-motion-emphasis) var(--crew-ease-emphasis);
+}
+
+/* Today cards retain their current visual treatment with a common timing curve. */
+.v17-secondary-card {
+  transition:
+    transform var(--crew-motion-standard) var(--crew-ease-emphasis),
+    border-color var(--crew-motion-standard) var(--crew-ease-standard),
+    opacity var(--crew-motion-standard) var(--crew-ease-standard);
+}
+
+/* Trivia question changes ---------------------------------------------------- */
+.react-trivia-question-wrap.crew-motion-enter {
+  animation: crew-question-in var(--crew-motion-emphasis) var(--crew-ease-emphasis) both;
+}
+
+.react-trivia-options.crew-motion-enter .react-trivia-option {
+  animation: crew-option-in var(--crew-motion-emphasis) var(--crew-ease-emphasis) both;
+}
+
+.react-trivia-options.crew-motion-enter .react-trivia-option:nth-child(2) {
+  animation-delay: 35ms;
+}
+
+.react-trivia-options.crew-motion-enter .react-trivia-option:nth-child(3) {
+  animation-delay: 70ms;
+}
+
+.react-trivia-options.crew-motion-enter .react-trivia-option:nth-child(4) {
+  animation-delay: 105ms;
+}
+
+.react-trivia-option.is-correct {
+  animation: crew-answer-correct 320ms var(--crew-ease-emphasis) both;
+}
+
+.react-trivia-option.is-wrong {
+  animation: crew-answer-wrong 280ms var(--crew-ease-standard) both;
+}
+
+/* Unified completion result reveal ------------------------------------------ */
+.crew-result-stage .crew-result-burst,
+.react-trivia-result .react-result-burst {
+  animation: crew-result-burst var(--crew-motion-result) var(--crew-ease-emphasis) both;
+}
+
+.crew-result-stage .crew-result-score,
+.react-trivia-result .react-result-score {
+  animation: crew-result-score var(--crew-motion-result) var(--crew-ease-emphasis) 70ms both;
+}
+
+.crew-result-stage .crew-result-kicker,
+.crew-result-stage .crew-result-label,
+.crew-result-stage .crew-result-meta,
+.crew-result-stage .crew-result-copy,
+.crew-result-stage .crew-result-actions,
+.react-trivia-result .react-trivia-kicker,
+.react-trivia-result .react-result-label,
+.react-trivia-result .react-result-meta,
+.react-trivia-result .react-result-copy,
+.react-trivia-result .react-result-actions {
+  animation: crew-result-detail var(--crew-motion-emphasis) var(--crew-ease-emphasis) 120ms both;
+}
+
+/* Small system feedback: useful after profile/security actions. */
+.v20-flash {
+  animation: crew-feedback-in var(--crew-motion-emphasis) var(--crew-ease-emphasis) both;
+}
+
+@keyframes crew-question-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes crew-option-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes crew-answer-correct {
+  0% { transform: scale(1); }
+  48% { transform: scale(1.012); }
+  100% { transform: scale(1); }
+}
+
+@keyframes crew-answer-wrong {
+  0%, 100% { transform: translateX(0); }
+  35% { transform: translateX(-3px); }
+  70% { transform: translateX(3px); }
+}
+
+@keyframes crew-result-burst {
+  from {
+    opacity: 0;
+    transform: scale(.72);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes crew-result-score {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes crew-result-detail {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes crew-feedback-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The global Phase 1A rule also protects this layer. Keep a local guard so the
+   motion system remains safe if it is ever reused independently. */
+@media (prefers-reduced-motion: reduce) {
+  .crew-button,
+  .crew-chip,
+  .crew-result-primary,
+  .v17-action,
+  .v17-secondary-card,
+  .v17-score-rail i,
+  .v17-track i,
+  .react-trivia-progress i,
+  .crew-progress-track > i {
+    transition: none !important;
+  }
+
+  .react-trivia-question-wrap.crew-motion-enter,
+  .react-trivia-options.crew-motion-enter .react-trivia-option,
+  .react-trivia-option.is-correct,
+  .react-trivia-option.is-wrong,
+  .crew-result-stage .crew-result-burst,
+  .crew-result-stage .crew-result-score,
+  .crew-result-stage .crew-result-kicker,
+  .crew-result-stage .crew-result-label,
+  .crew-result-stage .crew-result-meta,
+  .crew-result-stage .crew-result-copy,
+  .crew-result-stage .crew-result-actions,
+  .react-trivia-result .react-result-burst,
+  .react-trivia-result .react-result-score,
+  .react-trivia-result .react-trivia-kicker,
+  .react-trivia-result .react-result-label,
+  .react-trivia-result .react-result-meta,
+  .react-trivia-result .react-result-copy,
+  .react-trivia-result .react-result-actions,
+  .v20-flash {
+    animation: none !important;
+  }
+}
