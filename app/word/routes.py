@@ -4,6 +4,7 @@ from app.auth.routes import current_user_key, login_required
 from app.db import ensure_user_stats, finalize_word_stats, get_game_content, get_or_create_word_attempt, load_guesses, save_word_attempt
 from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import evaluate_guess, get_daily_solution, score_for_result, validate_guess
+from app.player_ui import render_player
 
 word_bp = Blueprint("word", __name__, url_prefix="/word")
 
@@ -36,9 +37,20 @@ def play():
     game_day = _day()
     if not game_is_playable(game_day):
         return redirect(url_for("main.games"))
-    ensure_user_stats(current_user_key()); state = serialize_state(current_user_key(), game_day)
-    return render_template("word.html", user=session["user"], today=game_day, state=state,
-                           return_url=url_for("main.games", week=game_day.isoformat()) if request.args.get("date") else url_for("main.home"))
+    ensure_user_stats(current_user_key())
+    state = serialize_state(current_user_key(), game_day)
+    return render_player(
+        "word",
+        "Wordle Wednesday",
+        "word-page",
+        {
+            "state": state,
+            "dayLabel": game_day.strftime("%A · %B %d").upper(),
+            "returnUrl": url_for("main.games") if request.args.get("date") else url_for("main.home"),
+            "guessUrl": url_for("word.submit_guess", date=state["date"]),
+        },
+        session["user"],
+    )
 
 
 @word_bp.post("/guess")

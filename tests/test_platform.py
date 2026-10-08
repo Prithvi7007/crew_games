@@ -131,12 +131,42 @@ def test_profile_exposes_sign_out_action(app):
     profile_id = _profile(app, username="SignoutTester")
     client = app.test_client()
     with client.session_transaction() as session:
-        session["user"] = {"profile_id": profile_id, "username": "SignoutTester", "avatar": "⭐", "user_key": profile_user_key(profile_id), "session_version": 1}
+        session["user"] = {
+            "profile_id": profile_id,
+            "username": "SignoutTester",
+            "avatar": "⭐",
+            "user_key": profile_user_key(profile_id),
+            "session_version": 1,
+        }
+
     response = client.get("/profile")
     assert response.status_code == 200
+
     html = response.get_data(as_text=True)
-    assert 'action="/logout"' in html
-    assert ">Sign out<" in html
+    assert 'id="crew-player-root"' in html
+    assert 'data-page="profile"' in html
+    assert "/static/react/player.js" in html
+
+    # React bootstrap data must never expose credential or internal session fields.
+    for forbidden in (
+        "password_hash",
+        "recovery_code_hash",
+        "session_version",
+        "user_key",
+        "profile_id",
+    ):
+        assert forbidden not in html
+
+    react = (
+        Path(__file__).parents[1]
+        / "frontend"
+        / "src"
+        / "player"
+        / "main.jsx"
+    ).read_text(encoding="utf-8")
+
+    assert 'action="/logout"' in react
+    assert 'name="csrf_token"' in react
 
 
 

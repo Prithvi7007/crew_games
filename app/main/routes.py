@@ -3,6 +3,7 @@ from datetime import timedelta
 from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
+from app.player_ui import render_player
 from app.db import (
     get_game_attempt_summary,
     get_game_completion,
@@ -67,14 +68,18 @@ def home():
         games.append(item)
 
     todays_game = next((game for game in games if game["date"] == today), None)
-    return render_template(
-        "home.html",
-        today=today,
-        games=games,
-        todays_game=todays_game,
-        user=user,
-        week_number=get_crew_week_number(today),
-        season=season,
+    return render_player(
+        "home",
+        "Home",
+        "v17-today-page",
+        {
+            "today": today,
+            "games": games,
+            "todaysGame": todays_game,
+            "weekNumber": get_crew_week_number(today),
+            "season": season,
+        },
+        user,
         nav_points=weekly["points"],
     )
 
@@ -147,11 +152,12 @@ def games():
         monday += timedelta(days=7)
         week_number += 1
 
-    return render_template(
-        "games.html",
-        user=user,
-        weeks=weeks,
-        season=season,
+    return render_player(
+        "games",
+        "Games",
+        "games-page",
+        {"weeks": weeks, "season": season},
+        user,
         nav_points=nav_points,
     )
 
@@ -213,15 +219,19 @@ def leaderboard():
 
     nav_points = get_weekly_points(user_key, today)["points"]
 
-    return render_template(
-        "leaderboard.html",
-        user=user,
-        board=board,
-        seasons=seasons,
-        selected_season=selected_season,
-        selected_week=selected_week,
-        selected_game=game,
-        filter_data=filter_data,
+    return render_player(
+        "leaderboard",
+        "Rankings",
+        "rankings-page",
+        {
+            "board": board,
+            "selectedSeason": selected_season,
+            "selectedWeek": selected_week,
+            "selectedGame": game,
+            "filters": filter_data,
+            "apiUrl": url_for("main.leaderboard_api"),
+        },
+        user,
         nav_points=nav_points,
     )
 
