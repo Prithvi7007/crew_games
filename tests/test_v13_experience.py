@@ -45,23 +45,17 @@ def test_current_home_uses_the_consolidated_home_experience():
     assert ">Rankings</a>" in header
 
 
-def test_trivia_uses_react_island_without_replacing_flask_contract():
-    trivia = (ROOT / "app" / "templates" / "trivia.html").read_text(encoding="utf-8")
-    react_source = ROOT / "frontend" / "src" / "trivia" / "main.jsx"
-    react_css = ROOT / "frontend" / "src" / "trivia" / "trivia.css"
-    page_css = ROOT / "app" / "static" / "css" / "v19-trivia.css"
+def test_trivia_uses_shared_react_player_app_without_replacing_flask_contract():
+    player_template = ROOT / "app" / "templates" / "player_app.html"
+    react_source = ROOT / "frontend" / "src" / "player" / "main.jsx"
+    react_css = ROOT / "frontend" / "src" / "player" / "player.css"
     package = ROOT / "frontend" / "package.json"
+    routes = (ROOT / "app" / "trivia" / "routes.py").read_text(encoding="utf-8")
 
-    assert 'id="crew-trivia-root"' in trivia
-    assert 'data-answer-url="{{ url_for(\'trivia.answer\', date=state.date) }}"' in trivia
-    assert 'id="trivia-state"' in trivia
-    assert "filename='react/trivia.js'" in trivia
-    assert "filename='react/trivia.css'" in trivia
-    assert "filename='css/v19-trivia.css'" in trivia
-    assert "static', filename='js/trivia.js'" not in trivia
+    assert player_template.exists()
     assert react_source.exists()
     assert react_css.exists()
-    assert page_css.exists()
     assert package.exists()
-    assert "v19-trivia-context" in trivia
-    assert "Perfect run" in react_source.read_text(encoding="utf-8")
+    assert 'render_player(' in routes
+    assert '"trivia"' in routes
+    assert "function TriviaPage" in react_source.read_text(encoding="utf-8")

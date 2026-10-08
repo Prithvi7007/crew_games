@@ -4,6 +4,7 @@ from app.auth.routes import current_user_key, login_required
 from app.db import finalize_game_stats, get_or_create_trivia_attempt, load_json_list, save_trivia_attempt
 from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import get_quiz
+from app.player_ui import render_player
 
 trivia_bp = Blueprint("trivia", __name__, url_prefix="/trivia")
 
@@ -35,8 +36,19 @@ def play():
     game_day = _day()
     if not game_is_playable(game_day):
         return redirect(url_for("main.games"))
-    return render_template("trivia.html", user=session["user"], game_day=game_day, state=serialize_state(current_user_key(), game_day),
-                           return_url=url_for("main.games", week=game_day.isoformat()) if request.args.get("date") else url_for("main.home"))
+    state = serialize_state(current_user_key(), game_day)
+    return render_player(
+        "trivia",
+        "Trivia Tuesday",
+        "v19-trivia-page react-game-page",
+        {
+            "state": state,
+            "dayLabel": game_day.strftime("%A · %B %d").upper(),
+            "returnUrl": url_for("main.games") if request.args.get("date") else url_for("main.home"),
+            "answerUrl": url_for("trivia.answer", date=state["date"]),
+        },
+        session["user"],
+    )
 
 
 @trivia_bp.post("/answer")

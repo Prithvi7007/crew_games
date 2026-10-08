@@ -13,10 +13,10 @@ export default defineConfig({
     sourcemap: false,
     cssCodeSplit: false,
     rollupOptions: {
-      input: resolve(here, 'src/trivia/main.jsx'),
+      input: resolve(here, 'src/player/main.jsx'),
       output: {
-        entryFileNames: 'trivia.js',
-        assetFileNames: (assetInfo) => assetInfo.name?.endsWith('.css') ? 'trivia.css' : 'assets/[name]-[hash][extname]',
+        entryFileNames: 'player.js',
+        assetFileNames: (assetInfo) => assetInfo.name?.endsWith('.css') ? 'player.css' : 'assets/[name]-[hash][extname]',
       },
     },
   },

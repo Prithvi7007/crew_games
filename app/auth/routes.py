@@ -8,7 +8,7 @@ import time
 from functools import wraps
 
 from cryptography.fernet import Fernet, InvalidToken
-from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, get_flashed_messages, redirect, render_template, request, session, url_for
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -27,6 +27,7 @@ from app.db import (
     update_profile_password,
     update_profile_recovery_code,
 )
+from app.player_ui import render_player
 from app.security import (
     audit_security_event,
     clear_rate_limits,
@@ -381,15 +382,40 @@ def profile():
     stats = ensure_user_stats(current_user_key())
     history = get_profile_history_summary(current_user_key())
     season = get_season_summary(current_user_key())
-    return render_template(
-        "profile.html",
-        user=session["user"],
-        profile=profile_row,
-        avatars=AVATARS,
-        stats=stats,
-        history=history,
-        season=season,
-        password_min_length=current_app.config["PASSWORD_MIN_LENGTH"],
+    return render_player(
+        "profile",
+        "Profile",
+        "v20-profile-page",
+        {
+            "profile": {
+                "username": profile_row["username"],
+                "avatar": profile_row["avatar"],
+            },
+            "avatars": AVATARS,
+            "stats": {
+                "current_streak": int(stats["current_streak"] or 0),
+            },
+            "history": {
+                "completed": int(history["completed"]),
+                "live_completed": int(history["live_completed"]),
+                "archive_completed": int(history["archive_completed"]),
+            },
+            "season": (
+                {
+                    "number": season["number"],
+                    "rank": season["rank"],
+                    "points": int(season["points"]),
+                }
+                if season
+                else None
+            ),
+            "messages": get_flashed_messages(with_categories=True),
+            "passwordMinLength": current_app.config["PASSWORD_MIN_LENGTH"],
+            "avatarUrl": url_for("auth.profile_avatar"),
+            "passwordUrl": url_for("auth.profile_password"),
+            "recoveryUrl": url_for("auth.profile_recovery"),
+        },
+        session["user"],
     )
 
 
