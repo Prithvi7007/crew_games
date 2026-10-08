@@ -29,22 +29,29 @@
   {% include "_app_header.html" %}
 
   <main class="v17-today-main">
-    <header class="v17-intro">
-      <div class="v17-intro-copy">
+    <header class="v17-intro v23-home-intro">
+      {% set week_start = games[0].date if games else today %}
+      {% set week_end = games[-1].date if games else today %}
+      <div class="v23-home-week">
         <span class="v17-eyebrow">{% if season %}SEASON {{ season.number }} · WEEK {{ '%02d'|format(season.week_number) }}{% elif week_number > 0 %}WEEK {{ '%02d'|format(week_number) }}{% else %}PRESEASON{% endif %}</span>
-        <h1>Your week.<br><span>In play.</span></h1>
-        <p>Past games stay open. Future games unlock on their day.</p>
+        <h1>{% if week_start.month == week_end.month %}{{ week_start.strftime('%B') }} {{ week_start.day }}–{{ week_end.day }}{% else %}{{ week_start.strftime('%b %d') }}–{{ week_end.strftime('%b %d') }}{% endif %}</h1>
+        <p>Four games. A week of fun.</p>
       </div>
 
-      <aside class="v17-score" style="--score-progress: {{ stats.completed * 25 }}%;" aria-label="Weekly score">
-        <div class="v17-score-value"><strong>{{ stats.points }}</strong><span>/ 400</span></div>
-        <small>POINTS THIS WEEK</small>
+      <aside class="v17-score v23-home-score" style="--score-progress: {{ stats.completed * 25 }}%;" aria-label="Weekly score">
+        <div class="v17-score-value"><strong>{{ stats.points }}</strong><span>/ 400 PTS</span></div>
         <div class="v17-score-rail" aria-hidden="true"><i></i></div>
-        <p>{{ stats.completed }} OF 4 COMPLETED</p>
-        {% if season %}
-        <p class="v17-season-score">{{ season.points }} SEASON PTS{% if season.rank %} · RANK #{{ season.rank }}{% endif %}</p>
-        {% endif %}
+        <p>{{ stats.completed }} OF 4 COMPLETE</p>
       </aside>
+
+      {% if season %}
+      <a class="v23-season-summary" href="{{ url_for('main.leaderboard') }}">
+        <span>SEASON {{ season.number }} TOTAL</span>
+        <strong>{{ season.points }} <small>pts</small></strong>
+        <em>{% if season.rank %}RANK #{{ season.rank }}{% else %}UNRANKED{% endif %}</em>
+        <b aria-hidden="true">→</b>
+      </a>
+      {% endif %}
     </header>
 
     {% include "_home_v22_desktop.html" %}

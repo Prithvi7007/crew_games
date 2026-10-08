@@ -10,8 +10,10 @@ from app.db import (
     get_game_content,
     get_home_leaderboard,
     get_leaderboard,
+    get_season_for_date,
     get_season_summary,
     get_weekly_points,
+    list_seasons,
 )
 from app.schedule import (
     ARCHIVE_START_DATE,
@@ -109,53 +111,200 @@ def home():
         user=user,
         week_number=get_crew_week_number(today),
         season=season,
+        nav_points=weekly["points"],
     )
 
 
 @main_bp.get("/games")
 @login_required
 def games():
-    user = session["user"]; user_key = current_user_key(); today = crew_today(); monday = _requested_week(); current_monday = get_week_start(today)
-    items = []
-    for definition in GAME_DEFINITIONS:
-        item = dict(definition); game_day = monday + timedelta(days=item["weekday"]); game_date = game_day.isoformat()
-        summary = get_game_attempt_summary(user_key, item["key"], game_date); completion = get_game_completion(user_key, item["key"], game_date)
-        content = get_game_content(item["key"], game_date, published_only=True) if game_day <= today else None
-        item.update(summary); item["date"] = game_day; item["theme_label"] = content["theme_label"] if content else ""
-        item["url"] = url_for(item["endpoint"], date=game_date)
-        if completion:
-            item["completed"] = True
-            item["status"] = "completed-live" if int(completion["competitive"]) else "completed-archive"
-            item["status_label"] = "Completed live" if int(completion["competitive"]) else "Completed later"
-            item["action"] = "View result"; item["score"] = int(completion["score"])
-        elif game_day > today:
-            item["status"] = "upcoming"; item["status_label"] = "Upcoming"; item["action"] = "Locked"
-        elif summary["started"]:
-            item["status"] = "in-progress"; item["status_label"] = "In progress"; item["action"] = "Continue"
-        elif monday == current_monday and today.weekday() <= 3:
-            item["status"] = "available"; item["status_label"] = "Available"; item["action"] = "Play"
-        else:
-            item["status"] = "missed"; item["status_label"] = "Missed"; item["action"] = "Play from archive"
-        items.append(item)
+    user = session["user"]
+    user_key = current_user_key()
+    today = crew_today()
+    current_monday = get_week_start(today)
+    season = get_season_for_date(today)
+    nav_points = get_weekly_points(user_key, today)["points"]
 
-    previous_week = monday - timedelta(days=7); next_week = monday + timedelta(days=7)
-    if previous_week < get_week_start(ARCHIVE_START_DATE):
-        previous_week = None
-    return render_template("games.html", user=user, games=items, week_start=monday, week_label=_week_label(monday),
-                           previous_week=previous_week, next_week=next_week if next_week <= current_monday else None,
-                           is_current=monday == current_monday)
+    if season:
+        first_monday = get_week_start(season["start_date"])
+        last_monday = get_week_start(season["end_date"])
+    else:
+        first_monday = get_week_start(ARCHIVE_START_DATE)
+        last_monday = current_monday
+
+    weeks = []
+    monday = first_monday
+    week_number = 1
+
+    while monday <= last_monday:
+        items = []
+        for definition in GAME_DEFINITIONS:
+            item = dict(definition)
+            game_day = monday + timedelta(days=item["weekday"])
+            game_date = game_day.isoformat()
+            summary = get_game_attempt_summary(user_key, item["key"], game_date)
+            completion = get_game_completion(user_key, item["key"], game_date)
+            content = get_game_content(item["key"], game_date, published_only=True) if game_day <= today else None
+
+            item.update(summary)
+            item["date"] = game_day
+            item["theme_label"] = content["theme_label"] if content else ""
+            item["url"] = url_for(item["endpoint"], date=game_date)
+
+            if completion:
+                item["completed"] = True
+                item["status"] = "completed"
+                item["status_label"] = "Completed"
+                item["action"] = "View result"
+                item["score"] = int(completion["score"])
+            elif game_day > today:
+                item["status"] = "upcoming"
+                item["status_label"] = "Locked"
+                item["action"] = "Locked"
+            elif summary["started"]:
+                item["status"] = "in-progress"
+                item["status_label"] = "In progress"
+                item["action"] = "Continue"
+            elif monday == current_monday:
+                item["status"] = "available"
+                item["status_label"] = "Available"
+                item["action"] = "Play"
+            else:
+                item["status"] = "missed"
+                item["status_label"] = "Available"
+                item["action"] = "Play from archive"
+
+            items.append(item)
+
+        weeks.append({
+            "number": week_number,
+            "start": monday,
+            "label": _week_label(monday),
+            "games": items,
+            "is_current": monday == current_monday,
+        })
+        monday += timedelta(days=7)
+        week_number += 1
+
+    return render_template(
+        "games.html",
+        user=user,
+        weeks=weeks,
+        season=season,
+        nav_points=nav_points,
+    )
 
 
 @main_bp.get("/leaderboard")
 @login_required
 def leaderboard():
-    period = request.args.get("period", "this_week"); game = request.args.get("game", "all")
-    board = get_leaderboard(period, game, current_profile_id=session["user"]["profile_id"])
-    return render_template("leaderboard.html", user=session["user"], board=board, selected_period=period, selected_game=game)
+    today = crew_today()
+    user = session["user"]
+    user_key = current_user_key()
+    seasons = list_seasons(today)
+    current_season = get_season_for_date(today)
+
+    selected_id = request.args.get("season", type=int)
+    selected_season = next((item for item in seasons if item["id"] == selected_id), None)
+    selected_season = selected_season or current_season or (seasons[0] if seasons else None)
+
+    selected_week = request.args.get("week", "all")
+    game = request.args.get("game", "all")
+
+    if selected_season:
+        if selected_week == "all":
+            period = "season"
+            reference_day = selected_season["start_date"]
+        else:
+            try:
+                week_number = int(selected_week)
+            except (TypeError, ValueError):
+                week_number = 1
+            week_number = max(1, min(selected_season["weeks_total"], week_number))
+            selected_week = str(week_number)
+            period = "this_week"
+            reference_day = get_week_start(selected_season["start_date"]) + timedelta(days=(week_number - 1) * 7)
+
+        board = get_leaderboard(
+            period,
+            game,
+            reference_day=reference_day,
+            current_profile_id=user["profile_id"],
+        )
+    else:
+        selected_week = "all"
+        board = get_leaderboard(
+            "all_time",
+            game,
+            current_profile_id=user["profile_id"],
+        )
+
+    filter_data = {
+        "seasons": [
+            {
+                "id": item["id"],
+                "number": item["number"],
+                "weeks_total": item["weeks_total"],
+            }
+            for item in seasons
+        ]
+    }
+
+    nav_points = get_weekly_points(user_key, today)["points"]
+
+    return render_template(
+        "leaderboard.html",
+        user=user,
+        board=board,
+        seasons=seasons,
+        selected_season=selected_season,
+        selected_week=selected_week,
+        selected_game=game,
+        filter_data=filter_data,
+        nav_points=nav_points,
+    )
 
 
 @main_bp.get("/api/leaderboard")
 @login_required
 def leaderboard_api():
-    period = request.args.get("period", "this_week"); game = request.args.get("game", "all")
-    return jsonify(get_leaderboard(period, game, current_profile_id=session["user"]["profile_id"]))
+    today = crew_today()
+    seasons = list_seasons(today)
+    current_season = get_season_for_date(today)
+
+    selected_id = request.args.get("season", type=int)
+    selected_season = next((item for item in seasons if item["id"] == selected_id), None)
+    selected_season = selected_season or current_season or (seasons[0] if seasons else None)
+
+    week = request.args.get("week", "all")
+    game = request.args.get("game", "all")
+
+    if selected_season:
+        if week == "all":
+            period = "season"
+            reference_day = selected_season["start_date"]
+        else:
+            try:
+                week_number = int(week)
+            except (TypeError, ValueError):
+                week_number = 1
+            week_number = max(1, min(selected_season["weeks_total"], week_number))
+            period = "this_week"
+            reference_day = get_week_start(selected_season["start_date"]) + timedelta(days=(week_number - 1) * 7)
+
+        return jsonify(
+            get_leaderboard(
+                period,
+                game,
+                reference_day=reference_day,
+                current_profile_id=session["user"]["profile_id"],
+            )
+        )
+
+    return jsonify(
+        get_leaderboard(
+            "all_time",
+            game,
+            current_profile_id=session["user"]["profile_id"],
+        )
+    )

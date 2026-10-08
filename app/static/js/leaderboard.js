@@ -1,41 +1,121 @@
 (() => {
-  const root = document.querySelector('[data-leaderboard]'); if (!root) return;
-  const period = document.getElementById('leader-period'), game = document.getElementById('leader-game');
-  const podium = document.getElementById('leader-podium'), list = document.getElementById('leader-list'), meWrap = document.getElementById('leader-me-wrap'), meEl = document.getElementById('leader-me');
-  const empty = document.getElementById('leader-empty'), count = document.getElementById('leader-count'), periodLabel = document.getElementById('leader-period-label');
-  let state = JSON.parse(document.getElementById('leaderboard-initial').textContent);
+  const root = document.querySelector('[data-leaderboard]');
+  if (!root) return;
 
-  function row(player, pinned=false){
-    const wrapper=document.createElement('div'); wrapper.className=`leader-row ${player.me?'is-me':''} ${pinned?'pinned':''}`.trim();
-    const rank=document.createElement('span'); rank.className='rank'; rank.textContent=player.rank ? String(player.rank).padStart(2,'0') : '—';
-    const avatar=document.createElement('div'); avatar.className='player-avatar'; avatar.textContent=String(player.avatar ?? '');
-    const meta=document.createElement('div'); meta.className='player-meta'; const name=document.createElement('strong'); name.textContent=String(player.username ?? ''); const detail=document.createElement('span'); detail.textContent=String(player.detail || 'CREW player'); meta.append(name,detail);
-    wrapper.append(rank,avatar,meta);
-    if(player.me){const you=document.createElement('span');you.className='you-pill';you.textContent='YOU';wrapper.append(you);}
-    const score=document.createElement('strong');score.className='score';score.append(document.createTextNode(String(player.points)),document.createTextNode(' '));const small=document.createElement('small');small.textContent='PTS';score.append(small);wrapper.append(score);
-    return wrapper;
+  const seasonSelect = document.getElementById('leader-season');
+  const weekSelect = document.getElementById('leader-week');
+  const list = document.getElementById('leader-list');
+  const empty = document.getElementById('leader-empty');
+  const tabs = [...document.querySelectorAll('[data-game-filter]')];
+  const filters = JSON.parse(document.getElementById('leaderboard-filter-data').textContent);
+  let state = JSON.parse(document.getElementById('leaderboard-initial').textContent);
+  let game = tabs.find(tab => tab.classList.contains('active'))?.dataset.gameFilter || 'all';
+
+  function makeRow(player) {
+    const row = document.createElement('div');
+    row.className = `v23-leader-row place-${player.rank || 0}${player.me ? ' is-me' : ''}`;
+
+    const rank = document.createElement('span');
+    rank.className = 'v23-rank';
+    rank.textContent = player.rank || '—';
+
+    const playerCell = document.createElement('span');
+    playerCell.className = 'v23-player';
+
+    const avatar = document.createElement('i');
+    avatar.textContent = String(player.avatar || '');
+    avatar.setAttribute('aria-hidden', 'true');
+
+    const meta = document.createElement('span');
+    const name = document.createElement('strong');
+    name.textContent = String(player.username || '');
+
+    const detail = document.createElement('small');
+    detail.textContent = String(player.detail || '');
+
+    meta.append(name, detail);
+    playerCell.append(avatar, meta);
+
+    const points = document.createElement('strong');
+    points.className = 'v23-number';
+    points.textContent = String(player.points || 0);
+
+    const played = document.createElement('span');
+    played.className = 'v23-number';
+    played.textContent = String(player.completed || 0);
+
+    const average = document.createElement('span');
+    average.className = 'v23-number';
+    average.textContent = player.completed
+      ? (player.points / player.completed).toFixed(1)
+      : '—';
+
+    const streak = document.createElement('span');
+    streak.className = 'v23-streak';
+    streak.textContent = player.streak ? `🔥 ${player.streak}` : '—';
+
+    row.append(rank, playerCell, points, played, average, streak);
+    return row;
   }
-  function podiumCard(player,index){
-    const card=document.createElement('article');card.className=`glass-card podium-card place-${index+1}`;
-    const rank=document.createElement('span');rank.className='podium-rank';rank.textContent=`#${index+1}`;
-    const avatar=document.createElement('div');avatar.className='podium-avatar';avatar.textContent=String(player.avatar ?? '');
-    const name=document.createElement('strong');name.textContent=String(player.username ?? '');
-    const score=document.createElement('span');score.textContent=`${player.points} PTS`;
-    const detail=document.createElement('small');detail.textContent=String(player.detail || '');
-    card.append(rank,avatar,name,score,detail);return card;
+
+  function render() {
+    empty.hidden = state.players.length > 0;
+    list.replaceChildren(...state.players.map(makeRow));
   }
-  function render(){
-    periodLabel.textContent = String(state.period_label||'').toUpperCase(); count.textContent = `${state.total_ranked} ranked`;
-    empty.hidden = state.players.length>0; list.replaceChildren(...state.players.map(p=>row(p)));
-    meWrap.hidden = !state.me; meEl.replaceChildren(...(state.me ? [row(state.me,true)] : []));
-    const top = state.top || [];
-    if (!top.length){const card=document.createElement('article');card.className='glass-card podium-empty';card.textContent='No scores yet.';podium.replaceChildren(card);}
-    else podium.replaceChildren(...top.map((p,i)=>podiumCard(p,i)));
+
+  function selectedSeason() {
+    return filters.seasons.find(item => String(item.id) === seasonSelect.value);
   }
-  async function load(){
-    const params = new URLSearchParams({period:period.value, game:game.value});
-    const response = await fetch(`${root.dataset.apiUrl}?${params}`, {headers:{'Accept':'application/json'}});
-    if (!response.ok) return; state = await response.json(); history.replaceState(null,'',`/leaderboard?${params}`); render();
+
+  function rebuildWeeks() {
+    const selected = selectedSeason();
+    const previous = weekSelect.value;
+    weekSelect.replaceChildren(new Option('All Weeks', 'all'));
+
+    for (let n = 1; n <= (selected?.weeks_total || 1); n += 1) {
+      weekSelect.add(new Option(`Week ${String(n).padStart(2, '0')}`, String(n)));
+    }
+
+    weekSelect.value = [...weekSelect.options].some(option => option.value === previous)
+      ? previous
+      : 'all';
   }
-  period.addEventListener('change',load); game.addEventListener('change',load); render();
+
+  async function load() {
+    const params = new URLSearchParams({
+      season: seasonSelect.value,
+      week: weekSelect.value,
+      game,
+    });
+
+    const response = await fetch(`${root.dataset.apiUrl}?${params}`, {
+      headers: {'Accept': 'application/json'},
+    });
+    if (!response.ok) return;
+
+    state = await response.json();
+    history.replaceState(null, '', `/leaderboard?${params}`);
+    render();
+  }
+
+  seasonSelect.addEventListener('change', () => {
+    rebuildWeeks();
+    load();
+  });
+
+  weekSelect.addEventListener('change', load);
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      game = tab.dataset.gameFilter;
+      tabs.forEach(item => {
+        const active = item === tab;
+        item.classList.toggle('active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+      load();
+    });
+  });
+
+  render();
 })();

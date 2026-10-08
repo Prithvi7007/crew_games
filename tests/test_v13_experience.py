@@ -41,7 +41,7 @@ def test_current_home_uses_the_v17_today_experience():
     assert '{% include "_app_header.html" %}' in partial
 
     header = (ROOT / "app" / "templates" / "_app_header.html").read_text(encoding="utf-8")
-    assert ">Today</a>" in header
+    assert ">Home</a>" in header
     assert ">Rankings</a>" in header
 
 

@@ -1143,10 +1143,12 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
         f"""
         SELECT p.id, p.username, p.avatar,
                COALESCE(SUM(gc.score), 0) AS points,
-               COUNT(gc.id) AS completed
+               COUNT(gc.id) AS completed,
+               COALESCE(us.current_streak, 0) AS current_streak
         FROM profiles p
+        LEFT JOIN user_stats us ON us.profile_id = p.id
         LEFT JOIN game_completions gc ON {' AND '.join(join_conditions)}
-        GROUP BY p.id, p.username, p.avatar
+        GROUP BY p.id, p.username, p.avatar, us.current_streak
         ORDER BY LOWER(p.username)
         """,
         params,
@@ -1158,6 +1160,7 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
             "avatar": row["avatar"],
             "points": int(row["points"]),
             "completed": int(row["completed"]),
+            "streak": int(row["current_streak"] or 0),
             "detail": "",
             "secondary": None,
         }
@@ -1297,6 +1300,7 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
                 "avatar": candidate["avatar"],
                 "points": 0,
                 "completed": 0,
+                "streak": int(candidate.get("streak", 0)),
                 "detail": "No score in this view yet",
                 "rank": None,
                 "me": True,

@@ -3,23 +3,30 @@
 {% set games_active = endpoint == 'main.games' or endpoint.startswith('mystery.') or endpoint.startswith('trivia.') or endpoint.startswith('word.') or endpoint.startswith('tick_tock.') %}
 {% set leaderboard_active = endpoint == 'main.leaderboard' or endpoint == 'main.leaderboard_api' %}
 <header class="glass-nav app-nav">
-  <a class="nav-brand v13-brand" href="{{ url_for('main.home') }}" aria-label="CREW today">
+  <a class="nav-brand v13-brand" href="{{ url_for('main.home') }}" aria-label="CREW home">
     <span class="v13-brand-copy">
       <strong>CREW</strong>
       <small><span>PLAY TOGETHER</span><span>GO FURTHER</span></small>
     </span>
   </a>
   <nav class="desktop-nav" aria-label="Primary navigation">
-    <a{% if home_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.home') }}">Today</a>
+    <a{% if home_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.home') }}">Home</a>
     <a{% if games_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.games') }}">Games</a>
     <a{% if leaderboard_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.leaderboard') }}">Rankings</a>
   </nav>
-  {% include "_account_menu.html" %}
+  <div class="v23-nav-account">
+    {% include "_account_menu.html" %}
+    {% if nav_points is defined %}
+    <span class="v23-points-chip" aria-label="{{ nav_points }} points this week">
+      <span aria-hidden="true">★</span><strong>{{ nav_points }}</strong><small>pts</small>
+    </span>
+    {% endif %}
+  </div>
 </header>
 <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
   <a{% if home_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.home') }}">
     <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6.5 9.5V20h11V9.5"/><path d="M10 20v-6h4v6"/></svg></span>
-    <strong>Today</strong>
+    <strong>Home</strong>
   </a>
   <a{% if games_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.games') }}">
     <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 4 7 7-7 7-7-7 7-7Z"/></svg></span>

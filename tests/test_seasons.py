@@ -244,7 +244,8 @@ def test_player_templates_expose_season_context():
     profile = (ROOT / "app" / "templates" / "profile.html").read_text(encoding="utf-8")
 
     assert "SEASON {{ season.number }}" in today
-    assert "SEASON PTS" in today
-    assert "('season','Season')" in leaderboard
+    assert "SEASON {{ season.number }} TOTAL" in today
+    assert 'id="leader-season"' in leaderboard
+    assert 'id="leader-week"' in leaderboard
     assert "SEASON {{ season.number }} RANK" in profile
     assert "SEASON POINTS" in profile
