@@ -13,14 +13,14 @@
 
   function makeRow(player) {
     const row = document.createElement('div');
-    row.className = `v23-leader-row place-${player.rank || 0}${player.me ? ' is-me' : ''}`;
+    row.className = `rankings-leader-row place-${player.rank || 0}${player.me ? ' is-me' : ''}`;
 
     const rank = document.createElement('span');
-    rank.className = 'v23-rank';
+    rank.className = 'rankings-rank';
     rank.textContent = player.rank || '—';
 
     const playerCell = document.createElement('span');
-    playerCell.className = 'v23-player';
+    playerCell.className = 'rankings-player';
 
     const avatar = document.createElement('i');
     avatar.textContent = String(player.avatar || '');
@@ -37,21 +37,21 @@
     playerCell.append(avatar, meta);
 
     const points = document.createElement('strong');
-    points.className = 'v23-number';
+    points.className = 'rankings-number';
     points.textContent = String(player.points || 0);
 
     const played = document.createElement('span');
-    played.className = 'v23-number';
+    played.className = 'rankings-number';
     played.textContent = String(player.completed || 0);
 
     const average = document.createElement('span');
-    average.className = 'v23-number';
+    average.className = 'rankings-number';
     average.textContent = player.completed
       ? (player.points / player.completed).toFixed(1)
       : '—';
 
     const streak = document.createElement('span');
-    streak.className = 'v23-streak';
+    streak.className = 'rankings-streak';
     streak.textContent = player.streak ? `🔥 ${player.streak}` : '—';
 
     row.append(rank, playerCell, points, played, average, streak);

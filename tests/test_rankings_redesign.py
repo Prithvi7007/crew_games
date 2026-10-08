@@ -16,7 +16,7 @@ def test_rankings_keep_game_specific_filters():
 
 def test_rankings_use_single_scoreboard_table():
     source = (ROOT / "app/templates/leaderboard.html").read_text(encoding="utf-8")
-    assert "v23-leaderboard-card" in source
+    assert "rankings-leaderboard-card" in source
     assert "leader-podium" not in source
     assert "leader-me-wrap" not in source
 

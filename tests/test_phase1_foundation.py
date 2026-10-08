@@ -12,7 +12,7 @@ def test_phase1_foundation_stylesheet_is_loaded_last():
 
     assert foundation in base
     assert game_results in base
-    assert base.index(game_results) < base.index(foundation)
+    assert base.index(game_results) < base.index('{% block head %}') < base.index(foundation)
 
 
 def test_phase1_foundation_has_accessibility_guards():

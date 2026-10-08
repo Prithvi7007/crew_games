@@ -24,7 +24,7 @@ fi
 CURRENT=$(git rev-parse --short HEAD)
 echo "Rolling CREW code back from $CURRENT to $TARGET_SHA"
 git reset --hard "$TARGET_SHA"
-chown -R crew:crew /opt/crew
+chown -R crew:www-data /opt/crew
 systemctl restart crew
 sleep 2
 curl --silent --show-error --fail --max-time 8 \

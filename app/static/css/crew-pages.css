@@ -1,0 +1,24 @@
+/* Shared authenticated page primitives. */
+
+.crew-page-head { display: grid; gap: 6px; }
+
+.crew-page-kicker {
+  color: var(--crew-color-muted);
+  font: 800 .53rem/1 var(--crew-font-body);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.crew-page-head h1 {
+  margin: 0;
+  color: var(--crew-color-text);
+  font: 800 clamp(1.75rem, 2.4vw, 2.35rem)/1 var(--crew-font-display);
+  letter-spacing: -.045em;
+}
+
+.crew-page-head p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--crew-color-muted);
+  font: 500 .78rem/1.5 var(--crew-font-body);
+}

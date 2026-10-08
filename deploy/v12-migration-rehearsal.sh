@@ -55,6 +55,12 @@ export DATABASE_URL="$TEST_URL" CREW_ENV=development AUTO_DB_MIGRATE=false
 
 cd /opt/crew
 
+HEAD_REVISION=$(/opt/crew/.venv/bin/python - <<'PY'
+from app.migrations import HEAD_REVISION
+print(HEAD_REVISION)
+PY
+)
+
 runuser -u crew -g www-data \
   --whitelist-environment=DATABASE_URL,CREW_ENV,AUTO_DB_MIGRATE \
   -- /opt/crew/.venv/bin/flask --app run.py db-integrity-check
@@ -70,9 +76,9 @@ REVISION=$(runuser -u postgres -- psql -d "$TEST_DB" -Atqc "SELECT version_num F
 FK_COUNT=$(runuser -u postgres -- psql -d "$TEST_DB" -Atqc "SELECT COUNT(*) FROM pg_constraint WHERE contype='f' AND conname LIKE 'fk_%_profile_id_profiles'")
 NULL_LINKS=$(runuser -u postgres -- psql -d "$TEST_DB" -Atqc "SELECT COUNT(*) FROM game_completions WHERE profile_id IS NULL")
 
-if [[ "$REVISION" != "v12_platform" || "$FK_COUNT" -lt 6 || "$NULL_LINKS" != "0" ]]; then
-  echo "v12 migration rehearsal failed: revision=$REVISION profile_fks=$FK_COUNT null_completion_links=$NULL_LINKS" >&2
+if [[ "$REVISION" != "$HEAD_REVISION" || "$FK_COUNT" -lt 6 || "$NULL_LINKS" != "0" ]]; then
+  echo "migration rehearsal failed: revision=$REVISION expected=$HEAD_REVISION profile_fks=$FK_COUNT null_completion_links=$NULL_LINKS" >&2
   exit 1
 fi
 
-echo "v12 migration rehearsal passed: revision=$REVISION profile_fks=$FK_COUNT"
+echo "migration rehearsal passed: revision=$REVISION profile_fks=$FK_COUNT"

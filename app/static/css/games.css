@@ -1,0 +1,37 @@
+/* CREW Games season archive. */
+
+.games-page{min-height:100svh;background:var(--crew-color-bg);color:var(--crew-color-text)}
+.games-page .ambient,.games-page .noise{display:none}
+.games-main{width:min(1450px,calc(100% - 72px));margin:0 auto;padding:44px 0 96px}
+.games-season-weeks{display:grid;gap:30px;margin-top:28px}
+.games-week-block{display:grid;gap:10px}
+.games-week-head{display:flex;align-items:baseline;gap:18px;padding:0 4px 8px;border-bottom:1px solid rgba(140,170,197,.13)}
+.games-week-head h2{margin:0;color:#fff;font:800 1rem/1 Manrope,Inter,sans-serif;letter-spacing:.02em}
+.games-week-head>span{color:rgba(188,204,219,.58);font:700 .55rem/1 Inter,sans-serif;letter-spacing:.14em}
+.games-week-head em{margin-left:auto;color:#55ddff;font:800 .48rem/1 Inter,sans-serif;font-style:normal;letter-spacing:.12em}
+.games-game-list{overflow:hidden;border:1px solid rgba(140,170,197,.15);border-radius:14px;background:rgba(6,13,20,.56)}
+.games-game-columns,.games-game-row{display:grid;grid-template-columns:180px minmax(320px,1fr) 170px 110px 180px;align-items:center;gap:18px}
+.games-game-columns{min-height:36px;padding:0 20px;border-bottom:1px solid rgba(140,170,197,.10);color:rgba(175,193,210,.45);font:800 .46rem/1 Inter,sans-serif;letter-spacing:.14em}
+.games-game-row{min-height:88px;padding:0 20px;border-bottom:1px solid rgba(140,170,197,.09)}
+.games-game-row:last-child{border-bottom:0}
+.games-game-day{display:grid;grid-template-columns:3px 38px auto;align-items:center;gap:10px;color:rgba(220,230,239,.85)}
+.games-game-day i{width:3px;height:28px;border-radius:999px;background:#55ddff}
+.games-game-mystery .games-game-day i{background:#55e6ac}.games-game-trivia .games-game-day i{background:#ffbd45}.games-game-word .games-game-day i{background:#55ddff}.games-game-tick_tock .games-game-day i{background:#c56cff}
+.games-game-day strong{font:800 .60rem/1 Inter,sans-serif}.games-game-day span{color:rgba(175,193,210,.55);font:700 .52rem/1 Inter,sans-serif;letter-spacing:.08em}
+.games-game-name{display:flex;align-items:center;gap:13px;min-width:0}
+.games-game-icon{width:40px;height:40px;display:grid;place-items:center;flex:0 0 auto;border:1px solid rgba(255,255,255,.14);border-radius:9px;background:rgba(255,255,255,.03);font:800 1rem/1 Manrope,sans-serif}
+.games-game-mystery .games-game-icon{color:#55e6ac;border-color:rgba(85,230,172,.35)}.games-game-trivia .games-game-icon{color:#ffbd45;border-color:rgba(255,189,69,.35)}.games-game-word .games-game-icon{color:#55ddff;border-color:rgba(85,221,255,.35)}.games-game-tick_tock .games-game-icon{color:#c56cff;border-color:rgba(197,108,255,.35)}
+.games-game-name>span:last-child{min-width:0;display:grid;gap:4px}.games-game-name strong{color:#f6f9fc;font:750 .82rem/1.1 Inter,sans-serif}.games-game-name small{overflow:hidden;color:rgba(180,197,213,.58);font:500 .63rem/1.3 Inter,sans-serif;text-overflow:ellipsis;white-space:nowrap}
+.games-status-pill{justify-self:start;padding:7px 10px;border:1px solid rgba(255,255,255,.11);border-radius:999px;color:rgba(213,224,235,.68);background:rgba(255,255,255,.03);font:750 .54rem/1 Inter,sans-serif}
+.games-status-pill.completed{color:#63e8a9;border-color:rgba(85,230,172,.25);background:rgba(85,230,172,.06)}.games-status-pill.available,.games-status-pill.in-progress,.games-status-pill.missed{color:#ffca62;border-color:rgba(255,189,69,.25);background:rgba(255,189,69,.055)}
+.games-game-points{display:flex;align-items:baseline;gap:4px}.games-game-points strong{font:800 .92rem/1 Manrope,sans-serif}.games-game-points span{color:rgba(190,205,219,.54);font-size:.56rem}
+.games-game-action{justify-self:stretch}.games-game-action a,.games-game-action>span{min-height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;background:rgba(255,255,255,.035);font:700 .62rem/1 Inter,sans-serif;text-decoration:none}
+.games-game-action a:hover{color:#071019;background:#f5f8fb}.games-game-action>span{color:rgba(182,198,213,.48)}
+@media(max-width:1100px){.games-game-columns,.games-game-row{grid-template-columns:140px minmax(240px,1fr) 130px 90px 150px}}
+@media(max-width:760px){
+  .games-main{width:calc(100% - 28px);padding:28px 0 34px}
+  .games-week-head{flex-wrap:wrap;gap:8px 13px}.games-week-head em{width:100%;margin-left:0}
+  .games-game-list{border:0;background:transparent;display:grid;gap:9px;overflow:visible}.games-game-columns{display:none}
+  .games-game-row{min-height:0;grid-template-columns:1fr auto;gap:11px;padding:14px;border:1px solid rgba(140,170,197,.14);border-radius:12px;background:rgba(6,13,20,.62)}
+  .games-game-day{grid-column:1;grid-row:1;grid-template-columns:3px 34px auto}.games-game-name{grid-column:1/-1;grid-row:2}.games-status-pill{grid-column:2;grid-row:1}.games-game-points{grid-column:1;grid-row:3}.games-game-action{grid-column:2;grid-row:3;min-width:132px}.games-game-name small{white-space:normal}
+}

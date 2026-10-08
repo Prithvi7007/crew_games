@@ -1,23 +1,26 @@
 {% extends "base.html" %}
 {% block title %}Rankings · CREW{% endblock %}
-{% block body_class %}crew-app-page v23-rankings-page{% endblock %}
+{% block body_class %}crew-app-page rankings-page{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rankings.css', v='1.0.0') }}">
+{% endblock %}
 
 {% block body %}
-<div class="v23-rankings-shell">
+<div class="rankings-shell">
   {% include "_app_header.html" %}
 
-  <main class="v23-rankings-main"
+  <main class="rankings-main"
         data-leaderboard
         data-api-url="{{ url_for('main.leaderboard_api') }}">
 
-    <header class="v23-rankings-head">
-      <div class="v23-page-head">
-        <span class="v23-page-kicker">CREW STANDINGS</span>
+    <header class="rankings-head">
+      <div class="crew-page-head">
+        <span class="crew-page-kicker">CREW STANDINGS</span>
         <h1>Rankings</h1>
         <p>See how you stack up against the CREW.</p>
       </div>
 
-      <div class="v23-time-filters">
+      <div class="rankings-time-filters">
         <label>
           <span>SEASON</span>
           <select id="leader-season" class="crew-select">
@@ -45,7 +48,7 @@
       </div>
     </header>
 
-    <nav class="v23-game-tabs" aria-label="Game filter">
+    <nav class="rankings-game-tabs" aria-label="Game filter">
       {% for value,label,icon in [
         ('all','Overall','▥'),
         ('mystery','Mystery Monday','◆'),
@@ -63,8 +66,8 @@
       {% endfor %}
     </nav>
 
-    <section class="v23-leaderboard-card" aria-label="Rankings table">
-      <div class="v23-leaderboard-head" aria-hidden="true">
+    <section class="rankings-leaderboard-card" aria-label="Rankings table">
+      <div class="rankings-leaderboard-head" aria-hidden="true">
         <span>#</span>
         <span>PLAYER</span>
         <span>TOTAL PTS</span>
@@ -73,9 +76,9 @@
         <span>CURRENT STREAK</span>
       </div>
 
-      <div id="leader-list" class="v23-leaderboard-list"></div>
+      <div id="leader-list" class="rankings-leaderboard-list"></div>
 
-      <div class="v23-empty" id="leader-empty" hidden>
+      <div class="rankings-empty" id="leader-empty" hidden>
         No scores in this view yet.
       </div>
     </section>
@@ -87,5 +90,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/leaderboard.js', v='23.0.0') }}"></script>
+<script src="{{ url_for('static', filename='js/leaderboard.js', v='24.0.0') }}"></script>
 {% endblock %}

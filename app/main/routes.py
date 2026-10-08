@@ -1,14 +1,11 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.db import (
-    ensure_user_stats,
     get_game_attempt_summary,
     get_game_completion,
-    get_game_content,
-    get_home_leaderboard,
     get_leaderboard,
     get_season_for_date,
     get_season_summary,
@@ -34,17 +31,6 @@ def _week_label(monday):
     return f"{monday.strftime('%b %d')}–{thursday.strftime('%b %d')}, {monday.year}"
 
 
-def _requested_week():
-    raw = request.args.get("week", "")
-    try:
-        selected = date.fromisoformat(raw) if raw else crew_today()
-    except ValueError:
-        selected = crew_today()
-    monday = get_week_start(selected)
-    current = get_week_start(crew_today())
-    archive_start = get_week_start(ARCHIVE_START_DATE)
-    return max(archive_start, min(monday, current))
-
 
 @main_bp.get("/")
 def index():
@@ -58,7 +44,6 @@ def home():
     user = session["user"]
     user_key = current_user_key()
     today = crew_today()
-    stats_row = ensure_user_stats(user_key)
     weekly = get_weekly_points(user_key, today)
     season = get_season_summary(user_key, today)
 
@@ -68,8 +53,6 @@ def home():
         game_day = get_game_date(item["key"], today)
         summary = get_game_attempt_summary(user_key, item["key"], game_day.isoformat())
         item.update(summary)
-        scheduled_content = get_game_content(item["key"], game_day.isoformat(), published_only=True)
-        item["theme_label"] = scheduled_content["theme_label"] if scheduled_content else ""
         item["date"] = game_day
         item["url"] = url_for(item["endpoint"])
 
@@ -84,30 +67,11 @@ def home():
         games.append(item)
 
     todays_game = next((game for game in games if game["date"] == today), None)
-    weekday = today.weekday()
-    home_phase = "play" if weekday <= 3 else ("recap" if weekday == 4 else "weekend")
-    next_week_start = get_week_start(today) + timedelta(days=7)
-
-    ranked_players = get_home_leaderboard(today, current_profile_id=user["profile_id"])
-    me = next((player for player in ranked_players if player["me"]), None)
-    my_rank = me["rank"] if me else None
-    leaderboard = [player for player in ranked_players if player["rank"] <= 3]
-    if me and all(player["profile_id"] != me["profile_id"] for player in leaderboard):
-        leaderboard = [*leaderboard, me]
-
-    stats = {
-        "streak": stats_row["current_streak"], "rank": my_rank, "weekly_points": weekly["points"],
-        "games_completed": weekly["completed"], "progress_percent": min(100, round((weekly["points"] / 400) * 100)),
-    }
     return render_template(
         "home.html",
         today=today,
-        stats=stats,
         games=games,
         todays_game=todays_game,
-        home_phase=home_phase,
-        next_week_start=next_week_start,
-        leaderboard=leaderboard,
         user=user,
         week_number=get_crew_week_number(today),
         season=season,
@@ -144,11 +108,8 @@ def games():
             game_date = game_day.isoformat()
             summary = get_game_attempt_summary(user_key, item["key"], game_date)
             completion = get_game_completion(user_key, item["key"], game_date)
-            content = get_game_content(item["key"], game_date, published_only=True) if game_day <= today else None
-
             item.update(summary)
             item["date"] = game_day
-            item["theme_label"] = content["theme_label"] if content else ""
             item["url"] = url_for(item["endpoint"], date=game_date)
 
             if completion:

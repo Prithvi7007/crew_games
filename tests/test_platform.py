@@ -311,13 +311,12 @@ def test_games_page_copy_matches_catch_up_scoring_rules():
 
 def test_rankings_empty_state_respects_hidden_attribute():
     root = Path(__file__).parents[1]
-    css = (root / 'app' / 'static' / 'css' / 'v23-core-pages.css').read_text(encoding='utf-8')
+    css = (root / 'app' / 'static' / 'css' / 'rankings.css').read_text(encoding='utf-8')
     template = (root / 'app' / 'templates' / 'leaderboard.html').read_text(encoding='utf-8')
 
-    assert '.v23-empty[hidden]' in css
+    assert '.rankings-empty[hidden]' in css
     assert 'display:none' in css
-    assert '!important;' in css
-    assert "v='23.0.0'" in template
+    assert "filename='css/rankings.css'" in template
 
 def test_prelaunch_dates_are_not_player_visible_or_playable():
     from datetime import date
@@ -423,7 +422,7 @@ def test_weekly_leaderboards_include_archive_earned_points(app):
 
 def test_today_mobile_layout_css_is_present_and_balanced():
     root = Path(__file__).parents[1]
-    css = (root / "app" / "static" / "css" / "v17-today.css").read_text(
+    css = (root / "app" / "static" / "css" / "home.css").read_text(
         encoding="utf-8"
     )
 

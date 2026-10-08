@@ -29,23 +29,23 @@
   {% include "_app_header.html" %}
 
   <main class="v17-today-main">
-    <header class="v17-intro v23-home-intro">
+    <header class="v17-intro home-summary">
       {% set week_start = games[0].date if games else today %}
       {% set week_end = games[-1].date if games else today %}
-      <div class="v23-home-week">
+      <div class="home-week">
         <span class="v17-eyebrow">{% if season %}SEASON {{ season.number }} · WEEK {{ '%02d'|format(season.week_number) }}{% elif week_number > 0 %}WEEK {{ '%02d'|format(week_number) }}{% else %}PRESEASON{% endif %}</span>
         <h1>{% if week_start.month == week_end.month %}{{ week_start.strftime('%B') }} {{ week_start.day }}–{{ week_end.day }}{% else %}{{ week_start.strftime('%b %d') }}–{{ week_end.strftime('%b %d') }}{% endif %}</h1>
         <p>Four games. A week of fun.</p>
       </div>
 
-      <aside class="v17-score v23-home-score" style="--score-progress: {{ stats.completed * 25 }}%;" aria-label="Weekly score">
+      <aside class="v17-score home-score" style="--score-progress: {{ stats.completed * 25 }}%;" aria-label="Weekly score">
         <div class="v17-score-value"><strong>{{ stats.points }}</strong><span>/ 400 PTS</span></div>
         <div class="v17-score-rail" aria-hidden="true"><i></i></div>
         <p>{{ stats.completed }} OF 4 COMPLETE</p>
       </aside>
 
       {% if season %}
-      <a class="v23-season-summary" href="{{ url_for('main.leaderboard') }}">
+      <a class="home-season-summary" href="{{ url_for('main.leaderboard') }}">
         <span>SEASON {{ season.number }} TOTAL</span>
         <strong>{{ season.points }} <small>pts</small></strong>
         <em>{% if season.rank %}RANK #{{ season.rank }}{% else %}UNRANKED{% endif %}</em>

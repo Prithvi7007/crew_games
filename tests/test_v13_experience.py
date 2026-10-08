@@ -26,13 +26,13 @@ def test_v13_shared_shell_and_mobile_navigation_are_present():
     assert "prefers-reduced-motion" in css
 
 
-def test_current_home_uses_the_v17_today_experience():
+def test_current_home_uses_the_consolidated_home_experience():
     home = (ROOT / "app" / "templates" / "home.html").read_text(encoding="utf-8-sig")
     today_partial = ROOT / "app" / "templates" / "_home_v17.html"
-    today_css = ROOT / "app" / "static" / "css" / "v17-today.css"
+    today_css = ROOT / "app" / "static" / "css" / "home.css"
 
     assert "v17-today-page" in home
-    assert "filename='css/v17-today.css'" in home
+    assert "filename='css/home.css'" in home
     assert '{% include "_home_v17.html" %}' in home
     assert today_partial.exists()
     assert today_css.exists()

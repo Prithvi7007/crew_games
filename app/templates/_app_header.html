@@ -14,10 +14,10 @@
     <a{% if games_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.games') }}">Games</a>
     <a{% if leaderboard_active %} class="active" aria-current="page"{% endif %} href="{{ url_for('main.leaderboard') }}">Rankings</a>
   </nav>
-  <div class="v23-nav-account">
+  <div class="crew-nav-account">
     {% include "_account_menu.html" %}
     {% if nav_points is defined %}
-    <span class="v23-points-chip" aria-label="{{ nav_points }} points this week">
+    <span class="crew-points-chip" aria-label="{{ nav_points }} points this week">
       <span aria-hidden="true">★</span><strong>{{ nav_points }}</strong><small>pts</small>
     </span>
     {% endif %}

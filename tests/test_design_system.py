@@ -39,9 +39,8 @@ def test_design_tokens_define_core_crew_system():
 
 def test_public_page_color_aliases_use_shared_tokens():
     checks = {
-        "v17-today.css": ("--v17-bg: var(--crew-color-bg);", "--v17-accent: var(--crew-game-trivia);"),
+        "home.css": ("--v17-bg: var(--crew-color-bg);", "--v17-accent: var(--crew-game-trivia);"),
         "v18-pages.css": ("--crew18-bg: var(--crew-color-bg);", "--crew18-gold: var(--crew-game-trivia);"),
-        "v19-rankings.css": ("--r-bg: var(--crew-color-bg);", "--r-gold: var(--crew-game-trivia);"),
         "v19-trivia.css": ("--tt-bg: var(--crew-color-bg);", "--tt-gold: var(--crew-game-trivia);"),
         "v20-profile.css": ("--p-bg: var(--crew-color-bg);", "--p-blue: var(--crew-accent-profile);"),
     }

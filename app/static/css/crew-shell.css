@@ -1,20 +1,20 @@
-/* CREW Phase 1D — shared authenticated app shell
-   One source of truth for the reusable header, desktop navigation,
-   account trigger, and mobile bottom navigation. */
+/* CREW authenticated application shell.
+   This file is the single source of truth for the reusable header,
+   desktop navigation, account trigger, points chip, and mobile bottom nav. */
 
 .crew-app-page .app-nav {
   position: sticky;
   top: 0;
   z-index: 80;
-  min-height: 76px;
+  min-height: 64px;
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) auto minmax(260px, 1fr);
+  grid-template-columns: minmax(240px, 1fr) auto minmax(240px, 1fr);
   align-items: center;
-  padding: 0 clamp(30px, 3vw, 52px);
+  padding: 0 clamp(24px, 3vw, 40px);
   border: 0;
-  border-bottom: 1px solid var(--crew-color-line-nav);
+  border-bottom: 1px solid rgba(139, 174, 205, .12);
   border-radius: 0;
-  background: var(--crew-color-nav);
+  background: rgba(3, 9, 15, .94);
   box-shadow: none;
   backdrop-filter: blur(18px) saturate(120%);
   -webkit-backdrop-filter: blur(18px) saturate(120%);
@@ -28,7 +28,7 @@
 
 .crew-app-page .v13-brand-copy strong {
   color: #fff;
-  font: 850 1.3rem/1 var(--crew-font-display);
+  font: 850 1.38rem/1 var(--crew-font-display);
   letter-spacing: .05em;
 }
 
@@ -36,22 +36,22 @@
   display: grid;
   gap: 2px;
   color: rgba(225, 234, 243, .54);
-  font: 800 .50rem/1.08 var(--crew-font-body);
+  font: 800 .44rem/1.08 var(--crew-font-body);
   letter-spacing: .17em;
 }
 
 .crew-app-page .desktop-nav {
   display: flex;
   justify-content: center;
-  gap: 31px;
+  gap: 38px;
 }
 
 .crew-app-page .desktop-nav a {
   position: relative;
-  padding: 28px 0 23px;
+  padding: 23px 0 20px;
   color: rgba(212, 223, 235, .48);
   background: transparent;
-  font: 700 .84rem/1 var(--crew-font-body);
+  font: 700 .78rem/1 var(--crew-font-body);
   text-decoration: none;
 }
 
@@ -61,43 +61,81 @@
 }
 
 .crew-app-page .desktop-nav a.active::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 18px;
+  bottom: 14px;
   height: 2px;
   border-radius: var(--crew-radius-pill);
-  background: currentColor;
-  opacity: .70;
+  background: #55ddff;
+  opacity: 1;
 }
 
-.crew-app-page .profile-copy,
-.crew-app-page .account-chevron {
-  display: none;
-}
-
-.crew-app-page .account-trigger {
+.crew-nav-account {
   justify-self: end;
-  min-width: var(--crew-control-min);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.crew-app-page .crew-nav-account .account-trigger {
+  min-width: 0;
   min-height: var(--crew-control-min);
+  display: flex;
+  align-items: center;
+  gap: 9px;
   padding: 0;
   border: 0;
   background: transparent;
 }
 
-.crew-app-page .account-trigger .avatar {
-  width: 39px;
-  height: 39px;
+.crew-app-page .crew-nav-account .profile-copy {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.crew-app-page .crew-nav-account .profile-copy strong {
+  color: #fff;
+  font: 700 .76rem/1 var(--crew-font-body);
+}
+
+.crew-app-page .crew-nav-account .profile-copy span { display: none; }
+
+.crew-app-page .crew-nav-account .account-chevron {
+  display: inline;
+  color: rgba(230, 238, 246, .65);
+  font-size: .8rem;
+}
+
+.crew-app-page .crew-nav-account .avatar {
+  order: -1;
+  width: 32px;
+  height: 32px;
   border: 1px solid rgba(255, 255, 255, .16);
   border-radius: 50%;
   color: #fff;
   background: rgba(255, 255, 255, .05);
 }
 
-.crew-app-page .mobile-bottom-nav {
-  display: none;
+.crew-points-chip {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, .11);
+  border-radius: var(--crew-radius-pill);
+  color: #fff;
+  background: rgba(7, 14, 22, .78);
+  font: 700 .72rem/1 var(--crew-font-body);
 }
+
+.crew-points-chip > span { color: #ffd457; }
+.crew-points-chip small { color: rgba(236, 242, 248, .70); font-weight: 600; }
+
+.crew-app-page .mobile-bottom-nav { display: none; }
 
 @media (max-width: 760px) {
   body.crew-app-page {
@@ -112,26 +150,14 @@
     background: rgba(2, 8, 12, .90);
   }
 
-  .crew-app-page .desktop-nav {
+  .crew-app-page .desktop-nav,
+  .crew-app-page .crew-nav-account {
     display: none;
   }
 
-  .crew-app-page .v13-brand-copy {
-    gap: 0;
-  }
-
-  .crew-app-page .v13-brand-copy strong {
-    font-size: 1.08rem;
-  }
-
-  .crew-app-page .v13-brand-copy small {
-    display: none;
-  }
-
-  .crew-app-page .account-trigger .avatar {
-    width: 35px;
-    height: 35px;
-  }
+  .crew-app-page .v13-brand-copy { gap: 0; }
+  .crew-app-page .v13-brand-copy strong { font-size: 1.08rem; }
+  .crew-app-page .v13-brand-copy small { display: none; }
 
   .crew-app-page .mobile-bottom-nav {
     position: fixed;
@@ -163,9 +189,7 @@
     text-decoration: none;
   }
 
-  .crew-app-page .mobile-bottom-nav a.active {
-    color: #fff;
-  }
+  .crew-app-page .mobile-bottom-nav a.active { color: #fff; }
 
   .crew-app-page .mobile-bottom-nav .nav-icon svg {
     width: 17px;
