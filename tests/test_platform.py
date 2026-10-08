@@ -419,3 +419,23 @@ def test_weekly_leaderboards_include_archive_earned_points(app):
     assert weekly_me["points"] == 75
     assert home_me["points"] == 75
     assert home_me["rank"] == 1
+
+def test_today_mobile_layout_css_is_present_and_balanced():
+    root = Path(__file__).parents[1]
+    css = (root / "app" / "static" / "css" / "v17-today.css").read_text(
+        encoding="utf-8"
+    )
+
+    assert css.count("{") == css.count("}")
+    assert "@media (max-width:760px)" in css
+
+    mobile = css.split("@media (max-width:760px)", 1)[1].split(
+        "@media (max-width:390px)", 1
+    )[0]
+
+    assert ".v17-grid" in mobile
+    assert "flex-direction:column" in mobile
+    assert ".v17-day" in mobile
+    assert ".v17-feature-card" in mobile
+    assert 'grid-template-areas:' in mobile
+    assert '"season season"' in mobile

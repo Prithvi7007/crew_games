@@ -593,6 +593,216 @@ a.v17-secondary-card:hover {
 
 }
 
+
+/* Mobile ------------------------------------------------------------------ */
+@media (max-width:760px) {
+  .v17-today-main {
+    width:calc(100% - 28px);
+    padding:24px 0 30px;
+  }
+
+  .v17-intro {
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+
+  .v17-eyebrow {
+    font-size:.47rem;
+  }
+
+  .v17-intro-copy h1 {
+    margin:10px 0 10px;
+    font-size:clamp(2.8rem,14vw,4rem);
+  }
+
+  .v17-intro-copy p {
+    max-width:320px;
+    font-size:.68rem;
+  }
+
+  .v17-score {
+    width:100%;
+    display:grid;
+    grid-template-columns:auto 1fr;
+    grid-template-areas:
+      "value complete"
+      "label complete"
+      "rail rail"
+      "season season";
+    align-items:end;
+    column-gap:18px;
+  }
+
+  .v17-score-value {
+    grid-area:value;
+  }
+
+  .v17-score-value strong {
+    font-size:2rem;
+  }
+
+  .v17-score small {
+    grid-area:label;
+  }
+
+  .v17-score > p:not(.v17-season-score) {
+    grid-area:complete;
+    justify-self:end;
+    margin:0 0 3px;
+  }
+
+  .v17-score .v17-season-score {
+    grid-area:season;
+    justify-self:start;
+    margin:8px 0 0;
+  }
+
+  .v17-score-rail {
+    grid-area:rail;
+    margin-top:12px;
+  }
+
+  .v17-journey {
+    height:auto;
+    min-height:0;
+    margin-top:28px;
+  }
+
+  .v17-track {
+    display:none;
+  }
+
+  .v17-grid {
+    height:auto;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .v17-day {
+    min-width:0;
+    display:grid;
+    grid-template-columns:29px minmax(0,1fr);
+    grid-template-rows:auto;
+    justify-items:stretch;
+    gap:0 9px;
+  }
+
+  .v17-day.featured {
+    order:-10;
+  }
+
+  .v17-day.completed,
+  .v17-day.available {
+    order:0;
+  }
+
+  .v17-day.future {
+    order:10;
+  }
+
+  .v17-day::before {
+    content:"";
+    grid-column:1;
+    grid-row:1;
+    justify-self:center;
+    width:1px;
+    height:calc(100% + 14px);
+    background:rgba(139,159,180,.22);
+  }
+
+  .v17-day:last-child::before {
+    height:50%;
+  }
+
+  .v17-node-wrap {
+    position:relative;
+    z-index:2;
+    grid-column:1;
+    grid-row:1;
+    align-self:start;
+    margin-top:19px;
+    gap:0;
+  }
+
+  .v17-node {
+    width:14px;
+    height:14px;
+    box-shadow:0 0 0 4px #02070b;
+  }
+
+  .v17-node-label {
+    display:none;
+  }
+
+  .v17-top-slot,
+  .v17-bottom-slot {
+    grid-column:2;
+    grid-row:1;
+    display:block;
+    width:auto;
+    padding:0;
+  }
+
+  .v17-top-slot:empty,
+  .v17-bottom-slot:empty {
+    display:none;
+  }
+
+  .v17-feature-card,
+  .v17-secondary-card {
+    width:100%;
+    max-width:none;
+    height:auto;
+  }
+
+  .v17-feature-card {
+    min-height:330px;
+    padding:18px;
+    border-radius:18px;
+  }
+
+  .v17-secondary-card {
+    min-height:195px;
+    padding:14px;
+    border-radius:14px;
+  }
+
+  .v17-card-copy,
+  .v17-feature-card .v17-card-copy {
+    width:min(80%,295px);
+  }
+
+  .v17-feature-card .v17-card-copy {
+    padding-top:44px;
+  }
+
+  .v17-feature-card .v17-card-copy h2 {
+    font-size:clamp(2.45rem,11vw,3.45rem);
+  }
+
+  .v17-secondary-card .v17-card-copy h2 {
+    font-size:clamp(1.6rem,7vw,2.05rem);
+  }
+
+  .v17-card-copy p {
+    font-size:.66rem;
+  }
+
+  .v17-card-meta {
+    font-size:.43rem;
+  }
+
+  .v17-card-foot {
+    gap:10px;
+  }
+
+  .v17-action {
+    min-width:132px;
+    min-height:44px;
+  }
+}
+
 @media (max-width:390px) {
   .v17-intro-copy h1 { font-size:3rem; }
   .v17-feature-card { min-height:320px; }
@@ -642,5 +852,9 @@ a.v17-secondary-card:hover {
     grid-template-columns:minmax(0,1fr) minmax(240px,300px);
     gap:42px;
   }
+}
 
-.v17-score .v17-season-score{margin-top:7px;color:color-mix(in srgb,var(--v17-accent) 66%,rgba(218,228,238,.66))}
+.v17-score .v17-season-score {
+  margin-top:7px;
+  color:color-mix(in srgb,var(--v17-accent) 66%,rgba(218,228,238,.66));
+}
