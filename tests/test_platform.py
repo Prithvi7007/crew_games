@@ -339,3 +339,83 @@ def test_prelaunch_completion_is_rejected(app):
     user_key = profile_user_key(profile_id)
     with app.app_context(), pytest.raises(ValueError, match="production scoring begins"):
         finalize_game_stats(user_key, "mystery", "2026-09-14", 100, True, competitive=False)
+
+def test_mystery_leaderboard_includes_archive_points_and_metrics(app):
+    from datetime import date
+    from app.db import (
+        finalize_game_stats,
+        get_leaderboard,
+        get_or_create_mystery_attempt,
+        save_mystery_attempt,
+    )
+
+    profile_id = _profile(app, username="MysteryArchiveTester")
+    user_key = profile_user_key(profile_id)
+
+    games = [
+        ("2026-09-21", 75, 2, False),
+        ("2026-09-28", 100, 1, False),
+        ("2026-10-05", 100, 1, True),
+    ]
+
+    with app.app_context():
+        for game_date, score, clues, competitive in games:
+            get_or_create_mystery_attempt(user_key, game_date)
+            save_mystery_attempt(
+                user_key,
+                game_date,
+                revealed_count=clues,
+                guesses=[],
+                completed=True,
+                won=True,
+                score=score,
+            )
+            finalize_game_stats(
+                user_key,
+                "mystery",
+                game_date,
+                score,
+                True,
+                competitive=competitive,
+            )
+
+        board = get_leaderboard(
+            "all_time",
+            "mystery",
+            reference_day=date(2026, 10, 7),
+            current_profile_id=profile_id,
+        )
+
+    assert board["me"]["points"] == 275
+    assert board["me"]["detail"] == "3 solved · 1.3 avg clues"
+
+
+def test_weekly_leaderboards_include_archive_earned_points(app):
+    from datetime import date
+    from app.db import get_home_leaderboard, get_weekly_leaderboard
+
+    profile_id = _profile(app, username="WeeklyArchiveTester")
+    user_key = profile_user_key(profile_id)
+
+    with app.app_context():
+        finalize_game_stats(
+            user_key,
+            "mystery",
+            "2026-09-21",
+            75,
+            True,
+            competitive=False,
+        )
+
+        weekly = get_weekly_leaderboard(date(2026, 9, 21))
+        home = get_home_leaderboard(
+            date(2026, 9, 21),
+            current_profile_id=profile_id,
+        )
+
+    weekly_me = next(row for row in weekly if row["profile_id"] == profile_id)
+    home_me = next(row for row in home if row["profile_id"] == profile_id)
+
+    assert weekly_me["points"] == 75
+    assert home_me["points"] == 75
+    assert home_me["rank"] == 1

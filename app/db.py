@@ -991,7 +991,6 @@ def get_weekly_leaderboard(reference_day=None, limit=25):
         FROM profiles p
         LEFT JOIN game_completions gc
             ON gc.profile_id = p.id
-            AND gc.competitive = 1
             AND gc.game_date BETWEEN ? AND ?
         GROUP BY p.id, p.username, p.avatar
         ORDER BY points DESC, completed DESC, LOWER(p.username) ASC
@@ -1059,7 +1058,6 @@ def get_home_leaderboard(reference_day=None, current_profile_id=None):
             FROM profiles p
             LEFT JOIN game_completions gc
                 ON gc.profile_id = p.id
-                AND gc.competitive = 1
                 AND gc.game_date BETWEEN ? AND ?
             GROUP BY p.id, p.username, p.avatar
         ), ranked AS (
@@ -1170,7 +1168,7 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
         sql = """SELECT a.profile_id, a.revealed_count, a.won, a.game_date
                  FROM mystery_attempts a
                  JOIN game_completions gc ON gc.profile_id = a.profile_id AND gc.game_date = a.game_date
-                   AND gc.game_key = 'mystery' AND gc.competitive = 1
+                   AND gc.game_key = 'mystery'
                  WHERE a.completed = 1"""
         clause, metric_params = _date_clause(start, end, prefix="a.game_date")
         for row in db.execute(sql + clause, metric_params).fetchall():
@@ -1193,7 +1191,7 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
         sql = """SELECT a.profile_id, a.answers_json, a.game_date
                  FROM trivia_attempts a
                  JOIN game_completions gc ON gc.profile_id = a.profile_id AND gc.game_date = a.game_date
-                   AND gc.game_key = 'trivia' AND gc.competitive = 1
+                   AND gc.game_key = 'trivia'
                  WHERE a.completed = 1"""
         clause, metric_params = _date_clause(start, end, prefix="a.game_date")
         for row in db.execute(sql + clause, metric_params).fetchall():
@@ -1218,7 +1216,7 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
         sql = """SELECT a.profile_id, a.guesses_json, a.won, a.game_date
                  FROM word_attempts a
                  JOIN game_completions gc ON gc.profile_id = a.profile_id AND gc.game_date = a.game_date
-                   AND gc.game_key = 'word' AND gc.competitive = 1
+                   AND gc.game_key = 'word'
                  WHERE a.completed = 1"""
         clause, metric_params = _date_clause(start, end, prefix="a.game_date")
         for row in db.execute(sql + clause, metric_params).fetchall():
@@ -1246,7 +1244,7 @@ def get_leaderboard(period="this_week", game_key="all", reference_day=None, curr
         sql = """SELECT a.profile_id, a.target_seconds, a.elapsed_seconds, a.difference_seconds, a.game_date
                  FROM tick_tock_attempts a
                  JOIN game_completions gc ON gc.profile_id = a.profile_id AND gc.game_date = a.game_date
-                   AND gc.game_key = 'tick_tock' AND gc.competitive = 1
+                   AND gc.game_key = 'tick_tock'
                  WHERE a.completed = 1"""
         clause, metric_params = _date_clause(start, end, prefix="a.game_date")
         for row in db.execute(sql + clause, metric_params).fetchall():
