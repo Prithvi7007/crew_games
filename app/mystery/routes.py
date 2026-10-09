@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player

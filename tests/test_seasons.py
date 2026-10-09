@@ -239,13 +239,10 @@ def test_season_dates_lock_after_competitive_results_but_name_can_change(app):
 
 
 def test_player_templates_expose_season_context():
-    today = (ROOT / "app" / "templates" / "_home_v17.html").read_text(encoding="utf-8")
-    leaderboard = (ROOT / "app" / "templates" / "leaderboard.html").read_text(encoding="utf-8")
-    profile = (ROOT / "app" / "templates" / "profile.html").read_text(encoding="utf-8")
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
 
-    assert "SEASON {{ season.number }}" in today
-    assert "SEASON {{ season.number }} TOTAL" in today
-    assert 'id="leader-season"' in leaderboard
-    assert 'id="leader-week"' in leaderboard
-    assert "SEASON {{ season.number }} RANK" in profile
-    assert "SEASON POINTS" in profile
+    assert "SEASON ${season.number}" in source
+    assert "SEASON {season.number} TOTAL" in source
+    assert "rankings-time-filters" in source
+    assert "SEASON {season.number} RANK" in source
+    assert "SEASON POINTS" in source

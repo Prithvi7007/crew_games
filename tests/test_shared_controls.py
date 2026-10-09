@@ -43,16 +43,11 @@ def test_shared_controls_define_behavior_contract():
 
 
 def test_key_player_controls_use_shared_behavior_hooks():
-    expected = {
-        "app/templates/mystery.html": ("crew-field", "crew-button"),
-        "app/templates/tick_tock.html": ("crew-button",),
-        "app/templates/word.html": ("crew-chip", "crew-button"),
-        "app/templates/leaderboard.html": ("crew-select",),
-        "app/templates/login.html": ("crew-field", "crew-button"),
-        "app/templates/profile.html": ("crew-field", "crew-button"),
-    }
+    player = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    login = (ROOT / "app/templates/login.html").read_text(encoding="utf-8")
 
-    for rel, hooks in expected.items():
-        text = (ROOT / rel).read_text(encoding="utf-8")
-        for hook in hooks:
-            assert hook in text, f"{rel} is missing {hook}"
+    for hook in ("crew-field", "crew-button", "crew-chip", "crew-select"):
+        assert hook in player
+
+    assert "crew-field" in login
+    assert "crew-button" in login

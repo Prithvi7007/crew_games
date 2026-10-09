@@ -100,18 +100,14 @@ def test_legacy_admin_boolean_session_is_rejected(client):
 def test_game_javascript_does_not_use_html_injection_primitives():
     root = Path(__file__).parents[1]
     sources = [
-        root / "app/static/js/mystery.js",
-        root / "app/static/js/word-game.js",
-        root / "app/static/js/tick-tock.js",
-        root / "app/static/js/leaderboard.js",
         root / "frontend/src/player/main.jsx",
     ]
+
     for source in sources:
         text = source.read_text(encoding="utf-8")
         assert "innerHTML" not in text
         assert "insertAdjacentHTML" not in text
         assert "outerHTML" not in text
-
 
 def test_cross_origin_state_change_is_rejected(client):
     token = csrf(client)

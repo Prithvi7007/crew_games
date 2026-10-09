@@ -18,21 +18,24 @@ def test_shared_shell_and_page_styles_have_explicit_ownership():
 
 
 def test_authenticated_templates_use_shared_shell_hook():
-    templates = (
-        'home.html',
-        'games.html',
-        'leaderboard.html',
-        'profile.html',
-        'trivia.html',
-        'mystery.html',
-        'word.html',
-        'tick_tock.html',
-    )
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    template = (ROOT / "app/templates/player_app.html").read_text(encoding="utf-8")
 
-    for name in templates:
-        text = (ROOT / 'app' / 'templates' / name).read_text(encoding='utf-8')
-        assert 'crew-app-page' in text, name
+    assert 'id="crew-player-root"' in template
+    assert "function AppHeader" in source
+    assert source.count("<AppHeader") >= 8
 
+    for component in (
+        "HomePage",
+        "GamesPage",
+        "RankingsPage",
+        "ProfilePage",
+        "MysteryPage",
+        "TriviaPage",
+        "WordPage",
+        "TickTockPage",
+    ):
+        assert f"function {component}" in source
 
 def test_shared_shell_owns_reusable_navigation_contract():
     css = (ROOT / 'app' / 'static' / 'css' / 'crew-shell.css').read_text(
@@ -54,7 +57,7 @@ def test_shared_shell_owns_reusable_navigation_contract():
 
 
 def test_page_styles_do_not_override_primary_chrome():
-    css_root = ROOT / 'app' / 'static' / 'css'
+    css_root = ROOT / 'frontend' / 'src' / 'player' / 'styles'
     for filename in ('home.css', 'games.css', 'rankings.css'):
         text = (css_root / filename).read_text(encoding='utf-8')
         assert '.app-nav' not in text, filename
