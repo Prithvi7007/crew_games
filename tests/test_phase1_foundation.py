@@ -6,13 +6,17 @@ ROOT = Path(__file__).parents[1]
 
 def test_phase1_foundation_stylesheet_is_loaded_last():
     base = (ROOT / "app" / "templates" / "base.html").read_text(encoding="utf-8")
+    player = (ROOT / "frontend" / "src" / "player" / "main.jsx").read_text(
+        encoding="utf-8"
+    )
 
     foundation = "css/phase1-foundation.css"
-    game_results = "css/v19-game-results.css"
+    block_head = "{% block head %}"
 
     assert foundation in base
-    assert game_results in base
-    assert base.index(game_results) < base.index('{% block head %}') < base.index(foundation)
+    assert "css/v19-game-results.css" not in base
+    assert "import './styles/results.css';" in player
+    assert base.index(block_head) < base.index(foundation)
 
 
 def test_phase1_foundation_has_accessibility_guards():

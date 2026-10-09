@@ -33,10 +33,27 @@ def test_wordle_handles_backend_tile_state_objects():
 
 
 def test_wordle_absent_state_is_visually_distinct():
-    css = (ROOT / "frontend/src/player/player.css").read_text(encoding="utf-8")
+    css = (ROOT / "frontend/src/player/styles/word.css").read_text(encoding="utf-8")
     assert ".word-page .key.absent" in css
     assert "#465565" in css
     assert ".word-page .legend-swatch.absent" in css
+
+
+def test_react_player_owns_result_and_word_styles():
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    base = (ROOT / "app/templates/base.html").read_text(encoding="utf-8")
+    results = (ROOT / "frontend/src/player/styles/results.css").read_text(
+        encoding="utf-8"
+    )
+    word = (ROOT / "frontend/src/player/styles/word.css").read_text(
+        encoding="utf-8"
+    )
+
+    assert "import './styles/results.css';" in source
+    assert "import './styles/word.css';" in source
+    assert "css/v19-game-results.css" not in base
+    assert ".crew-result-stage" in results
+    assert ".word-page .key.absent" in word
 
 
 def test_all_logged_in_player_pages_use_shared_react_runtime():

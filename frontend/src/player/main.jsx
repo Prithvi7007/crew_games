@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import './styles/results.css';
 import './player.css';
+import './styles/word.css';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LETTERS = ['A', 'B', 'C', 'D'];

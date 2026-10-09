@@ -622,20 +622,3 @@
 
 /* CREW React Player App — shared additions */
 .react-player-page .react-player-loading { min-height: 50vh; display:grid; place-items:center; color:rgba(220,230,240,.65); }
-
-/* Wordle keyboard states: intentionally high separation between untouched and eliminated. */
-.word-page .key.absent {
-  background: linear-gradient(180deg, #465565 0%, #344250 100%);
-  border-color: rgba(184,203,220,.38);
-  color: rgba(243,248,252,.78);
-  box-shadow: inset 0 -3px 0 rgba(12,20,28,.26), inset 0 1px 0 rgba(255,255,255,.08);
-}
-.word-page .legend-swatch.absent {
-  background: #465565;
-  border-color: rgba(184,203,220,.38);
-}
-.word-page .key:not(.absent):not(.present):not(.correct) {
-  background: #101821;
-  border-color: rgba(255,255,255,.09);
-  color: rgba(244,247,250,.88);
-}
