@@ -111,3 +111,13 @@ def test_player_page_styles_are_react_owned():
         assert f"import '{import_path}';" in source
 
     assert template.count("react/player.css") == 1
+
+
+def test_player_page_primitives_are_react_owned():
+    base = (ROOT / "app/templates/base.html").read_text(encoding="utf-8")
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+
+    assert "css/crew-pages.css" not in base
+    assert not (ROOT / "app/static/css/crew-pages.css").exists()
+    assert (ROOT / "frontend/src/player/styles/page.css").exists()
+    assert "import './styles/page.css';" in source
