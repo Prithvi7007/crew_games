@@ -162,3 +162,13 @@
   .rankings-leader-row>.rankings-number:nth-of-type(3){display:none}
   .rankings-streak{grid-column:3;grid-row:2;font-size:.60rem}
 }
+
+.rankings-runtime-notice {
+  margin: 18px 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(255,189,69,.24);
+  border-radius: 9px;
+  color: rgba(244,235,211,.86);
+  background: rgba(255,189,69,.055);
+  font: 650 .68rem/1.45 Inter,sans-serif;
+}

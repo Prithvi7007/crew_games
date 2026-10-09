@@ -203,7 +203,7 @@
 }
 
 
-/* React player runtime hardening. */
+/* React account menu ownership. */
 .crew-app-page .crew-nav-account .account-trigger[aria-expanded="true"] {
   background: rgba(255, 255, 255, .055);
   box-shadow: 0 8px 28px rgba(0, 0, 0, .13);
@@ -212,27 +212,6 @@
 .crew-app-page .crew-nav-account .account-trigger[aria-expanded="true"] .account-chevron {
   color: #55ddff;
   transform: translateY(1px) rotate(180deg);
-}
-
-.crew-runtime-notice {
-  position: fixed;
-  top: 76px;
-  left: 50%;
-  z-index: 140;
-  width: min(520px, calc(100% - 32px));
-  transform: translateX(-50%);
-  padding: 12px 16px;
-  border: 1px solid rgba(132, 199, 235, .24);
-  border-radius: 12px;
-  color: rgba(246, 250, 255, .94);
-  background: rgba(9, 22, 34, .97);
-  box-shadow: 0 16px 42px rgba(0, 0, 0, .34);
-  font: 700 .72rem/1.4 var(--crew-font-body);
-  text-align: center;
-}
-
-.crew-runtime-notice[hidden] {
-  display: none;
 }
 
 @media (max-width: 760px) {
@@ -260,7 +239,237 @@
     height: 36px;
   }
 
-  .crew-runtime-notice {
-    top: 72px;
+}
+
+/* React player foundation ---------------------------------------------------
+   Player pages intentionally do not load main.css or v18-pages.css. */
+
+body.crew-app-page {
+  min-height: 100svh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--crew-color-text);
+  background: var(--crew-color-bg);
+  font-family: var(--crew-font-body);
+}
+
+body.crew-app-page *,
+body.crew-app-page *::before,
+body.crew-app-page *::after {
+  box-sizing: border-box;
+}
+
+.crew-app-page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.crew-app-page button,
+.crew-app-page input,
+.crew-app-page select,
+.crew-app-page textarea {
+  font: inherit;
+}
+
+.crew-app-page button {
+  color: inherit;
+}
+
+.crew-app-page .ambient,
+.crew-app-page .noise {
+  display: none !important;
+}
+
+.crew-app-page .app-shell {
+  width: 100%;
+  max-width: none;
+  min-height: 100svh;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+
+/* React account menu ------------------------------------------------------- */
+
+.crew-app-page .account-menu {
+  position: relative;
+  justify-self: end;
+}
+
+.crew-app-page .account-trigger {
+  appearance: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    background var(--crew-motion-fast) var(--crew-ease-standard),
+    border-color var(--crew-motion-fast) var(--crew-ease-standard),
+    box-shadow var(--crew-motion-fast) var(--crew-ease-standard);
+}
+
+.crew-app-page .account-trigger:hover,
+.crew-app-page .account-trigger:focus-visible,
+.crew-app-page .account-trigger[aria-expanded="true"] {
+  background: rgba(255,255,255,.055);
+  box-shadow: 0 8px 28px rgba(0,0,0,.13);
+}
+
+.crew-app-page .account-trigger[aria-expanded="true"] .account-chevron {
+  color: #55ddff;
+  transform: translateY(1px) rotate(180deg);
+}
+
+.crew-app-page .account-chevron {
+  transition:
+    transform var(--crew-motion-fast) var(--crew-ease-standard),
+    color var(--crew-motion-fast) var(--crew-ease-standard);
+}
+
+.crew-app-page .account-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 100;
+  width: 264px;
+  padding: 10px;
+  border: 1px solid rgba(155,220,255,.15);
+  border-radius: 18px;
+  color: var(--crew-color-text);
+  background:
+    linear-gradient(
+      155deg,
+      rgba(18,35,53,.97),
+      rgba(5,14,24,.98)
+    );
+  box-shadow:
+    0 24px 70px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+  transform-origin: top right;
+  animation: crew-account-menu-in var(--crew-motion-fast) ease-out;
+}
+
+.crew-app-page .account-dropdown[hidden] {
+  display: none;
+}
+
+.crew-app-page .account-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 9px 10px;
+}
+
+.crew-app-page .account-avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(126,231,255,.16);
+  border-radius: 12px;
+  background: rgba(92,188,238,.10);
+  font-size: 1.2rem;
+}
+
+.crew-app-page .account-identity > span:last-child {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.crew-app-page .account-identity strong {
+  overflow: hidden;
+  color: #fff;
+  font: 800 .78rem/1 var(--crew-font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crew-app-page .account-identity small {
+  color: var(--crew-color-muted);
+  font: 600 .59rem/1 var(--crew-font-body);
+}
+
+.crew-app-page .account-divider {
+  height: 1px;
+  margin: 2px 5px 6px;
+  background: rgba(255,255,255,.075);
+}
+
+.crew-app-page .account-action {
+  width: 100%;
+  min-height: var(--crew-control-min);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  color: rgba(239,248,255,.90);
+  background: transparent;
+  font: 700 .69rem/1 var(--crew-font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.crew-app-page .account-action:hover,
+.crew-app-page .account-action:focus-visible {
+  color: #fff;
+  background: rgba(255,255,255,.055);
+}
+
+.crew-app-page .account-action > span:last-child {
+  color: rgba(126,231,255,.72);
+}
+
+.crew-app-page .account-signout {
+  margin: 0;
+}
+
+.crew-app-page .account-signout-button {
+  color: rgba(239,248,255,.74);
+}
+
+.crew-app-page .account-signout-button:hover,
+.crew-app-page .account-signout-button:focus-visible {
+  color: #ffd3d3;
+  background: rgba(255,100,100,.07);
+}
+
+.crew-app-page .account-signout-button > span:last-child {
+  color: rgba(255,166,166,.72);
+}
+
+@keyframes crew-account-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .crew-app-page .account-dropdown {
+    width: min(264px, calc(100vw - 34px));
+    right: -2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crew-app-page .account-dropdown {
+    animation: none;
+  }
+
+  .crew-app-page .account-chevron {
+    transition: none;
   }
 }

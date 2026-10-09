@@ -30,3 +30,74 @@
   place-items: center;
   color: rgba(220,230,240,.65);
 }
+
+/* Shared React visual primitives ----------------------------------------- */
+
+.react-player-page .glass-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.react-player-page .glass-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.react-player-page .stat-icon {
+  font-size: 1rem;
+}
+
+.react-player-page .eyebrow {
+  display: inline-block;
+  color: var(--crew-accent-focus);
+  font: 800 .69rem/1 var(--crew-font-body);
+  letter-spacing: .19em;
+}
+
+.react-player-page .primary-button,
+.react-player-page .secondary-button {
+  min-height: 50px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition:
+    transform var(--crew-motion-standard) var(--crew-ease-standard),
+    box-shadow var(--crew-motion-standard) var(--crew-ease-standard),
+    background var(--crew-motion-standard) var(--crew-ease-standard);
+}
+
+.react-player-page .primary-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border: 0;
+  color: #05101d;
+  background: linear-gradient(110deg,#e7f4ff,#88ceff);
+  box-shadow: 0 12px 32px rgba(65,166,255,.22);
+  font-weight: 800;
+}
+
+.react-player-page .primary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(65,166,255,.30);
+}
+
+.react-player-page .primary-button.compact {
+  width: auto;
+  min-height: 42px;
+  padding: 0 16px;
+  gap: 18px;
+}
+
+.react-player-page .secondary-button {
+  border: 1px solid rgba(255,255,255,.16);
+  color: #fff;
+  background: rgba(255,255,255,.05);
+  font-weight: 700;
+}
+
+.react-player-page .secondary-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.09);
+}
