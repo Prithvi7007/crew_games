@@ -2,6 +2,7 @@ from flask import Blueprint, abort, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
+from app.badge_awarding import safe_award_completion
 from app.db import finalize_game_stats, get_or_create_mystery_attempt, load_json_list, save_mystery_attempt
 from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import get_puzzle, is_correct_answer, score_for_clues
@@ -106,11 +107,13 @@ def guess():
         score, completed, revealed_count = 0, False, revealed_count + 1
     save_mystery_attempt(user_key, game_date, revealed_count, guesses, completed, won, score)
     stats = None
+    badge_awards = ()
     if completed:
         row = finalize_game_stats(user_key, "mystery", game_date, score, won, competitive=game_is_competitive(game_day))
         stats = {"streak": row["current_streak"], "total_points": row["total_points"], "competitive": game_is_competitive(game_day)}
+        badge_awards = safe_award_completion(session["user"]["profile_id"], "mystery", game_date)
     return jsonify({
         "ok": True, "correct": won, "completed": completed,
         "message": "Mystery solved." if won else ("Mystery closed." if completed else "Not quite — another clue just unlocked."),
-        "stats": stats, "state": serialize_state(user_key, game_day),
+        "stats": stats, "badge_awards": badge_awards, "state": serialize_state(user_key, game_day),
     })
