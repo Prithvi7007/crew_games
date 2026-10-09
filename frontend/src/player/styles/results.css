@@ -39,19 +39,19 @@
 
 .crew-result-mystery {
   --result-accent: #55e6ac;
-  background-image: url("../images/v14/mystery.png");
+  background-image: url("/static/images/v14/mystery.png");
   background-position: 61% center;
 }
 
 .crew-result-word {
   --result-accent: #55b9ff;
-  background-image: url("../images/v14/word.png");
+  background-image: url("/static/images/v14/word.png");
   background-position: 61% center;
 }
 
 .crew-result-tick_tock {
   --result-accent: #c55cff;
-  background-image: url("../images/v14/tick_tock.png");
+  background-image: url("/static/images/v14/tick_tock.png");
   background-position: 62% center;
 }
 
@@ -182,17 +182,17 @@
   }
 
   .crew-result-mystery {
-    background-image: url("../images/v14/mystery-mobile.jpg");
+    background-image: url("/static/images/v14/mystery-mobile.jpg");
     background-position: center;
   }
 
   .crew-result-word {
-    background-image: url("../images/v14/word-mobile.jpg");
+    background-image: url("/static/images/v14/word-mobile.jpg");
     background-position: center;
   }
 
   .crew-result-tick_tock {
-    background-image: url("../images/v14/tick_tock-mobile.jpg");
+    background-image: url("/static/images/v14/tick_tock-mobile.jpg");
     background-position: center;
   }
 
