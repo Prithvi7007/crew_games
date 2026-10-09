@@ -25,6 +25,13 @@ def test_word_and_trivia_are_rendered_by_react_player_contract():
     assert 'render_template("trivia.html"' not in trivia
 
 
+def test_wordle_handles_backend_tile_state_objects():
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    assert "function tileState(tile)" in source
+    assert "(item.tiles||[]).map(tileState)" in source
+    assert "tileState(item.tiles?.[i])" in source
+
+
 def test_wordle_absent_state_is_visually_distinct():
     css = (ROOT / "frontend/src/player/player.css").read_text(encoding="utf-8")
     assert ".word-page .key.absent" in css
