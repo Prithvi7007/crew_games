@@ -5,6 +5,7 @@ from app.db import finalize_game_stats, get_or_create_trivia_attempt, load_json_
 from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import get_quiz
 from app.player_ui import render_player
+from app.badge_awarding import safe_award_completion
 
 trivia_bp = Blueprint("trivia", __name__, url_prefix="/trivia")
 
@@ -68,8 +69,10 @@ def answer():
     completed = len(answers) == len(quiz["questions"]); score = sum(10 for item in answers if item["correct"]) if completed else 0
     save_trivia_attempt(user_key, game_date, answers, completed, score)
     stats = None
+    badge_awards = ()
     if completed:
         row = finalize_game_stats(user_key, "trivia", game_date, score, True, competitive=game_is_competitive(game_day))
         stats = {"streak": row["current_streak"], "total_points": row["total_points"], "competitive": game_is_competitive(game_day)}
+        badge_awards = safe_award_completion(session["user"]["profile_id"], "trivia", game_date)
     return jsonify({"ok": True, "correct": correct, "correct_index": question["answer"], "correct_answer": question["options"][question["answer"]],
-                    "completed": completed, "stats": stats, "state": serialize_state(user_key, game_day)})
+                    "completed": completed, "stats": stats, "badge_awards": badge_awards, "state": serialize_state(user_key, game_day)})

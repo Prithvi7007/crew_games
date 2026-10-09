@@ -104,3 +104,24 @@
   .trophy-badge-card,.trophy-filter,.trophy-season-chip {transition:none!important;}
   .trophy-badge-card:hover {transform:none;}
 }
+
+/* Season badge editing / earned medal moment */
+.trophy-slot-editor {display:block;width:calc(100% - 26px);margin-top:5px;}
+.trophy-slot-editor select {width:100%;min-height:39px;min-width:0;border:1px solid rgba(118,168,219,.33);border-radius:8px;background:#121f31;color:#e8f4ff;padding:0 10px;font:700 .72rem/1.3 Inter,sans-serif;}
+.trophy-slot-editor select:focus-visible {outline:2px solid #80d2ff;outline-offset:3px;}
+.trophy-slot-editor select:disabled {opacity:.6;cursor:wait;}
+.trophy-sr-only {position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+.trophy-editor-feedback {min-height:20px;color:#82d9bb;font:600 .78rem/1.5 Inter,sans-serif;}
+.crew-badge-celebration {width:min(760px,calc(100% - 26px));display:flex;align-items:center;gap:17px;margin:15px auto 20px;padding:18px 22px;border:1px solid rgba(255,189,69,.52);border-radius:14px;background:linear-gradient(115deg,rgba(80,60,32,.96),rgba(26,39,62,.96));box-shadow:0 12px 42px rgba(241,176,68,.11);color:#f8eacc;}
+.crew-badge-celebration>span {font-size:2.4rem;color:#ffbd45;filter:drop-shadow(0 0 14px #ffbd45);}
+.crew-badge-celebration>div {flex:1;min-width:0;}
+.crew-badge-celebration strong {display:block;font:850 1.13rem/1.2 var(--crew-font-display,Manrope,sans-serif);}
+.crew-badge-celebration p {margin:5px 0 0;color:#ffebc4;font:600 .78rem/1.45 Inter,sans-serif;}
+.crew-badge-celebration a {padding:10px 12px;flex-shrink:0;border:1px solid rgba(255,216,134,.48);border-radius:8px;color:#fff0d1;font:800 .72rem/1.2 Inter,sans-serif;text-decoration:none;}
+.crew-badge-celebration a:focus-visible {outline:2px solid #ffe7a0;outline-offset:3px;}
+@media(max-width:760px) {
+ .crew-badge-celebration {flex-wrap:wrap;padding:16px;gap:10px;}
+ .crew-badge-celebration>span {font-size:1.8rem;}
+ .crew-badge-celebration a {width:100%;text-align:center;}
+ .trophy-slot-editor {width:calc(100% - 14px);}
+}

@@ -76,7 +76,10 @@ def test_trophy_room_never_exposes_another_players_awards(app, client):
     data = _payload(client.get("/trophies"))
     assert data["earnedCount"] == 1
     assert {badge["code"] for badge in data["badges"] if badge["earned"]} == {"word_wizard"}
-    assert data["showcase"] == [{"slot": 1, "badgeCode": "word_wizard"}]
+    assert len(data["showcase"]) == 1
+    assert data["showcase"][0]["slot"] == 1
+    assert data["showcase"][0]["badgeCode"] == "word_wizard"
+    assert data["showcase"][0]["awardId"] == owner_awards[0]["id"]
 
 
 def test_trophy_room_invalid_season_falls_back_to_current(app, client):
@@ -85,3 +88,50 @@ def test_trophy_room_invalid_season_falls_back_to_current(app, client):
     data = _payload(client.get("/trophies?season=999999"))
     assert data["selectedSeason"]["number"] == 1
     assert data["earnedCount"] == 0
+
+
+def test_showcase_api_rejects_anonymous_and_missing_csrf(app, client):
+    assert client.post("/api/trophies/showcase", json={"slot": 1, "awardId": None}).status_code == 400
+    client.get("/login")
+    with client.session_transaction() as session:
+        csrf = session["csrf_token"]
+    assert client.post(
+        "/api/trophies/showcase", json={"slot": 1, "awardId": None},
+        headers={"X-CSRFToken": csrf},
+    ).status_code == 302
+    owner = _profile(app, "ShowcaseCsrf")
+    _signin(client, app, owner)
+    assert client.post("/api/trophies/showcase", json={"slot": 1, "awardId": None}).status_code == 400
+
+
+def test_showcase_api_limits_edits_to_own_badges_and_three_slots(app, client):
+    owner = _profile(app, "ShowcaseOwner")
+    other = _profile(app, "ShowcaseOther")
+    with app.app_context():
+        season = get_season_for_date(date(2026, 10, 7))
+        award_badges(owner, season["id"], ("brainiac", "word_wizard"), source_date="2026-10-07")
+        award_badges(other, season["id"], ("unicorn",), source_date="2026-10-07")
+        owned = {row["badge_code"]: row["id"] for row in get_badge_awards(owner, season["id"])}
+        foreign = get_badge_awards(other, season["id"])[0]["id"]
+    _signin(client, app, owner)
+    with client.session_transaction() as session:
+        token = session["csrf_token"]
+    headers = {"X-CSRFToken": token}
+
+    def send(slot, award_id):
+        return client.post(
+            "/api/trophies/showcase", json={"slot": slot, "awardId": award_id},
+            headers=headers,
+        )
+
+    assert send(1, foreign).status_code == 400
+    assert send(4, owned["brainiac"]).status_code == 400
+    assert send(True, owned["brainiac"]).status_code == 400
+    assert send(1, "1").status_code == 400
+    assert send(1, owned["brainiac"]).status_code == 200
+    assert send(2, owned["brainiac"]).status_code == 400
+    response = send(2, owned["word_wizard"])
+    assert response.status_code == 200
+    assert {item["badgeCode"] for item in response.json["showcase"]} == {"brainiac", "word_wizard"}
+    assert send(1, None).status_code == 200
+    assert [item["slot"] for item in send(2, owned["word_wizard"]).json["showcase"]] == [2]

@@ -5,6 +5,7 @@ from app.db import ensure_user_stats, finalize_word_stats, get_game_content, get
 from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import evaluate_guess, get_daily_solution, score_for_result, validate_guess
 from app.player_ui import render_player
+from app.badge_awarding import safe_award_completion
 
 word_bp = Blueprint("word", __name__, url_prefix="/word")
 
@@ -68,11 +69,14 @@ def submit_guess():
     score = score_for_result(len(guesses), won) if completed else 0
     save_word_attempt(user_key, game_date, guesses, completed, won, score)
     stats = None
+    badge_awards = ()
     if completed:
         row = finalize_word_stats(user_key, game_date, won, score, competitive=game_is_competitive(game_day))
         stats = {"streak": row["current_streak"], "longest_streak": row["longest_streak"], "total_word_points": row["total_word_points"], "competitive": game_is_competitive(game_day)}
+        badge_awards = safe_award_completion(session["user"]["profile_id"], "word", game_date)
     response = {"ok": True, "guess": normalized, "tiles": tiles, "guess_count": len(guesses), "remaining": 6-len(guesses),
                 "completed": completed, "won": won, "score": score,
                 "potential_score": score_for_result(len(guesses)+1, True) if not completed else score, "stats": stats}
+    response["badge_awards"] = badge_awards
     if completed: response["solution"] = solution
     return jsonify(response)

@@ -114,6 +114,20 @@ def create_app():
         click.echo(totp_provisioning_uri(secret))
         click.echo("Store the secret securely. Do not commit it to Git.")
 
+    @app.cli.command("badges-backfill")
+    @click.option("--apply", "apply_changes", is_flag=True, help="Persist awards after reviewing dry-run.")
+    @click.option("--profile-id", type=click.IntRange(min=1), default=None, help="Limit replay to one profile.")
+    def badges_backfill_command(apply_changes, profile_id):
+        """Preview or idempotently backfill badges from completed saved games."""
+        import json
+
+        from .badge_awarding import replay_saved_badges
+
+        result = replay_saved_badges(dry_run=not apply_changes, profile_id=profile_id)
+        click.echo(json.dumps(result, sort_keys=True))
+        if not apply_changes:
+            click.echo("DRY RUN ONLY. Database not changed; use --apply after backup/review.")
+
     # Host validation can fail before Flask creates a URL adapter. Error pages that
     # extend base.html call url_for(), which is unavailable in that state, so keep
     # host-validation failures deliberately minimal and dependency-free.

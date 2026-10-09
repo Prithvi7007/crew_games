@@ -82,15 +82,33 @@ function BadgeCard({ badge }) {
   </article>;
 }
 
-export default function TrophyRoom({ data, Header }) {
+export default function TrophyRoom({ data, Header, saveSlot }) {
+  const [showcase, setShowcase] = useState(data.showcase || []);
+  const [savingSlot, setSavingSlot] = useState(null);
+  const [feedback, setFeedback] = useState('');
+  async function updateSlot(slot, value) {
+    if (savingSlot !== null) return;
+    setSavingSlot(slot);
+    setFeedback('');
+    try {
+      const result = await saveSlot(slot, value ? Number(value) : null);
+      setShowcase(result.showcase || []);
+      setFeedback('Your showcase has been updated.');
+    } catch (error) {
+      setFeedback(error?.message || 'Could not update showcase.');
+    } finally {
+      setSavingSlot(null);
+    }
+  }
   const [filter, setFilter] = useState('all');
   const badges = data.badges || [];
   const earned = data.earnedCount || 0;
   const season = data.selectedSeason;
   const filtered = useMemo(() => filter === 'all' ? badges : badges.filter(badge => badge.vertical === filter), [badges, filter]);
+  const unlocked = badges.filter(badge => badge.earned && badge.awardId);
   const displayedShowcase = [1, 2, 3].map(slot => {
-    const saved = (data.showcase || []).find(entry => entry.slot === slot);
-    const badge = badges.find(item => item.code === saved?.badgeCode);
+    const saved = showcase.find(entry => entry.slot === slot);
+    const badge = saved?.badge || badges.find(item => item.code === saved?.badgeCode);
     return { slot, saved, badge };
   });
   return <div className="trophy-room-shell">
@@ -114,8 +132,16 @@ export default function TrophyRoom({ data, Header }) {
           <span className="trophy-slot-index">SLOT 0{slot}</span>
           {saved && badge ? <><BadgeMedallion badge={badge} size="showcase"/><strong>{badge.name}</strong><span className="trophy-showcase-rarity">{badge.rarity.toUpperCase()}</span></>
             : <><span className="trophy-empty-mark" aria-hidden="true">✧</span><strong>Open spotlight</strong><span className="trophy-slot-hint">Reserved for an earned badge</span></>}
+          <label className="trophy-slot-editor"><span className="trophy-sr-only">Showcase slot {slot}</span>
+            <select aria-label={'Choose badge for showcase slot ' + slot} value={saved?.awardId || ''} disabled={savingSlot !== null} onChange={event => updateSlot(slot, event.target.value)}>
+              <option value="">No badge</option>
+              {saved && !unlocked.some(item => item.awardId === saved.awardId) ? <option value={saved.awardId}>{saved.badge?.name || 'Your earned badge'}</option> : null}
+              {unlocked.map(item => <option key={item.awardId} value={item.awardId}>{item.name}</option>)}
+            </select>
+          </label>
         </div>)}</div>
-        <p className="trophy-future-note">Showcase editing and automatic badge unlocks are coming in the next update. Existing earned badges are shown here.</p>
+        <p className="trophy-future-note">Choose from badges you've earned this season. You can also clear any slot or keep medals from past seasons.</p>
+        <p className="trophy-editor-feedback" role="status" aria-live="polite">{feedback}</p>
       </section>
       <section className="trophy-collection" aria-labelledby="trophy-collection-title">
         <header className="trophy-section-header"><div><span className="trophy-eyebrow">THE COMPLETE SET</span><h2 id="trophy-collection-title">The collection <small>{earned} / {badges.length} discovered</small></h2></div><p>Four rarities. Twenty-one reasons to keep playing.</p></header>

@@ -4,8 +4,8 @@ from flask import Blueprint, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
-from app.badges import BADGES
-from app.badge_store import get_badge_awards, get_showcase
+from app.badges import BADGES, BADGES_BY_CODE
+from app.badge_store import get_badge_awards, get_showcase, set_showcase_slot
 from app.db import (
     get_game_attempt_summary,
     get_game_completion,
@@ -307,6 +307,7 @@ def trophies():
             "rarity": badge.rarity,
             "gameKey": badge.game_key,
             "earned": badge.code in awards_by_code,
+            "awardId": int(awards_by_code[badge.code]["id"]) if badge.code in awards_by_code else None,
             "awardedAt": awards_by_code[badge.code]["awarded_at"] if badge.code in awards_by_code else None,
             "sourceDate": awards_by_code[badge.code]["source_date"] if badge.code in awards_by_code else None,
         }
@@ -322,11 +323,58 @@ def trophies():
                 {"id": season["id"], "number": season["number"], "name": season["name"]}
                 for season in seasons
             ],
+            "showcaseUrl": url_for("main.update_trophy_showcase"),
             "showcase": [
-                {"slot": row["slot"], "badgeCode": row["badge_code"]}
+                {"slot": row["slot"], "badgeCode": row["badge_code"],
+                 "awardId": int(row["award_id"]),
+                 "badge": {
+                     "code": row["badge_code"],
+                     "name": BADGES_BY_CODE[row["badge_code"]].name,
+                     "vertical": BADGES_BY_CODE[row["badge_code"]].vertical,
+                     "rarity": BADGES_BY_CODE[row["badge_code"]].rarity,
+                     "gameKey": BADGES_BY_CODE[row["badge_code"]].game_key,
+                 }}
                 for row in showcase
             ],
         },
         user,
         nav_points=get_weekly_points(current_user_key(), today)["points"],
     )
+
+
+@main_bp.post("/api/trophies/showcase")
+@login_required
+def update_trophy_showcase():
+    """Change exactly one showcase slot, validating ownership on the server."""
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"ok": False, "message": "Invalid showcase request."}), 400
+    slot = payload.get("slot")
+    award_id = payload.get("awardId")
+    if type(slot) is not int or slot not in (1, 2, 3):
+        return jsonify({"ok": False, "message": "Invalid showcase slot."}), 400
+    if award_id is not None and (type(award_id) is not int or award_id <= 0):
+        return jsonify({"ok": False, "message": "Invalid badge selection."}), 400
+    profile_id = int(session["user"]["profile_id"])
+    try:
+        set_showcase_slot(profile_id, slot, award_id)
+    except ValueError:
+        return jsonify({"ok": False, "message": "Choose one of your earned badges."}), 400
+    saved = get_showcase(profile_id)
+    response = jsonify({
+        "ok": True,
+        "showcase": [
+            {"slot": item["slot"], "badgeCode": item["badge_code"],
+             "awardId": int(item["award_id"]),
+             "badge": {
+                 "code": item["badge_code"],
+                 "name": BADGES_BY_CODE[item["badge_code"]].name,
+                 "vertical": BADGES_BY_CODE[item["badge_code"]].vertical,
+                 "rarity": BADGES_BY_CODE[item["badge_code"]].rarity,
+                 "gameKey": BADGES_BY_CODE[item["badge_code"]].game_key,
+             }}
+            for item in saved
+        ],
+    })
+    response.headers["Cache-Control"] = "no-store"
+    return response
