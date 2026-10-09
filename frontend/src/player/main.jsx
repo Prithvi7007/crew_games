@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/gameplay.css';
 import './styles/results.css';
-import './player.css';
 import './styles/page.css';
 import './styles/word.css';
 import './styles/home.css';

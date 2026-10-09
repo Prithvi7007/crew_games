@@ -936,88 +936,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-.trivia-page { --game-accent: var(--crew18-gold); }
-
-.trivia-page::before {
-  background-image: url("../images/v14/trivia.png");
-  background-position: 62% center;
-}
-
-/* Trivia React — loaded after the existing compiled React CSS. */
-.trivia-page .single-game-main.react-island-game {
-  width: min(1240px, calc(100% - 64px));
-  margin: 0 auto;
-  padding: clamp(42px,5vw,72px) 0 90px;
-}
-
-.trivia-page .react-trivia-shell-heading {
-  margin-bottom: 22px;
-}
-
-.trivia-page .react-trivia-shell-heading h1 {
-  margin: 0;
-  color: #fff;
-  font: 850 clamp(3.8rem,6vw,6.2rem)/.84 Manrope,Inter,sans-serif;
-  letter-spacing: -.07em;
-}
-
-.trivia-page .react-trivia-stage {
-  position: relative;
-  min-height: min(650px,70vh);
-  overflow: hidden;
-  padding: clamp(28px,4vw,52px);
-  border: 1px solid rgba(255,189,69,.16);
-  border-radius: 22px;
-  outline: none;
-  isolation: isolate;
-  background:
-    linear-gradient(90deg, rgba(4,9,13,.98) 0%, rgba(4,9,13,.92) 48%, rgba(4,9,13,.56) 76%, rgba(4,9,13,.40)),
-    url("../images/v14/trivia.png") 61% center / cover no-repeat;
-  box-shadow:
-    0 28px 90px rgba(0,0,0,.28),
-    inset 0 1px 0 rgba(255,255,255,.025);
-}
-
-.trivia-page .react-trivia-progress {
-  height: 2px;
-  margin: 18px 0 clamp(38px,6vh,66px);
-}
-
-.trivia-page .react-trivia-question-wrap {
-  max-width: 900px;
-  grid-template-columns: 58px minmax(0,1fr);
-  gap: clamp(18px,2.5vw,30px);
-}
-
-.trivia-page .react-question-number {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-}
-
-.trivia-page .react-trivia-question-wrap h1 {
-  max-width: 820px;
-  font-size: clamp(2rem,3.7vw,3.7rem);
-}
-
-.trivia-page .react-trivia-options {
-  max-width: 960px;
-  gap: 11px;
-  margin: clamp(38px,6vh,62px) 0 28px 78px;
-}
-
-.trivia-page .react-trivia-option {
-  min-height: 76px;
-  border-radius: 15px;
-  background: rgba(7,13,19,.68);
-  backdrop-filter: blur(10px);
-}
-
-.trivia-page .react-trivia-feedback {
-  max-width: 960px;
-  margin-left: 78px;
-}
-
 /* -------------------------------------------------------------------------- */
 /* Error pages                                                                */
 /* -------------------------------------------------------------------------- */
@@ -1065,8 +983,7 @@
 
 @media (max-width:760px) {
   .leaderboard-page .leaderboard-main,
-  .profile-page .profile-main,
-  .trivia-page .single-game-main.react-island-game {
+  .profile-page .profile-main {
     width: calc(100% - 28px);
     padding: 34px 0 96px;
   }
@@ -1181,34 +1098,11 @@
   .login-page .login-form input[type="password"] {
     font-size:16px;
   }
-  .trivia-page .react-trivia-stage {
-    min-height: calc(100svh - 230px);
-    padding: 22px 17px 20px;
-    border-radius: 17px;
-    background:
-      linear-gradient(180deg, rgba(4,9,13,.72), rgba(4,9,13,.94) 68%),
-      url("../images/v14/trivia-mobile.jpg") center / cover no-repeat;
-  }
 
-  .trivia-page .react-trivia-question-wrap {
-    grid-template-columns:1fr;
-    gap:14px;
-  }
-
-  .trivia-page .react-trivia-options {
-    grid-template-columns:1fr;
-    gap:8px;
-    margin:30px 0 22px;
-  }
-
-  .trivia-page .react-trivia-feedback {
-    margin-left:0;
-  }
 }
 
 @media (prefers-reduced-motion:reduce) {
-  .v14-games-page .v14-game-card,
-  .trivia-page .react-trivia-option {
+  .v14-games-page .v14-game-card {
     transition:none;
   }
 }

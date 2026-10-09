@@ -233,3 +233,64 @@ def test_wordle_styles_are_react_owned():
     assert "Wrong spot" in source
     assert "Correct spot" in source
     assert ">In word<" not in source
+
+
+def test_trivia_styles_are_react_owned():
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    trivia = (
+        ROOT / "frontend/src/player/styles/trivia.css"
+    ).read_text(encoding="utf-8")
+    page = (
+        ROOT / "frontend/src/player/styles/page.css"
+    ).read_text(encoding="utf-8")
+    legacy_main = (
+        ROOT / "app/static/css/main.css"
+    ).read_text(encoding="utf-8")
+    legacy_v18 = (
+        ROOT / "app/static/css/v18-pages.css"
+    ).read_text(encoding="utf-8")
+    motion = (
+        ROOT / "app/static/css/crew-motion.css"
+    ).read_text(encoding="utf-8")
+    results = (
+        ROOT / "frontend/src/player/styles/results.css"
+    ).read_text(encoding="utf-8")
+
+    assert "import './styles/trivia.css';" in source
+    assert "import './player.css';" not in source
+    assert not (ROOT / "frontend/src/player/player.css").exists()
+
+    for token in (
+        ".v19-trivia-page .react-trivia-stage",
+        ".v19-trivia-page .react-trivia-topline",
+        ".v19-trivia-page .react-trivia-progress",
+        ".v19-trivia-page .react-trivia-question-wrap",
+        ".v19-trivia-page .react-trivia-option",
+        ".v19-trivia-page .react-option-letter",
+        ".v19-trivia-page .react-trivia-feedback",
+        ".v19-trivia-page .react-trivia-result",
+        ".v19-trivia-page .react-result-meta",
+        ".v19-trivia-page .react-trivia-primary",
+    ):
+        assert token in trivia
+
+    for token in (
+        ".trivia-stage",
+        ".trivia-progress",
+        ".progress-track",
+        ".trivia-options",
+        "#trivia-next",
+        ".game-result",
+    ):
+        assert token not in legacy_main
+
+    assert ".trivia-page" not in legacy_v18
+    assert ".react-trivia" not in legacy_v18
+
+    # Shared player loading state moved out of the retired player.css.
+    assert ".react-player-page .react-player-loading" in page
+
+    # Cross-cutting layers may intentionally reference Trivia.
+    assert ".react-trivia-progress i" in motion
+    assert ".react-trivia-option.is-correct" in motion
+    assert ".v19-trivia-page .react-result-actions" in results

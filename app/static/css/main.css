@@ -159,7 +159,7 @@ footer{display:flex;justify-content:space-between;padding:28px 4px 0;color:rgba(
 /* CREW weekly game system */
 .weekly-hero { padding-bottom: 30px; }
 .today-challenge { min-height: 330px; border-radius: var(--radius-xl); padding: 42px; display:grid; grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr); align-items:center; gap:30px; }
-.today-challenge::before,.weekly-game-card::before,.trivia-stage::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:.9; }
+.today-challenge::before,.weekly-game-card::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:.9; }
 .game-tone-mystery::before { background:radial-gradient(circle at 85% 20%,rgba(88,220,151,.14),transparent 34%); }
 .game-tone-trivia::before { background:radial-gradient(circle at 85% 20%,rgba(255,213,91,.13),transparent 34%); }
 .game-tone-word::before { background:radial-gradient(circle at 85% 20%,rgba(100,169,255,.17),transparent 34%); }
@@ -187,23 +187,9 @@ footer{display:flex;justify-content:space-between;padding:28px 4px 0;color:rgba(
 .game-open { position:relative; z-index:2; margin-top:auto; width:100%; padding:0 14px; display:flex; justify-content:space-between; align-items:center; }
 .weekly-game-card.completed { border-color:rgba(96,224,166,.23); }
 
-.trivia-stage{ border-radius:var(--radius-xl); }
-
-/* Trivia */
-.trivia-stage { max-width:900px; margin:0 auto; padding:36px; min-height:570px; background:radial-gradient(circle at 80% 15%,rgba(255,210,91,.11),transparent 32%),linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.025)); }
-.trivia-progress { position:relative;z-index:2;display:flex;align-items:center;gap:16px;margin-bottom:36px;color:var(--muted);font-size:.67rem;font-weight:700; }
-.progress-track { height:5px; flex:1; background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden; }.progress-track i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));border-radius:inherit;transition:width .3s ease;}
-.trivia-stage h2 { position:relative;z-index:2;font:800 clamp(1.8rem,4vw,3rem)/1.15 Manrope;letter-spacing:-.045em;margin:12px 0 28px;max-width:760px; }
-.trivia-options { position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:10px; }
-.trivia-options button { min-height:74px;display:flex;align-items:center;gap:14px;text-align:left;border:1px solid rgba(255,255,255,.11);border-radius:16px;background:rgba(255,255,255,.045);color:white;padding:13px 16px;cursor:pointer;transition:.18s; }
-.trivia-options button:hover:not(:disabled){transform:translateY(-1px);background:rgba(255,255,255,.08);border-color:rgba(126,231,255,.28)}
-.trivia-options button span { width:34px;height:34px;display:grid;place-items:center;flex:0 0 auto;border-radius:10px;background:rgba(255,255,255,.07);font:.7rem Manrope;font-weight:800; }
-.trivia-options button.correct { background:rgba(66,190,142,.15);border-color:rgba(96,224,166,.4); }.trivia-options button.wrong { background:rgba(179,64,76,.13);border-color:rgba(255,130,140,.35); }
-#trivia-next { width:max-content; margin-top:10px; }
-.game-result { position:relative;z-index:2;text-align:center;margin:50px auto 0;max-width:340px; }.game-result strong{display:block;font:800 5rem/1 Manrope;letter-spacing:-.08em}.game-result>span{font-size:.62rem;letter-spacing:.15em;color:var(--muted);font-weight:800}.game-result p{color:var(--muted);}.game-result .secondary-button{display:grid;place-items:center;margin-top:20px;}
 
 @media (max-width: 1020px){.weekly-game-grid{grid-template-columns:1fr 1fr}.today-challenge{grid-template-columns:1fr auto}}
-@media (max-width: 720px){.today-challenge{padding:27px;grid-template-columns:1fr}.today-glyph{display:none}.today-copy .primary-button{width:100%}.weekly-game-grid{grid-template-columns:1fr}.weekly-game-card{min-height:300px}.trivia-stage{padding:22px}.trivia-options{grid-template-columns:1fr}}
+@media (max-width: 720px){.today-challenge{padding:27px;grid-template-columns:1fr}.today-glyph{display:none}.today-copy .primary-button{width:100%}.weekly-game-grid{grid-template-columns:1fr}.weekly-game-card{min-height:300px}}
 
 /* Privacy-first CREW profiles */
 .link-button { display:flex; align-items:center; justify-content:center; }

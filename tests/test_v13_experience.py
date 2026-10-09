@@ -33,7 +33,7 @@ def test_current_home_uses_the_consolidated_home_experience():
 def test_trivia_uses_shared_react_player_app_without_replacing_flask_contract():
     player_template = ROOT / "app" / "templates" / "player_app.html"
     react_source = ROOT / "frontend" / "src" / "player" / "main.jsx"
-    react_css = ROOT / "frontend" / "src" / "player" / "player.css"
+    react_css = ROOT / "frontend" / "src" / "player" / "styles" / "trivia.css"
     package = ROOT / "frontend" / "package.json"
     routes = (ROOT / "app" / "trivia" / "routes.py").read_text(encoding="utf-8")
 

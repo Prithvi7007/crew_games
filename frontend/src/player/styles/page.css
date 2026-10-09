@@ -22,3 +22,11 @@
   color: var(--crew-color-muted);
   font: 500 .78rem/1.5 var(--crew-font-body);
 }
+
+/* Shared player loading state */
+.react-player-page .react-player-loading {
+  min-height: 50vh;
+  display: grid;
+  place-items: center;
+  color: rgba(220,230,240,.65);
+}
