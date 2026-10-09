@@ -5,45 +5,30 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_v13_shared_shell_and_mobile_navigation_are_present():
-    header = (ROOT / "app" / "templates" / "_app_header.html").read_text(encoding="utf-8")
-    base = (ROOT / "app" / "templates" / "base.html").read_text(encoding="utf-8")
-    css = (ROOT / "app" / "static" / "css" / "main.css").read_text(encoding="utf-8")
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    shell = (ROOT / "app/static/css/crew-shell.css").read_text(encoding="utf-8")
 
-    assert "crew-signal" not in header
-    assert "mobile-bottom-nav" in header
-    assert "PLAY TOGETHER" in header
-    assert "GO FURTHER" in header
-    assert "filename='css/main.css', v='13.10.1'" in base
-    assert "CREW v13.3 — Cinematic Today" in css
-    assert "CREW v13.4 — North-star composition polish" in css
-    assert "CREW v13.6 — North-star fidelity lock" in css
-    assert "CREW v13.7 — full-bleed fidelity lock" in css
-    assert "mystery-scene-mobile.webp" in css
-    assert "trivia-scene-mobile.webp" in css
-    assert "word-scene-mobile.webp" in css
-    assert "tick_tock-scene-mobile.webp" in css
-    assert "body.daily-drop .noise" in css
-    assert "prefers-reduced-motion" in css
+    assert "function AppHeader" in source
+    assert "mobile-bottom-nav" in source
+    assert "PLAY TOGETHER" in source
+    assert "GO FURTHER" in source
+    assert "crew-nav-account" in source
 
+    assert ".crew-app-page .app-nav" in shell
+    assert ".crew-app-page .mobile-bottom-nav" in shell
 
 def test_current_home_uses_the_consolidated_home_experience():
-    home = (ROOT / "app" / "templates" / "home.html").read_text(encoding="utf-8-sig")
-    today_partial = ROOT / "app" / "templates" / "_home_v17.html"
-    today_css = ROOT / "app" / "static" / "css" / "home.css"
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    css = ROOT / "app" / "static" / "css" / "home.css"
 
-    assert "v17-today-page" in home
-    assert "filename='css/home.css'" in home
-    assert '{% include "_home_v17.html" %}' in home
-    assert today_partial.exists()
-    assert today_css.exists()
-
-    partial = today_partial.read_text(encoding="utf-8")
-    assert '{% include "_app_header.html" %}' in partial
-
-    header = (ROOT / "app" / "templates" / "_app_header.html").read_text(encoding="utf-8")
-    assert ">Home</a>" in header
-    assert ">Rankings</a>" in header
-
+    assert "function HomePage" in source
+    assert "function HomeDesktop" in source
+    assert "function HomeJourney" in source
+    assert "v17-today-shell" in source
+    assert "v22-today-desktop" in source
+    assert "home-summary" in source
+    assert "<AppHeader" in source
+    assert css.exists()
 
 def test_trivia_uses_shared_react_player_app_without_replacing_flask_contract():
     player_template = ROOT / "app" / "templates" / "player_app.html"

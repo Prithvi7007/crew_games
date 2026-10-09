@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.db import ensure_user_stats, finalize_word_stats, get_game_content, get_or_create_word_attempt, load_guesses, save_word_attempt

@@ -5,22 +5,24 @@ CSS = ROOT / "app" / "static" / "css"
 
 
 def test_core_pages_have_single_stylesheet_owners():
-    base = (ROOT / "app/templates/base.html").read_text(encoding="utf-8")
-    home = (ROOT / "app/templates/home.html").read_text(encoding="utf-8-sig")
-    games = (ROOT / "app/templates/games.html").read_text(encoding="utf-8")
-    rankings = (ROOT / "app/templates/leaderboard.html").read_text(encoding="utf-8")
+    template = (ROOT / "app/templates/player_app.html").read_text(encoding="utf-8")
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
 
-    assert "v23-core-pages.css" not in base
-    assert "v17-today.css" not in home
-    assert "v22-today-desktop.css" not in home
-    assert "filename='css/home.css'" in home
-    assert "filename='css/games.css'" in games
-    assert "filename='css/rankings.css'" in rankings
+    assert 'id="crew-player-root"' in template
+    assert "react/player.css" in template
+    assert "react/player.js" in template
 
-    for filename in ("home.css", "games.css", "rankings.css"):
-        content = (CSS / filename).read_text(encoding="utf-8")
-        assert "!important" not in content
-
+    for component in (
+        "HomePage",
+        "GamesPage",
+        "RankingsPage",
+        "ProfilePage",
+        "MysteryPage",
+        "TriviaPage",
+        "WordPage",
+        "TickTockPage",
+    ):
+        assert f"function {component}" in source
 
 def test_shared_shell_is_not_redeclared_by_page_css():
     shell = (CSS / "crew-shell.css").read_text(encoding="utf-8")

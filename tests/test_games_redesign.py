@@ -3,15 +3,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def test_games_page_lists_season_weeks_without_old_switcher():
-    source = (ROOT / "app/templates/games.html").read_text(encoding="utf-8")
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+
     assert "games-season-weeks" in source
-    assert "for week in weeks" in source
+    assert "(data.weeks||[]).map" in source
     assert "Previous week" not in source
     assert "Next week" not in source
     assert "Four days." not in source
 
 def test_games_page_uses_compact_rows_not_artwork_cards():
-    source = (ROOT / "app/templates/games.html").read_text(encoding="utf-8")
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+
     assert "games-game-row" in source
     assert "v14-game-art" not in source
     assert "games-game-icon" in source

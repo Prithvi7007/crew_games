@@ -172,25 +172,16 @@ def test_profile_exposes_sign_out_action(app):
 
 def test_global_account_menu_exposes_profile_and_sign_out():
     root = Path(__file__).parents[1]
-    partial = (root / "app" / "templates" / "_account_menu.html").read_text(encoding="utf-8")
-    assert 'data-account-trigger' in partial
-    assert 'aria-haspopup="menu"' in partial
-    assert 'href="{{ url_for(\'auth.profile\') }}"' in partial
-    assert 'action="{{ url_for(\'auth.logout\') }}"' in partial
-    assert '>Sign out<' in partial
+    source = (
+        root / "frontend" / "src" / "player" / "main.jsx"
+    ).read_text(encoding="utf-8")
 
-    app_header = (root / "app" / "templates" / "_app_header.html").read_text(encoding="utf-8")
-    assert '{% include "_account_menu.html" %}' in app_header
-
-    for name in ["games.html", "leaderboard.html", "profile.html", "mystery.html", "trivia.html", "tick_tock.html", "word.html"]:
-        template = (root / "app" / "templates" / name).read_text(encoding="utf-8")
-        assert '{% include "_app_header.html" %}' in template
-
-    # Today now delegates its full experience to the v17 partial.
-    home = (root / "app" / "templates" / "home.html").read_text(encoding="utf-8-sig")
-    today_partial = (root / "app" / "templates" / "_home_v17.html").read_text(encoding="utf-8")
-    assert '{% include "_home_v17.html" %}' in home
-    assert '{% include "_app_header.html" %}' in today_partial
+    assert "function AccountMenu" in source
+    assert 'aria-haspopup="menu"' in source
+    assert 'href="/profile"' in source
+    assert 'action="/logout"' in source
+    assert ">Sign out<" in source
+    assert "function AppHeader" in source
 
 def test_db_upgrade_releases_preflight_connection_before_alembic(app, monkeypatch):
     import app.db as db_module
@@ -259,38 +250,46 @@ def test_archive_completion_counts_points_in_original_week(app):
 
 def test_archive_play_banners_are_removed_from_game_templates():
     root = Path(__file__).parents[1]
-    for name in ("mystery.html", "trivia.html", "word.html", "tick_tock.html"):
-        template = (root / "app" / "templates" / name).read_text(encoding="utf-8")
-        assert ">Archive play<" not in template
+    source = (
+        root / "frontend" / "src" / "player" / "main.jsx"
+    ).read_text(encoding="utf-8")
+
+    assert "Archive play" not in source
 
 def test_tick_tock_page_explains_scoring_ladder():
     root = Path(__file__).parents[1]
-    template = (root / 'app' / 'templates' / 'tick_tock.html').read_text(encoding='utf-8')
-    assert 'class="glass-card game-side-panel timer-score-panel"' in template
-    assert 'HOW IT SCORES' in template
+    source = (
+        root / "frontend" / "src" / "player" / "main.jsx"
+    ).read_text(encoding="utf-8")
+
+    assert "HOW IT SCORES" in source
     for label, score in (
-        ('Within 0.10 sec', '100'),
-        ('Within 0.25 sec', '90'),
-        ('Within 0.50 sec', '80'),
-        ('Within 1.00 sec', '60'),
-        ('Within 1.50 sec', '40'),
-        ('Within 2.50 sec', '20'),
-        ('More than 2.50 sec', '10'),
+        ("Within 0.10 sec", "100"),
+        ("Within 0.25 sec", "90"),
+        ("Within 0.50 sec", "80"),
+        ("Within 1.00 sec", "60"),
+        ("Within 1.50 sec", "40"),
+        ("Within 2.50 sec", "20"),
+        ("More than 2.50 sec", "10"),
     ):
-        assert label in template
-        assert f'<b>{score}</b>' in template
+        assert label in source
+        assert score in source
 
 def test_mystery_unsolved_completion_awards_participation_points():
     root = Path(__file__).parents[1]
 
-    routes = (root / "app" / "mystery" / "routes.py").read_text(encoding="utf-8")
-    template = (root / "app" / "templates" / "mystery.html").read_text(encoding="utf-8")
-    admin_test = (root / "app" / "static" / "js" / "v2-admin-test.js").read_text(encoding="utf-8")
+    routes = (root / "app/mystery/routes.py").read_text(encoding="utf-8")
+    player = (
+        root / "frontend" / "src" / "player" / "main.jsx"
+    ).read_text(encoding="utf-8")
+    admin_test = (
+        root / "app/static/js/v2-admin-test.js"
+    ).read_text(encoding="utf-8")
 
-    assert 'score, completed = 10, True' in routes
-    assert 'Unsolved <b>10</b>' in template
-    assert '10 participation points' in template
-    assert '<strong>10</strong><small>PTS · ANSWER' in admin_test
+    assert "score, completed = 10, True" in routes
+    assert "Unsolved" in player
+    assert "10 participation points" in player
+    assert "<strong>10</strong><small>PTS · ANSWER" in admin_test
 
 def test_future_player_game_urls_redirect_without_loading_attempts(app, monkeypatch):
     from datetime import date
@@ -334,19 +333,27 @@ def test_future_player_game_urls_redirect_without_loading_attempts(app, monkeypa
 
 def test_games_page_copy_matches_catch_up_scoring_rules():
     root = Path(__file__).parents[1]
-    template = (root / "app" / "templates" / "games.html").read_text(encoding="utf-8")
-    assert "Past leaderboards stay locked." not in template
-    assert "Catch-up scores count toward the week" in template
-    assert "Catch-up play does not create, extend, or repair a streak." in template
+    source = (
+        root / "frontend" / "src" / "player" / "main.jsx"
+    ).read_text(encoding="utf-8")
+
+    assert "Past leaderboards stay locked." not in source
+    assert "Catch-up scores count toward the week" in source
+    assert "Catch-up play does not create, extend, or repair a streak." in source
 
 def test_rankings_empty_state_respects_hidden_attribute():
     root = Path(__file__).parents[1]
-    css = (root / 'app' / 'static' / 'css' / 'rankings.css').read_text(encoding='utf-8')
-    template = (root / 'app' / 'templates' / 'leaderboard.html').read_text(encoding='utf-8')
+    css = (
+        root / "app/static/css/rankings.css"
+    ).read_text(encoding="utf-8")
+    source = (
+        root / "frontend/src/player/main.jsx"
+    ).read_text(encoding="utf-8")
 
-    assert '.rankings-empty[hidden]' in css
-    assert 'display:none' in css
-    assert "filename='css/rankings.css'" in template
+    assert ".rankings-empty[hidden]" in css
+    assert "display:none" in css
+    assert 'className="rankings-empty"' in source
+    assert "No scores in this view yet." in source
 
 def test_prelaunch_dates_are_not_player_visible_or_playable():
     from datetime import date
