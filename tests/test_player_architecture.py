@@ -294,3 +294,35 @@ def test_trivia_styles_are_react_owned():
     assert ".react-trivia-progress i" in motion
     assert ".react-trivia-option.is-correct" in motion
     assert ".v19-trivia-page .react-result-actions" in results
+
+
+
+def test_react_player_does_not_load_legacy_global_layers():
+    base = (ROOT / "app/templates/base.html").read_text(encoding="utf-8")
+    player = (ROOT / "app/templates/player_app.html").read_text(encoding="utf-8")
+    legacy_js = (ROOT / "app/static/js/ui.js").read_text(encoding="utf-8")
+
+    assert "{% block legacy_styles %}" in base
+    assert "{% block legacy_scripts %}" in base
+
+    assert "{% block legacy_styles %}{% endblock %}" in player
+    assert "{% block legacy_scripts %}{% endblock %}" in player
+
+    assert "window.fetch =" not in legacy_js
+
+
+def test_legacy_global_css_no_longer_owns_player_pages():
+    main = (ROOT / "app/static/css/main.css").read_text(encoding="utf-8")
+    v18 = (ROOT / "app/static/css/v18-pages.css").read_text(encoding="utf-8")
+
+    assert "CREW v13.1" not in main
+    assert "Home flow v7" not in main
+    assert "CREW weekly game system" not in main
+
+    for selector in (
+        ".leaderboard-page",
+        ".profile-page",
+        ".game-page",
+        ".v14-games-page",
+    ):
+        assert selector not in v18

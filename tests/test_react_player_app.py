@@ -130,20 +130,28 @@ def test_react_assets_use_content_fingerprinted_cache_busting():
 
 def test_mobile_shell_keeps_account_controls_available():
     css = (ROOT / "app/static/css/crew-shell.css").read_text(encoding="utf-8")
-    assert "/* React player runtime hardening. */" in css
+    assert "/* React account menu ownership. */" in css
     assert '.account-trigger[aria-expanded="true"]' in css
-    assert ".crew-runtime-notice" in css
+    assert ".crew-app-page .account-dropdown" in css
+    assert ".crew-runtime-notice" not in css
     assert "Override the earlier mobile rule that hid the entire account menu" in css
 
 
 def test_runtime_fetch_handles_session_expiry_and_rankings_races():
-    source = (ROOT / "app/static/js/ui.js").read_text(encoding="utf-8")
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    legacy = (ROOT / "app/static/js/ui.js").read_text(encoding="utf-8")
+
+    assert "async function playerFetch" in source
     assert "response.redirected" in source
     assert "redirectedUrl.pathname === '/login'" in source
     assert "encodeURIComponent(next)" in source
-    assert "leaderboardRequestId" in source
-    assert "crewLeaderboardStale" in source
-    assert "crewLeaderboard" in source
+
+    assert "const requestRef=useRef(0)" in source
+    assert "requestId!==requestRef.current" in source
+    assert "requestId===requestRef.current" in source
+
+    assert "window.fetch =" not in legacy
+    assert "leaderboardRequestId" not in legacy
 
 
 def test_trivia_motion_targets_shared_react_root():
@@ -151,3 +159,24 @@ def test_trivia_motion_targets_shared_react_root():
     assert "crew-player-root" in source
     assert "root.dataset.page !== 'trivia'" in source
     assert "crew-trivia-root" not in source
+
+
+
+def test_player_keyboard_shortcuts_respect_focused_controls():
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+
+    assert "function isInteractiveTarget" in source
+    assert "isInteractiveTarget(e.target)" in source
+    assert source.count("isInteractiveTarget(e.target)") >= 3
+
+
+def test_react_account_menu_has_keyboard_navigation_and_focus_restore():
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+
+    assert "onTriggerKey" in source
+    assert "onPanelKey" in source
+    assert "ArrowDown" in source
+    assert "ArrowUp" in source
+    assert "event.key === 'Home'" in source
+    assert "event.key === 'End'" in source
+    assert "restoreFocus: true" in source

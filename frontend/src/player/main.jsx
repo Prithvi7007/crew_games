@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import './styles/page.css';
 import './styles/gameplay.css';
 import './styles/results.css';
-import './styles/page.css';
 import './styles/word.css';
 import './styles/home.css';
 import './styles/games.css';
@@ -53,14 +53,63 @@ function stateFor(game, today) {
   if (game.date === today) return ['current', 'TODAY'];
   return ['available', 'AVAILABLE'];
 }
+function isInteractiveTarget(target) {
+  return target instanceof Element && Boolean(
+    target.closest(
+      'input, textarea, select, button, a, [contenteditable="true"], [role="button"], [role="menuitem"]'
+    )
+  );
+}
+
+async function playerFetch(input, init = {}) {
+  const requestUrl = typeof input === 'string'
+    ? new URL(input, window.location.href)
+    : new URL(input.url, window.location.href);
+
+  const method = String(
+    init.method || (typeof input !== 'string' && input.method) || 'GET'
+  ).toUpperCase();
+
+  const sameOrigin = requestUrl.origin === window.location.origin;
+  let nextInit = init;
+
+  if (sameOrigin && !['GET','HEAD','OPTIONS','TRACE'].includes(method)) {
+    const headers = new Headers(
+      init.headers || (typeof input !== 'string' ? input.headers : undefined)
+    );
+    if (csrfToken && !headers.has('X-CSRFToken')) {
+      headers.set('X-CSRFToken', csrfToken);
+    }
+    nextInit = {...init, headers};
+  }
+
+  const response = await fetch(input, nextInit);
+
+  if (response.redirected && sameOrigin) {
+    const redirectedUrl = new URL(response.url, window.location.href);
+    if (
+      redirectedUrl.origin === window.location.origin &&
+      redirectedUrl.pathname === '/login'
+    ) {
+      const next = `${window.location.pathname}${window.location.search}`;
+      window.location.assign(`/login?next=${encodeURIComponent(next)}`);
+      return new Promise(() => {});
+    }
+  }
+
+  return response;
+}
+
 function postJson(url, body) {
-  return fetch(url, {
+  return playerFetch(url, {
     method: 'POST',
-    headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRFToken':csrfToken},
+    headers: {'Content-Type':'application/json','Accept':'application/json'},
     body: body === undefined ? undefined : JSON.stringify(body),
   }).then(async response => {
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.message || 'Something went wrong. Try again.');
+    if (!response.ok) {
+      throw new Error(payload.message || 'Something went wrong. Try again.');
+    }
     return payload;
   });
 }
@@ -68,29 +117,168 @@ function postJson(url, body) {
 function AccountMenu({ user }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+
   const role = user?.role || 'player';
-  const roleLabel = role === 'owner' ? 'CREW Owner' : role === 'admin' ? 'CREW Admin' : 'CREW Player';
+  const roleLabel =
+    role === 'owner'
+      ? 'CREW Owner'
+      : role === 'admin'
+        ? 'CREW Admin'
+        : 'CREW Player';
+
+  const items = () =>
+    panelRef.current
+      ? [...panelRef.current.querySelectorAll('[role="menuitem"]')]
+      : [];
+
+  function focusItem(index) {
+    window.requestAnimationFrame(() => {
+      const menuItems = items();
+      if (!menuItems.length) return;
+      const normalized = (index + menuItems.length) % menuItems.length;
+      menuItems[normalized]?.focus();
+    });
+  }
+
+  function close({restoreFocus = false} = {}) {
+    setOpen(false);
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => triggerRef.current?.focus());
+    }
+  }
+
+  function onTriggerKey(event) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setOpen(true);
+      focusItem(0);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setOpen(true);
+      focusItem(-1);
+    }
+  }
+
+  function onPanelKey(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      close({restoreFocus: true});
+      return;
+    }
+
+    const menuItems = items();
+    if (!menuItems.length) return;
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      menuItems[0]?.focus();
+      return;
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault();
+      menuItems[menuItems.length - 1]?.focus();
+      return;
+    }
+
+    if (!['ArrowDown','ArrowUp'].includes(event.key)) return;
+
+    const current = menuItems.indexOf(document.activeElement);
+    event.preventDefault();
+
+    if (current < 0) {
+      focusItem(event.key === 'ArrowDown' ? 0 : -1);
+      return;
+    }
+
+    focusItem(current + (event.key === 'ArrowDown' ? 1 : -1));
+  }
+
   useEffect(() => {
-    function close(event) { if (!ref.current?.contains(event.target)) setOpen(false); }
-    function key(event) { if (event.key === 'Escape') setOpen(false); }
-    document.addEventListener('pointerdown', close);
-    document.addEventListener('keydown', key);
-    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', key); };
-  }, []);
+    function outside(event) {
+      if (open && !ref.current?.contains(event.target)) close();
+    }
+
+    function escape(event) {
+      if (open && event.key === 'Escape') {
+        event.preventDefault();
+        close({restoreFocus: true});
+      }
+    }
+
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+
+    return () => {
+      document.removeEventListener('pointerdown', outside);
+      document.removeEventListener('keydown', escape);
+    };
+  }, [open]);
+
   return <div className="account-menu" ref={ref}>
-    <button className="profile-menu account-trigger" type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(v => !v)}>
-      <span className="profile-copy"><strong>{user?.username}</strong><span>{roleLabel}</span></span>
-      <span className="avatar" aria-hidden="true">{user?.avatar}</span><span className="account-chevron" aria-hidden="true">⌄</span>
+    <button
+      ref={triggerRef}
+      className="profile-menu account-trigger"
+      type="button"
+      aria-haspopup="menu"
+      aria-controls="crew-account-menu"
+      aria-expanded={open}
+      onClick={() => setOpen(value => !value)}
+      onKeyDown={onTriggerKey}
+    >
+      <span className="profile-copy">
+        <strong>{user?.username}</strong>
+        <span>{roleLabel}</span>
+      </span>
+      <span className="avatar" aria-hidden="true">{user?.avatar}</span>
+      <span className="account-chevron" aria-hidden="true">⌄</span>
     </button>
-    <div className="account-dropdown" role="menu" hidden={!open}>
-      <div className="account-identity"><span className="account-avatar" aria-hidden="true">{user?.avatar}</span><span><strong>{user?.username}</strong><small>{roleLabel}</small></span></div>
+
+    <div
+      id="crew-account-menu"
+      ref={panelRef}
+      className="account-dropdown"
+      role="menu"
+      hidden={!open}
+      onKeyDown={onPanelKey}
+    >
+      <div className="account-identity">
+        <span className="account-avatar" aria-hidden="true">{user?.avatar}</span>
+        <span>
+          <strong>{user?.username}</strong>
+          <small>{roleLabel}</small>
+        </span>
+      </div>
+
       <div className="account-divider" aria-hidden="true" />
-      {['admin','owner'].includes(role) ? <a className="account-action" role="menuitem" href="/admin"><span>Open Admin Studio</span><span aria-hidden="true">→</span></a> : null}
-      <a className="account-action" role="menuitem" href="/profile"><span>View profile</span><span aria-hidden="true">→</span></a>
-      <form className="account-signout" method="post" action="/logout"><input type="hidden" name="csrf_token" value={csrfToken}/><button className="account-action account-signout-button" role="menuitem" type="submit"><span>Sign out</span><span aria-hidden="true">↗</span></button></form>
+
+      {['admin','owner'].includes(role)
+        ? <a className="account-action" role="menuitem" href="/admin">
+            <span>Open Admin Studio</span><span aria-hidden="true">→</span>
+          </a>
+        : null}
+
+      <a className="account-action" role="menuitem" href="/profile">
+        <span>View profile</span><span aria-hidden="true">→</span>
+      </a>
+
+      <form className="account-signout" method="post" action="/logout">
+        <input type="hidden" name="csrf_token" value={csrfToken}/>
+        <button
+          className="account-action account-signout-button"
+          role="menuitem"
+          type="submit"
+        >
+          <span>Sign out</span><span aria-hidden="true">↗</span>
+        </button>
+      </form>
     </div>
   </div>;
 }
+
 function NavIcon({ name }) {
   if (name === 'home') return <svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6.5 9.5V20h11V9.5"/><path d="M10 20v-6h4v6"/></svg>;
   if (name === 'games') return <svg viewBox="0 0 24 24"><path d="m12 4 7 7-7 7-7-7 7-7Z"/></svg>;
@@ -141,11 +329,195 @@ function HomeJourney({games,featured,today}) { return <section className="v17-jo
 function GamesPage({ data }) { return <div className="games-shell"><AppHeader shell={data.shell}/><main className="games-main"><header className="crew-page-head"><span className="crew-page-kicker">{data.season?`SEASON ${data.season.number}`:'CREW'}</span><h1>Games</h1><p>Replay completed games or catch up on something you missed. Catch-up scores count toward the week the challenge belongs to. Catch-up play does not create, extend, or repair a streak.</p></header><div className="games-season-weeks">{(data.weeks||[]).map(week=><section key={week.number} className={`games-week-block${week.is_current?' is-current':''}`}><header className="games-week-head"><h2>WEEK {String(week.number).padStart(2,'0')}</h2><span>{String(week.label||'').toUpperCase()}</span>{week.is_current?<em>CURRENT WEEK</em>:null}</header><div className="games-game-list"><div className="games-game-columns" aria-hidden="true"><span>DAY</span><span>GAME</span><span>STATUS</span><span>SCORE</span><span>ACTION</span></div>{(week.games||[]).map(game=><article key={`${week.number}-${game.key}`} className={`games-game-row games-game-${game.key} ${game.status}`}><div className="games-game-day"><i aria-hidden="true"/><strong>{String(game.day||'').slice(0,3).toUpperCase()}</strong><span>{upperMonthDay(game.date)}</span></div><div className="games-game-name"><span className="games-game-icon" aria-hidden="true">{GAME_ICONS[game.key]}</span><span><strong>{game.title}</strong><small>{game.description}</small></span></div><div className={`games-status-pill ${game.status}`}>{game.status_label}</div><div className="games-game-points">{game.completed?<><strong>{game.score}</strong><span>pts</span></>:game.status==='upcoming'?<strong>—</strong>:<><strong>{game.points}</strong><span>pts</span></>}</div><div className="games-game-action">{game.status==='upcoming'?<span>Opens {monthDay(game.date)}</span>:<a href={game.url}><span>{game.action}</span><span aria-hidden="true">→</span></a>}</div></article>)}</div></section>)}</div></main></div> }
 
 function RankingsPage({ data }) {
-  const [board,setBoard]=useState(data.board||{players:[]}); const [season,setSeason]=useState(String(data.selectedSeason?.id||data.filters?.seasons?.[0]?.id||'')); const [week,setWeek]=useState(String(data.selectedWeek||'all')); const [game,setGame]=useState(data.selectedGame||'all'); const [busy,setBusy]=useState(false);
-  const selected=(data.filters?.seasons||[]).find(item=>String(item.id)===season); const weeks=Array.from({length:selected?.weeks_total||0},(_,i)=>i+1);
-  async function load(next={}) { const s=next.season??season,w=next.week??week,g=next.game??game;setBusy(true);try{const params=new URLSearchParams({season:s,week:w,game:g});const r=await fetch(`${data.apiUrl}?${params}`,{headers:{Accept:'application/json'}});if(!r.ok)throw new Error();setBoard(await r.json());history.replaceState(null,'',`/leaderboard?${params}`);}finally{setBusy(false);} }
-  function changeSeason(value){setSeason(value);setWeek('all');load({season:value,week:'all'});} function changeWeek(value){setWeek(value);load({week:value});} function changeGame(value){setGame(value);load({game:value});}
-  return <div className="rankings-shell"><AppHeader shell={data.shell}/><main className="rankings-main"><header className="rankings-head"><div className="crew-page-head"><span className="crew-page-kicker">CREW STANDINGS</span><h1>Rankings</h1><p>See how you stack up against the CREW.</p></div><div className="rankings-time-filters"><label><span>SEASON</span><select className="crew-select" value={season} onChange={e=>changeSeason(e.target.value)}>{(data.filters?.seasons||[]).map(item=><option key={item.id} value={item.id}>Season {item.number}</option>)}</select></label><label><span>WEEK</span><select className="crew-select" value={week} onChange={e=>changeWeek(e.target.value)}><option value="all">All Weeks</option>{weeks.map(n=><option key={n} value={n}>Week {String(n).padStart(2,'0')}</option>)}</select></label></div></header><nav className="rankings-game-tabs" aria-label="Game filter">{[['all','Overall','▥'],['mystery','Mystery Monday','◆'],['trivia','Trivia Tuesday','?'],['word','Wordle Wednesday','W'],['tick_tock','Tick-Tock Thursday','◷']].map(([value,label,icon])=><button key={value} type="button" className={game===value?'active':''} aria-pressed={game===value} onClick={()=>changeGame(value)}><span aria-hidden="true">{icon}</span><strong>{label}</strong></button>)}</nav><section className="rankings-leaderboard-card" aria-label="Rankings table" aria-busy={busy}><div className="rankings-leaderboard-head" aria-hidden="true"><span>#</span><span>PLAYER</span><span>TOTAL PTS</span><span>GAMES PLAYED</span><span>AVG PTS</span><span>CURRENT STREAK</span></div><div className="rankings-leaderboard-list">{(board.players||[]).map(player=><div key={player.profile_id||`${player.rank}-${player.username}`} className={`rankings-leader-row place-${player.rank||0}${player.me?' is-me':''}`}><span className="rankings-rank">{player.rank||'—'}</span><span className="rankings-player"><i aria-hidden="true">{player.avatar}</i><span><strong>{player.username}</strong><small>{player.detail}</small></span></span><strong className="rankings-number">{player.points||0}</strong><span className="rankings-number">{player.completed||0}</span><span className="rankings-number">{player.completed?(player.points/player.completed).toFixed(1):'—'}</span><span className="rankings-streak">{player.streak?`🔥 ${player.streak}`:'—'}</span></div>)}</div><div className="rankings-empty" hidden={(board.players||[]).length>0}>No scores in this view yet.</div></section></main></div>;
+  const [board,setBoard]=useState(data.board||{players:[]});
+  const [season,setSeason]=useState(String(data.selectedSeason?.id||data.filters?.seasons?.[0]?.id||''));
+  const [week,setWeek]=useState(String(data.selectedWeek||'all'));
+  const [game,setGame]=useState(data.selectedGame||'all');
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState('');
+  const requestRef=useRef(0);
+
+  const selected=(data.filters?.seasons||[]).find(item=>String(item.id)===season);
+  const weeks=Array.from({length:selected?.weeks_total||0},(_,i)=>i+1);
+
+  async function load(next={}) {
+    const requestId=++requestRef.current;
+    const s=next.season??season;
+    const w=next.week??week;
+    const g=next.game??game;
+
+    setBusy(true);
+    setError('');
+
+    try {
+      const params=new URLSearchParams({season:s,week:w,game:g});
+      const response=await playerFetch(
+        `${data.apiUrl}?${params}`,
+        {headers:{Accept:'application/json'}}
+      );
+
+      if(!response.ok) {
+        throw new Error("Couldn't refresh rankings.");
+      }
+
+      const payload=await response.json();
+
+      if(requestId!==requestRef.current) return;
+
+      setBoard(payload);
+      history.replaceState(null,'',`/leaderboard?${params}`);
+    } catch (err) {
+      if(requestId===requestRef.current) {
+        setError(err?.message || "Couldn't refresh rankings.");
+      }
+    } finally {
+      if(requestId===requestRef.current) {
+        setBusy(false);
+      }
+    }
+  }
+
+  function changeSeason(value){
+    setSeason(value);
+    setWeek('all');
+    load({season:value,week:'all'});
+  }
+
+  function changeWeek(value){
+    setWeek(value);
+    load({week:value});
+  }
+
+  function changeGame(value){
+    setGame(value);
+    load({game:value});
+  }
+
+  return <div className="rankings-shell">
+    <AppHeader shell={data.shell}/>
+
+    <main className="rankings-main">
+      <header className="rankings-head">
+        <div className="crew-page-head">
+          <span className="crew-page-kicker">CREW STANDINGS</span>
+          <h1>Rankings</h1>
+          <p>See how you stack up against the CREW.</p>
+        </div>
+
+        <div className="rankings-time-filters">
+          <label>
+            <span>SEASON</span>
+            <select
+              className="crew-select"
+              value={season}
+              onChange={event=>changeSeason(event.target.value)}
+            >
+              {(data.filters?.seasons||[]).map(item=>
+                <option key={item.id} value={item.id}>
+                  Season {item.number}
+                </option>
+              )}
+            </select>
+          </label>
+
+          <label>
+            <span>WEEK</span>
+            <select
+              className="crew-select"
+              value={week}
+              onChange={event=>changeWeek(event.target.value)}
+            >
+              <option value="all">All Weeks</option>
+              {weeks.map(number=>
+                <option key={number} value={number}>
+                  Week {String(number).padStart(2,'0')}
+                </option>
+              )}
+            </select>
+          </label>
+        </div>
+      </header>
+
+      <nav className="rankings-game-tabs" aria-label="Game filter">
+        {[
+          ['all','Overall','▥'],
+          ['mystery','Mystery Monday','◆'],
+          ['trivia','Trivia Tuesday','?'],
+          ['word','Wordle Wednesday','W'],
+          ['tick_tock','Tick-Tock Thursday','◷'],
+        ].map(([value,label,icon])=>
+          <button
+            key={value}
+            type="button"
+            className={game===value?'active':''}
+            aria-pressed={game===value}
+            onClick={()=>changeGame(value)}
+          >
+            <span aria-hidden="true">{icon}</span>
+            <strong>{label}</strong>
+          </button>
+        )}
+      </nav>
+
+      {error
+        ? <div className="rankings-runtime-notice" role="status">
+            {error} Your current results are still shown. Try again.
+          </div>
+        : null}
+
+      <section
+        className="rankings-leaderboard-card"
+        aria-label="Rankings table"
+        aria-busy={busy}
+      >
+        <div className="rankings-leaderboard-head" aria-hidden="true">
+          <span>#</span>
+          <span>PLAYER</span>
+          <span>TOTAL PTS</span>
+          <span>GAMES PLAYED</span>
+          <span>AVG PTS</span>
+          <span>CURRENT STREAK</span>
+        </div>
+
+        <div className="rankings-leaderboard-list">
+          {(board.players||[]).map(player=>
+            <div
+              key={player.profile_id||`${player.rank}-${player.username}`}
+              className={`rankings-leader-row place-${player.rank||0}${player.me?' is-me':''}`}
+            >
+              <span className="rankings-rank">{player.rank||'—'}</span>
+
+              <span className="rankings-player">
+                <i aria-hidden="true">{player.avatar}</i>
+                <span>
+                  <strong>{player.username}</strong>
+                  <small>{player.detail}</small>
+                </span>
+              </span>
+
+              <strong className="rankings-number">{player.points||0}</strong>
+              <span className="rankings-number">{player.completed||0}</span>
+              <span className="rankings-number">
+                {player.completed
+                  ? (player.points/player.completed).toFixed(1)
+                  : '—'}
+              </span>
+              <span className="rankings-streak">
+                {player.streak?`🔥 ${player.streak}`:'—'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div
+          className="rankings-empty"
+          hidden={(board.players||[]).length>0}
+        >
+          No scores in this view yet.
+        </div>
+      </section>
+    </main>
+  </div>;
 }
 
 function ProfilePage({data}) {
@@ -167,7 +539,7 @@ function TickTockPage({data}) {
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   async function begin(){if(busy||running)return;setBusy(true);for(const t of ['3','2','1']){setDisplay(t);await sleep(650);}try{const p=await postJson(data.startUrl);setState(p.state);setDisplay('GO');setMessage('The timer is hidden. Stop when your internal clock says it is time.');}catch(e){setMessage(e.message);setDisplay('READY');}finally{setBusy(false)}}
   async function stop(){if(busy||!running)return;setBusy(true);try{const p=await postJson(data.stopUrl);setState(p.state);}catch(e){setMessage(e.message);}finally{setBusy(false)}}
-  useEffect(()=>{function key(e){if(e.code==='Space'&&running){e.preventDefault();stop();}}document.addEventListener('keydown',key);return()=>document.removeEventListener('keydown',key);},[running,busy]);
+  useEffect(()=>{function key(e){if(isInteractiveTarget(e.target))return;if(e.code==='Space'&&running){e.preventDefault();stop();}}document.addEventListener('keydown',key);return()=>document.removeEventListener('keydown',key);},[running,busy]);
   if(state.completed){const signed=Number(state.signed_difference||0),delta=Math.abs(signed);return <div className="app-shell game-shell"><AppHeader shell={data.shell}/><main className="single-game-main"><GameResult game="tick_tock" icon={delta<=0.05?'✓':'◇'} kicker={delta<=0.05?'PERFECT TIMING':'TIME LOCKED'} score={state.score} meta={[`${Number(state.elapsed||0).toFixed(2)} SEC`,`${delta.toFixed(2)} SEC ${signed>=0?'LATE':'EARLY'}`]} copy="Thursday is in the books."/></main></div>}
   return <div className="app-shell game-shell"><AppHeader shell={data.shell}/><main className="single-game-main"><section className="game-title-row"><div><a className="back-link" href={data.returnUrl}>← Back to {state.archive?'game archive':'home'}</a><span className="eyebrow">{data.dayLabel}</span><h1>Tick-Tock Thursday</h1><p>Trust your internal clock. The timer disappears when the round begins.</p></div></section><section className="game-two-column timer-two-column"><section className="glass-card timer-stage">{state.theme?<span className="game-theme">{state.theme}</span>:null}<p className="timer-label">YOUR TARGET</p><div className="target-time">{Number(state.target).toFixed(2)}<small>SEC</small></div><div className="timer-visual"><div className="timer-ring"><span>{display}</span></div></div><p className="game-message">{message}</p><button className="crew-button primary-button timer-action" type="button" onClick={running?stop:begin} disabled={busy||!state.playable}>{!state.playable?'Coming soon':running?'STOP':'Begin round'}</button><p className="timer-tip">Tip: spacebar also stops the clock.</p></section><aside className="glass-card game-side-panel timer-score-panel"><span className="eyebrow">HOW IT SCORES</span><h2>Closer is better.</h2><div className="score-ladder timer-score-ladder">{[['Within 0.10 sec',100],['Within 0.25 sec',90],['Within 0.50 sec',80],['Within 1.00 sec',60],['Within 1.50 sec',40],['Within 2.50 sec',20],['More than 2.50 sec',10]].map(([label,score])=><span key={label}>{label} <b>{score}</b></span>)}</div><p>Early or late are scored the same. Only your distance from the target time matters.</p></aside></section></main></div>;
 }
@@ -183,7 +555,7 @@ function WordPage({ data }) {
   const locked=state.completed||!state.playable||busy;
   function inputKey(key){if(locked)return;if(key==='ENTER'){submit();return}if(key==='BACKSPACE'){setGuess(v=>v.slice(0,-1));return}if(/^[A-Z]$/.test(key)&&guess.length<5)setGuess(v=>v+key)}
   async function submit(){if(locked)return;if(guess.length!==5){setMessage('Enter five letters first.');return}setBusy(true);setMessage('Checking…');try{const p=await postJson(data.guessUrl,{guess});setState(s=>({...s,guesses:[...s.guesses,{guess:p.guess,tiles:p.tiles}],guess_count:p.guess_count,completed:p.completed,won:p.won,score:p.score,potential_score:p.potential_score,solution:p.solution||s.solution}));setGuess('');setMessage(p.completed?(p.won?'Solved!':'Round complete.'):'Keep going.')}catch(e){setMessage(e.message)}finally{setBusy(false)}}
-  useEffect(()=>{function key(e){if(e.metaKey||e.ctrlKey||e.altKey)return;const k=e.key==='Enter'?'ENTER':e.key==='Backspace'?'BACKSPACE':e.key.toUpperCase();if(k==='ENTER'||k==='BACKSPACE'||/^[A-Z]$/.test(k)){e.preventDefault();inputKey(k)}}window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[guess,locked,state]);
+  useEffect(()=>{function key(e){if(e.metaKey||e.ctrlKey||e.altKey||isInteractiveTarget(e.target))return;const k=e.key==='Enter'?'ENTER':e.key==='Backspace'?'BACKSPACE':e.key.toUpperCase();if(k==='ENTER'||k==='BACKSPACE'||/^[A-Z]$/.test(k)){e.preventDefault();inputKey(k)}}window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[guess,locked,state]);
   if(state.completed)return <div className="app-shell word-shell"><AppHeader shell={data.shell}/><main className="word-main"><GameResult game="word" icon={state.won?'✓':'◇'} kicker={state.won?'WORD SOLVED':'ROUND COMPLETE'} score={state.score} meta={[state.solution?`WORD · ${String(state.solution).toUpperCase()}`:'',state.won?`${state.guess_count} GUESSES`:'6 GUESSES']} copy="Wednesday is in the books."/></main></div>;
   return <div className="app-shell word-shell"><AppHeader shell={data.shell}/><main className="word-main"><section className="word-heading"><div><a className="back-link" href={data.returnUrl}>← Back to {state.archive?'game archive':'home'}</a><span className="eyebrow">{data.dayLabel}</span><h1>Wordle Wednesday</h1>{state.theme?<span className="game-theme word-theme">{state.theme}</span>:null}<p>One shared five-letter puzzle. Six attempts. Up to 100 points.</p></div><div className="word-score glass-stat"><span className="stat-icon">✦</span><div><strong>{state.potential_score}</strong><span>points available</span></div></div></section><section className="word-layout"><article className="glass-card word-game-panel"><div className="word-panel-top"><div><span className="game-kicker">CREW WORD</span><span className="word-attempt-label">{state.guess_count} / 6 guesses</span></div><button className="crew-chip help-chip" type="button" aria-expanded={help} onClick={()=>setHelp(v=>!v)}>How to play</button></div>{help?<div className="word-help">Guess the five-letter word in six tries. Green means the right spot, amber means the right letter in the wrong spot, and dark slate means not in the word.</div>:null}<div className="word-message" role="status" aria-live="polite">{message}</div><div className="word-board" aria-label="Wordle Wednesday board">{rows.map((row,r)=><div className="word-row" key={r}>{row.letters.map((letter,c)=><div className={`word-tile${row.tiles[c]?` ${row.tiles[c]}`:''}`} key={c}>{letter.trim()}</div>)}</div>)}</div><div className="keyboard-legend" aria-label="Keyboard status legend"><span><i className="legend-swatch unused"/>Unused</span><span><i className="legend-swatch absent"/>Not in word</span><span><i className="legend-swatch present"/>Wrong spot</span><span><i className="legend-swatch correct"/>Correct spot</span></div><div className="word-keyboard" aria-label="On-screen keyboard">{KEY_ROWS.map((row,i)=><div className="keyboard-row" key={i}>{row.map(key=><button type="button" key={key} className={`key${key==='ENTER'||key==='BACKSPACE'?' key-wide':''}${key==='BACKSPACE'?' key-delete':''}${keyState[key]?` ${keyState[key]}`:''}`} onClick={()=>inputKey(key)} disabled={locked}>{key==='BACKSPACE'?'DELETE':key}</button>)}</div>)}</div></article><aside className="word-side-stack"><article className="glass-card word-side-card"><span className="eyebrow">SCORING</span><h2>Fewer guesses. More points.</h2><div className="score-scale">{[[1,100],[2,80],[3,65],[4,50],[5,40],[6,30]].map(([n,p])=><div key={n}><span>{n}</span><strong>{p}</strong></div>)}</div><p>Complete today's game to protect your CREW streak. An unsolved board still earns 10 participation points.</p></article></aside></section></main></div>;
 }
@@ -194,7 +566,7 @@ function TriviaPage({data}) {
   async function choose(index){if(status!=='idle'||!state.question)return;setSelected(index);setStatus('submitting');setMessage('');try{const p=await postJson(data.answerUrl,{selected:index});setResolution({correct:p.correct,correctIndex:Number(p.correct_index),correctAnswer:p.correct_answer});setNext(p.state);if(p.completed&&p.stats)setStats(p.stats);setStatus('answered');setMessage(p.correct?'Correct.':`Not quite — ${p.correct_answer}.`)}catch(e){setSelected(null);setStatus('idle');setMessage(e.message)}}
   function advance(){if(!next)return;setState(next);setNext(null);setSelected(null);setResolution(null);setStatus('idle');setMessage('')}
   useEffect(()=>{stageRef.current?.focus({preventScroll:true})},[state.index,state.completed]);
-  useEffect(()=>{function key(e){if(e.metaKey||e.ctrlKey||e.altKey)return;if(status==='answered'&&e.key==='Enter'){e.preventDefault();advance();return}const map={a:0,b:1,c:2,d:3,'1':0,'2':1,'3':2,'4':3},choice=map[e.key.toLowerCase()];if(status==='idle'&&choice!==undefined){e.preventDefault();choose(choice)}}window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[status,state,next]);
+  useEffect(()=>{function key(e){if(e.metaKey||e.ctrlKey||e.altKey||isInteractiveTarget(e.target))return;if(status==='answered'&&e.key==='Enter'){e.preventDefault();advance();return}const map={a:0,b:1,c:2,d:3,'1':0,'2':1,'3':2,'4':3},choice=map[e.key.toLowerCase()];if(status==='idle'&&choice!==undefined){e.preventDefault();choose(choice)}}window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[status,state,next]);
   if(state.completed){const score=Number(state.score||state.correct_count*10||0);return <div className="v19-trivia-shell"><AppHeader shell={data.shell}/><main className="v19-trivia-main"><section className="react-trivia-stage react-trivia-result" ref={stageRef} tabIndex="-1"><p className="react-trivia-kicker">Round complete</p><strong className="react-result-score">{score}</strong><span className="react-result-label">POINTS</span><div className="react-result-meta"><span><strong>{state.correct_count}/{state.total}</strong> correct</span>{stats?.streak?<span><strong>{stats.streak}</strong> day streak</span>:null}</div><p className="react-result-copy">Tuesday is in the books.</p><div className="react-result-actions"><a className="react-trivia-primary" href="/leaderboard">View Rankings <span>→</span></a></div></section></main></div>}
   return <div className="v19-trivia-shell"><AppHeader shell={data.shell}/><main className="v19-trivia-main"><header className="v19-trivia-heading"><div className="v19-trivia-heading-copy"><div className="v19-trivia-context"><a className="v19-back-link" href={data.returnUrl}>← Back</a><span className="v19-trivia-date">{data.dayLabel}</span></div><h1>Trivia Tuesday</h1><p>Ten questions. Ten points each. One clean run.</p></div><div className="v19-trivia-heading-mark" aria-hidden="true"><span>10</span><small>QUESTIONS</small></div></header><section className="react-trivia-stage" ref={stageRef} tabIndex="-1"><header className="react-trivia-topline"><div><span className="react-trivia-kicker">{state.theme||'Trivia Tuesday'}</span><strong>{points}<small>/100</small></strong></div><span>Question {current} of {state.total}</span></header><div className="react-trivia-progress" aria-hidden="true"><i style={{width:`${progress}%`}}/></div><div className="react-trivia-question-wrap"><span className="react-question-number">{String(current).padStart(2,'0')}</span><h1>{state.question?.prompt}</h1></div><div className="react-trivia-options" role="group">{state.question?.options?.map((option,index)=>{const cls=['react-trivia-option'];if(status==='answered'&&index===resolution?.correctIndex)cls.push('is-correct');if(status==='answered'&&index===selected&&!resolution?.correct)cls.push('is-wrong');if(status==='answered'&&index!==resolution?.correctIndex&&index!==selected)cls.push('is-dimmed');return <button type="button" key={index} className={cls.join(' ')} disabled={status!=='idle'} onClick={()=>choose(index)}><span className="react-option-letter">{LETTERS[index]}</span><span className="react-option-copy">{option}</span><span className="react-option-status" aria-hidden="true">{status==='answered'&&index===resolution?.correctIndex?'✓':status==='answered'&&index===selected?'×':'→'}</span></button>})}</div><footer className={`react-trivia-feedback ${message?'is-visible':''} ${resolution?.correct?'is-success':resolution?'is-error':''}`} aria-live="polite"><span>{message||(status==='submitting'?'Locking it in…':'Choose one answer.')}</span>{status==='answered'?<button type="button" onClick={advance}>{next?.completed?'See results':'Next question'} <span>→</span></button>:null}</footer></section></main></div>;
 }

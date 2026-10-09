@@ -9,9 +9,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    {% block legacy_styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css', v='13.10.1') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/crew-tokens.css', v='1.0.0') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/v18-pages.css', v='18.1.2') }}">
+    {% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/crew-tokens.css', v='1.0.0') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/crew-shell.css', v='2.0.1') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/crew-controls.css', v='1.0.0') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/crew-motion.css', v='1.0.0') }}">
@@ -26,7 +28,9 @@
 
     {% block body %}{% endblock %}
 
+    {% block legacy_scripts %}
     <script src="{{ url_for('static', filename='js/ui.js', v='13.4') }}"></script>
+    {% endblock %}
     <script src="{{ url_for('static', filename='js/motion.js', v='1.1.0') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
