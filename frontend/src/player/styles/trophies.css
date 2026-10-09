@@ -1,0 +1,106 @@
+/* CREW Trophy Room — editorial neon medals, season-native collection UI */
+.trophy-page {background:radial-gradient(56rem 28rem at 60% 1%,rgba(85,185,255,.065),transparent 65%),radial-gradient(35rem 20rem at 2% 28%,rgba(197,92,255,.045),transparent 80%),var(--crew-color-bg,#090e18);color:#f3f7fd;}
+.trophy-page .ambient,.trophy-page .noise {display:none!important}
+.trophy-room-main {width:min(1280px,calc(100% - 64px));margin:0 auto;padding:clamp(32px,5vw,64px) 0 120px;}
+.trophy-hero {display:grid;grid-template-columns:minmax(0,1.5fr) minmax(250px,.65fr);align-items:center;gap:40px;padding:8px 0 55px;border-bottom:1px solid rgba(193,213,240,.11);}
+.trophy-eyebrow {display:block;color:#8ebfff;font:800 .62rem/1.2 var(--crew-font-body,Inter,sans-serif);letter-spacing:.22em;text-transform:uppercase;}
+.trophy-hero-copy h1 {margin:18px 0 20px;font:850 clamp(3.5rem,7.4vw,7.5rem)/.94 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.08em;}
+.trophy-hero-copy h1 span {color:#55b9ff;text-shadow:0 0 45px rgba(85,185,255,.37);}
+.trophy-hero-copy p {max-width:560px;margin:0;color:#a1acbd;font:500 clamp(.9rem,1.3vw,1.05rem)/1.7 var(--crew-font-body,Inter,sans-serif);}
+.trophy-season-row {display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:32px;}
+.trophy-season-chip {display:inline-flex;justify-content:center;align-items:center;min-width:64px;min-height:36px;border:1px solid #293548;border-radius:8px;background:#101a2a;color:#aeb9ca;text-decoration:none;font:800 .73rem/1 Inter,sans-serif;letter-spacing:.11em;transition:border-color .18s,background .18s;}
+.trophy-season-chip:is(:hover,.is-active) {border-color:#55b9ff;color:#eaf7ff;background:#17334c;}
+.trophy-hero-stat {justify-self:end;width:min(300px,100%);min-height:285px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;border:1px solid rgba(145,171,214,.18);border-radius:18px;background:linear-gradient(145deg,rgba(17,31,50,.95),rgba(10,15,28,.92));box-shadow:inset 0 1px rgba(255,255,255,.055),0 22px 60px rgba(0,0,0,.15);}
+.trophy-stat-caption,.trophy-stat-footer {font:800 .61rem/1.3 Inter,sans-serif;letter-spacing:.16em;color:#9daec2;}
+.trophy-stat-footer {color:#55b9ff;}
+.trophy-count-ring {width:162px;aspect-ratio:1;display:grid;place-items:center;border-radius:50%;background:radial-gradient(closest-side,#0c1422 85%,transparent 87%),conic-gradient(#55b9ff var(--trophy-progress),#27354a var(--trophy-progress));box-shadow:0 0 40px rgba(85,185,255,.07);}
+.trophy-count-ring strong {font:850 3.5rem/.9 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.055em;}
+.trophy-count-ring small {font:700 .84rem/1 Inter,sans-serif;color:#8c9bae;letter-spacing:0;}
+.trophy-showcase,.trophy-collection {padding-top:57px;}
+.trophy-section-header {display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:25px;}
+.trophy-section-header h2 {margin:10px 0 0;font:850 clamp(1.75rem,3vw,2.55rem)/1.05 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.055em;color:#f5f8fd;}
+.trophy-section-header h2 small {font:700 .75rem/1.3 Inter,sans-serif;color:#8796aa;letter-spacing:0;vertical-align:middle;margin-left:9px;}
+.trophy-section-header p {margin:0 0 3px;color:#92a0b3;font:500 .8rem/1.5 Inter,sans-serif;}
+.trophy-showcase-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+.trophy-showcase-slot {min-height:237px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;position:relative;border:1px dashed #364156;border-radius:16px;background:linear-gradient(150deg,rgba(27,40,61,.35),rgba(15,23,35,.2));text-align:center;}
+.trophy-showcase-slot.is-filled {border-style:solid;border-color:rgba(85,185,255,.3);background:radial-gradient(circle at 50% 42%,rgba(85,185,255,.1),transparent 65%),#0e1726;}
+.trophy-slot-index {position:absolute;top:15px;left:17px;color:#7d91aa;font:800 .62rem/1 Inter,sans-serif;letter-spacing:.14em;}
+.trophy-empty-mark {font:300 3.5rem/1 Georgia,serif;color:#566a86;}
+.trophy-showcase-slot strong {color:#cfd9e5;font:800 1rem/1.3 var(--crew-font-display,Manrope,sans-serif);}
+.trophy-slot-hint,.trophy-showcase-rarity {color:#7c90aa;font:650 .7rem/1.4 Inter,sans-serif;}
+.trophy-future-note {margin:14px 0 0;color:#7f8da2;font:500 .74rem/1.5 Inter,sans-serif;}
+.trophy-collection {padding-top:66px;}
+.trophy-filters {display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
+.trophy-filter {min-height:40px;display:flex;align-items:center;gap:12px;padding:0 13px;border:1px solid #303c4e;border-radius:9px;color:#a3b0c1;background:#101a2a;font:700 .76rem/1 Inter,sans-serif;cursor:pointer;transition:border-color .18s,color .18s,background .18s;}
+.trophy-filter span {font-size:.65rem;color:#7f91a8;}
+.trophy-filter:hover,.trophy-filter.is-active {color:white;border-color:#5e96cc;background:#1c3550;}
+.trophy-filter.is-active span {color:#aad6ff;}
+.trophy-badge-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+.trophy-badge-card {--badge-accent:#c2d4e5;position:relative;min-width:0;min-height:315px;display:flex;flex-direction:column;align-items:center;padding:16px 16px 15px;border:1px solid rgba(176,197,224,.16);border-radius:15px;background:radial-gradient(ellipse at 50% 32%,color-mix(in srgb,var(--badge-accent) 9%,transparent),transparent 58%),linear-gradient(165deg,#162236,#101927 85%);text-align:center;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;}
+.trophy-badge-card:hover {transform:translateY(-3px);border-color:color-mix(in srgb,var(--badge-accent) 53%,#566071);box-shadow:0 16px 32px rgba(0,0,0,.18);}
+.trophy-badge-card.is-locked .trophy-medallion {filter:grayscale(.9);opacity:.44;}
+.trophy-badge-card.is-locked .trophy-badge-copy {opacity:.72;}
+.trophy-badge-card.is-earned {border-color:color-mix(in srgb,var(--badge-accent) 39%,#243248);}
+.trophy-badge-top {width:100%;display:flex;justify-content:space-between;gap:7px;color:#91a0b4;font:800 .54rem/1.4 Inter,sans-serif;letter-spacing:.095em;text-align:left;}
+.trophy-rarity-label {color:var(--badge-accent);white-space:nowrap;}
+.trophy-badge-copy {margin-top:4px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:start;}
+.trophy-badge-copy strong {color:#f4f7fc;font:850 1.04rem/1.18 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.027em;}
+.trophy-badge-copy p {margin:9px 0 0;color:#9baaBE;font:500 .73rem/1.46 Inter,sans-serif;}
+.trophy-badge-bottom {width:100%;min-height:29px;margin-top:14px;padding-top:10px;border-top:1px solid rgba(200,216,238,.095);display:flex;align-items:center;justify-content:space-between;gap:8px;color:#8494aa;font:800 .6rem/1.3 Inter,sans-serif;letter-spacing:.095em;}
+.trophy-badge-card.is-earned .trophy-badge-bottom>span {color:var(--badge-accent);}
+.trophy-badge-bottom time {font-size:.62rem;letter-spacing:0;color:#8c9cb1;}
+.trophy-medallion {--badge-accent:#c7e2ff;position:relative;display:grid;place-items:center;width:126px;aspect-ratio:1;margin:13px auto 11px;color:var(--badge-accent);filter:drop-shadow(0 0 14px color-mix(in srgb,var(--badge-accent) 24%,transparent));}
+.trophy-medallion svg {width:100%;height:100%;overflow:visible;}
+.trophy-medallion .medallion-outer {stroke:currentColor;stroke-width:1.7;}
+.trophy-medallion .medallion-inner {stroke:currentColor;stroke-width:1;opacity:.48;}
+.trophy-medallion .medallion-motif {stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:2.7;}
+.trophy-medallion-shine {position:absolute;inset:12%;border-radius:50%;background:radial-gradient(circle at 32% 29%,rgba(255,255,255,.07),transparent 58%);pointer-events:none;}
+.trophy-medallion-showcase {width:114px;margin:0;}
+.trophy-tone-mystery {--badge-accent:#55e6ac;}
+.trophy-tone-trivia {--badge-accent:#ffbd45;}
+.trophy-tone-word {--badge-accent:#55b9ff;}
+.trophy-tone-tick_tock {--badge-accent:#c55cff;}
+.trophy-tone-spectrum {--badge-accent:#a4b8ff;}
+.trophy-tone-legendary {--badge-accent:#ffda78;}
+.trophy-rarity-common .trophy-rarity-label {color:#c3d4e2;}
+.trophy-rarity-rare .trophy-rarity-label {color:#7cc9ff;}
+.trophy-rarity-epic .trophy-rarity-label {color:#cc9bff;}
+.trophy-rarity-legendary .trophy-rarity-label {color:#ffd979;}
+.trophy-collection-footnote {margin:25px 0 0;color:#788ca7;font:500 .75rem/1.6 Inter,sans-serif;}
+@media (max-width:1000px) {
+  .trophy-badge-grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+@media (max-width:760px) {
+  .trophy-room-main {width:calc(100% - 34px);padding:34px 0 112px;}
+  .trophy-hero {grid-template-columns:1fr;gap:22px;padding-bottom:35px;}
+  .trophy-hero-copy h1 {font-size:clamp(3.3rem,12vw,5.1rem);margin:14px 0;}
+  .trophy-hero-stat {width:100%;min-height:140px;display:grid;grid-template-columns:1fr 110px;column-gap:15px;padding:19px 20px;}
+  .trophy-hero-stat .trophy-stat-caption,.trophy-hero-stat .trophy-stat-footer {grid-column:1;grid-row:1;}
+  .trophy-hero-stat .trophy-stat-footer {grid-row:2;align-self:start;}
+  .trophy-count-ring {width:110px;grid-column:2;grid-row:1 / span 2;}
+  .trophy-count-ring strong {font-size:2.35rem;}
+  .trophy-showcase,.trophy-collection {padding-top:39px;}
+  .trophy-section-header {display:block;}
+  .trophy-section-header p {margin-top:11px;}
+  .trophy-showcase-grid {gap:8px;}
+  .trophy-showcase-slot {min-height:160px;padding:20px 7px 9px;}
+  .trophy-empty-mark {font-size:2rem;}
+  .trophy-showcase-slot strong {font-size:.73rem;}
+  .trophy-slot-index {top:10px;left:9px;font-size:.5rem;}
+  .trophy-slot-hint,.trophy-showcase-rarity {font-size:.59rem;}
+  .trophy-medallion-showcase {width:83px;}
+  .trophy-badge-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .trophy-badge-card {min-height:302px;padding:12px 10px;}
+  .trophy-medallion {width:111px;margin:14px auto 12px;}
+  .trophy-badge-copy strong {font-size:.96rem;}
+  .trophy-badge-copy p {font-size:.7rem;}
+}
+@media (max-width:360px) {
+  .trophy-badge-grid {grid-template-columns:1fr;}
+  .trophy-badge-card {min-height:280px;}
+  .trophy-filter {gap:7px;padding:0 9px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .trophy-badge-card,.trophy-filter,.trophy-season-chip {transition:none!important;}
+  .trophy-badge-card:hover {transform:none;}
+}

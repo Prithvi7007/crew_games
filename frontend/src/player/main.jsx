@@ -9,6 +9,8 @@ import './styles/games.css';
 import './styles/rankings.css';
 import './styles/profile.css';
 import './styles/trivia.css';
+import './styles/trophies.css';
+import TrophyRoom from './TrophyRoom';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -261,6 +263,7 @@ function AccountMenu({ user }) {
           </a>
         : null}
 
+      <a className="account-action" role="menuitem" href="/trophies"><span>My trophies</span><span aria-hidden="true">→</span></a>
       <a className="account-action" role="menuitem" href="/profile">
         <span>View profile</span><span aria-hidden="true">→</span>
       </a>
@@ -282,6 +285,7 @@ function AccountMenu({ user }) {
 function NavIcon({ name }) {
   if (name === 'home') return <svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6.5 9.5V20h11V9.5"/><path d="M10 20v-6h4v6"/></svg>;
   if (name === 'games') return <svg viewBox="0 0 24 24"><path d="m12 4 7 7-7 7-7-7 7-7Z"/></svg>;
+  if (name === 'trophies') return <svg viewBox="0 0 24 24"><path d="M6 4h12v5c0 4-3 7-6 8-3-1-6-4-6-8V4Z"/><path d="M6 6H3v2c0 3 2 5 5 5M18 6h3v2c0 3-2 5-5 5M12 17v3M8 21h8"/></svg>;
   return <svg viewBox="0 0 24 24"><path d="M5 17 10 12l3 3 6-7"/><path d="M15 8h4v4"/></svg>;
 }
 function AppHeader({ shell }) {
@@ -290,12 +294,14 @@ function AppHeader({ shell }) {
   return <>
     <header className="glass-nav app-nav">
       <a className="nav-brand v13-brand" href="/home" aria-label="CREW home"><span className="v13-brand-copy"><strong>CREW</strong><small><span>PLAY TOGETHER</span><span>GO FURTHER</span></small></span></a>
-      <nav className="desktop-nav" aria-label="Primary navigation">{link('home','Home','/home')}{link('games','Games','/games')}{link('leaderboard','Rankings','/leaderboard')}</nav>
+      <nav className="desktop-nav" aria-label="Primary navigation">{link('home','Home','/home')}{link('games','Games','/games')}{link('leaderboard','Rankings','/leaderboard')}{link('trophies','Trophies','/trophies')}</nav>
       <div className="crew-nav-account"><AccountMenu user={shell?.user}/>{shell?.navPoints !== null && shell?.navPoints !== undefined ? <span className="crew-points-chip" aria-label={`${shell.navPoints} points this week`}><span aria-hidden="true">★</span><strong>{shell.navPoints}</strong><small>pts</small></span> : null}</div>
     </header>
-    <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{link('home','Home','/home',true)}{link('games','Games','/games',true)}{link('leaderboard','Rankings','/leaderboard',true)}</nav>
+    <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{link('home','Home','/home',true)}{link('games','Games','/games',true)}{link('leaderboard','Rankings','/leaderboard',true)}{link('trophies','Trophies','/trophies',true)}</nav>
   </>;
 }
+function TrophyPage({data}) { return <TrophyRoom data={data} Header={AppHeader}/>; }
+
 function GameResult({ game, icon='✦', kicker='ROUND COMPLETE', score=0, meta=[], copy='' }) {
   useEffect(() => { document.body.classList.add('crew-game-complete'); return () => document.body.classList.remove('crew-game-complete'); }, []);
   return <section className={`crew-result-stage crew-result-${game}`} aria-live="polite"><div className="crew-result-shade" aria-hidden="true"/><div className="crew-result-content"><div className="crew-result-burst" aria-hidden="true"><span>{icon}</span></div><p className="crew-result-kicker">{kicker}</p><strong className="crew-result-score">{score}</strong><span className="crew-result-label">POINTS</span>{meta.filter(Boolean).length ? <div className="crew-result-meta">{meta.filter(Boolean).map((item,i)=><span key={i}>{item}</span>)}</div>:null}{copy?<p className="crew-result-copy">{copy}</p>:null}<div className="crew-result-actions"><a className="crew-result-primary" href="/leaderboard"><span>View Rankings</span><span>→</span></a></div></div></section>;
@@ -572,4 +578,4 @@ function TriviaPage({data}) {
 }
 
 const root=document.getElementById('crew-player-root'); const data=readState();
-if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<Component data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
+if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,trophies:TrophyPage,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<Component data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
