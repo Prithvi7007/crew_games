@@ -57,7 +57,7 @@ def test_shared_shell_owns_reusable_navigation_contract():
 
 
 def test_page_styles_do_not_override_primary_chrome():
-    css_root = ROOT / 'app' / 'static' / 'css'
+    css_root = ROOT / 'frontend' / 'src' / 'player' / 'styles'
     for filename in ('home.css', 'games.css', 'rankings.css'):
         text = (css_root / filename).read_text(encoding='utf-8')
         assert '.app-nav' not in text, filename

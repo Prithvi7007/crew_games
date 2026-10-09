@@ -3,6 +3,11 @@ import { createRoot } from 'react-dom/client';
 import './styles/results.css';
 import './player.css';
 import './styles/word.css';
+import './styles/home.css';
+import './styles/games.css';
+import './styles/rankings.css';
+import './styles/profile.css';
+import './styles/trivia.css';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LETTERS = ['A', 'B', 'C', 'D'];

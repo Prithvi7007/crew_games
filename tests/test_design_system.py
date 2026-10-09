@@ -38,15 +38,29 @@ def test_design_tokens_define_core_crew_system():
 
 
 def test_public_page_color_aliases_use_shared_tokens():
+    static_css = ROOT / "app" / "static" / "css"
+    player_css = ROOT / "frontend" / "src" / "player" / "styles"
+
     checks = {
-        "home.css": ("--v17-bg: var(--crew-color-bg);", "--v17-accent: var(--crew-game-trivia);"),
-        "v18-pages.css": ("--crew18-bg: var(--crew-color-bg);", "--crew18-gold: var(--crew-game-trivia);"),
-        "v19-trivia.css": ("--tt-bg: var(--crew-color-bg);", "--tt-gold: var(--crew-game-trivia);"),
-        "v20-profile.css": ("--p-bg: var(--crew-color-bg);", "--p-blue: var(--crew-accent-profile);"),
+        player_css / "home.css": (
+            "--v17-bg: var(--crew-color-bg);",
+            "--v17-accent: var(--crew-game-trivia);",
+        ),
+        static_css / "v18-pages.css": (
+            "--crew18-bg: var(--crew-color-bg);",
+            "--crew18-gold: var(--crew-game-trivia);",
+        ),
+        player_css / "trivia.css": (
+            "--tt-bg: var(--crew-color-bg);",
+            "--tt-gold: var(--crew-game-trivia);",
+        ),
+        player_css / "profile.css": (
+            "--p-bg: var(--crew-color-bg);",
+            "--p-blue: var(--crew-accent-profile);",
+        ),
     }
 
-    css_root = ROOT / "app" / "static" / "css"
-    for filename, expected in checks.items():
-        content = (css_root / filename).read_text(encoding="utf-8")
+    for css_path, expected in checks.items():
+        content = css_path.read_text(encoding="utf-8")
         for token in expected:
             assert token in content

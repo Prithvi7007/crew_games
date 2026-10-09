@@ -19,7 +19,7 @@ def test_v13_shared_shell_and_mobile_navigation_are_present():
 
 def test_current_home_uses_the_consolidated_home_experience():
     source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
-    css = ROOT / "app" / "static" / "css" / "home.css"
+    css = ROOT / "frontend" / "src" / "player" / "styles" / "home.css"
 
     assert "function HomePage" in source
     assert "function HomeDesktop" in source

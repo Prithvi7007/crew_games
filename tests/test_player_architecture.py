@@ -75,3 +75,39 @@ def test_base_does_not_load_legacy_player_behavior():
     assert "mystery.js" not in base
     assert "word-game.js" not in base
     assert "tick-tock.js" not in base
+
+
+def test_player_page_styles_are_react_owned():
+    template = (ROOT / "app/templates/player_app.html").read_text(encoding="utf-8")
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+
+    expected_sources = (
+        "home.css",
+        "games.css",
+        "rankings.css",
+        "profile.css",
+        "trivia.css",
+    )
+
+    for filename in expected_sources:
+        assert (ROOT / "frontend/src/player/styles" / filename).exists()
+
+    for legacy in (
+        "home.css",
+        "games.css",
+        "rankings.css",
+        "v20-profile.css",
+        "v19-trivia.css",
+    ):
+        assert not (ROOT / "app/static/css" / legacy).exists()
+
+    for import_path in (
+        "./styles/home.css",
+        "./styles/games.css",
+        "./styles/rankings.css",
+        "./styles/profile.css",
+        "./styles/trivia.css",
+    ):
+        assert f"import '{import_path}';" in source
+
+    assert template.count("react/player.css") == 1

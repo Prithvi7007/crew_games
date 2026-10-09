@@ -2,6 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CSS = ROOT / "app" / "static" / "css"
+PLAYER_CSS = ROOT / "frontend" / "src" / "player" / "styles"
 
 
 def test_core_pages_have_single_stylesheet_owners():
@@ -31,7 +32,7 @@ def test_shared_shell_is_not_redeclared_by_page_css():
     assert ".crew-points-chip" in shell
 
     for filename in ("home.css", "games.css", "rankings.css"):
-        content = (CSS / filename).read_text(encoding="utf-8")
+        content = (PLAYER_CSS / filename).read_text(encoding="utf-8")
         assert ".app-nav" not in content
         assert ".desktop-nav" not in content
         assert ".mobile-bottom-nav" not in content
@@ -50,7 +51,7 @@ def test_obsolete_version_layers_are_removed():
 
 
 def test_home_uses_mobile_weight_artwork():
-    content = (CSS / "home.css").read_text(encoding="utf-8")
+    content = (PLAYER_CSS / "home.css").read_text(encoding="utf-8")
     for filename in (
         "mystery-mobile.jpg",
         "trivia-mobile.jpg",

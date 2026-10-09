@@ -344,7 +344,7 @@ def test_games_page_copy_matches_catch_up_scoring_rules():
 def test_rankings_empty_state_respects_hidden_attribute():
     root = Path(__file__).parents[1]
     css = (
-        root / "app/static/css/rankings.css"
+        root / "frontend/src/player/styles/rankings.css"
     ).read_text(encoding="utf-8")
     source = (
         root / "frontend/src/player/main.jsx"
@@ -459,7 +459,7 @@ def test_weekly_leaderboards_include_archive_earned_points(app):
 
 def test_today_mobile_layout_css_is_present_and_balanced():
     root = Path(__file__).parents[1]
-    css = (root / "app" / "static" / "css" / "home.css").read_text(
+    css = (root / "frontend" / "src" / "player" / "styles" / "home.css").read_text(
         encoding="utf-8"
     )
 
