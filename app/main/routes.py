@@ -4,6 +4,8 @@ from flask import Blueprint, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
+from app.badges import BADGES
+from app.badge_store import get_badge_awards, get_showcase
 from app.db import (
     get_game_attempt_summary,
     get_game_completion,
@@ -278,4 +280,53 @@ def leaderboard_api():
             game,
             current_profile_id=session["user"]["profile_id"],
         )
+    )
+
+
+@main_bp.get("/trophies")
+@login_required
+def trophies():
+    """Season-scoped, read-only collection; badge granting is server-owned."""
+    today = crew_today()
+    user = session["user"]
+    profile_id = int(user["profile_id"])
+    seasons = list_seasons(today)
+    current = get_season_for_date(today)
+    requested = request.args.get("season", type=int)
+    selected = next((season for season in seasons if season["id"] == requested), None)
+    selected = selected or current or (seasons[0] if seasons else None)
+
+    saved = get_badge_awards(profile_id, selected["id"]) if selected else []
+    awards_by_code = {row["badge_code"]: row for row in saved}
+    showcase = get_showcase(profile_id)
+    badges = [
+        {
+            "code": badge.code,
+            "name": badge.name,
+            "vertical": badge.vertical,
+            "rarity": badge.rarity,
+            "gameKey": badge.game_key,
+            "earned": badge.code in awards_by_code,
+            "awardedAt": awards_by_code[badge.code]["awarded_at"] if badge.code in awards_by_code else None,
+            "sourceDate": awards_by_code[badge.code]["source_date"] if badge.code in awards_by_code else None,
+        }
+        for badge in BADGES
+    ]
+    return render_player(
+        "trophies", "Trophy Room", "trophy-page",
+        {
+            "badges": badges,
+            "earnedCount": sum(badge["earned"] for badge in badges),
+            "selectedSeason": selected,
+            "seasons": [
+                {"id": season["id"], "number": season["number"], "name": season["name"]}
+                for season in seasons
+            ],
+            "showcase": [
+                {"slot": row["slot"], "badgeCode": row["badge_code"]}
+                for row in showcase
+            ],
+        },
+        user,
+        nav_points=get_weekly_points(current_user_key(), today)["points"],
     )
