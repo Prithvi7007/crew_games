@@ -259,19 +259,19 @@ body.crew-app-page *::after {
   box-sizing: border-box;
 }
 
-.crew-app-page a {
+:where(.crew-app-page a) {
   color: inherit;
   text-decoration: none;
 }
 
-.crew-app-page button,
-.crew-app-page input,
-.crew-app-page select,
-.crew-app-page textarea {
+:where(.crew-app-page button),
+:where(.crew-app-page input),
+:where(.crew-app-page select),
+:where(.crew-app-page textarea) {
   font: inherit;
 }
 
-.crew-app-page button {
+:where(.crew-app-page button) {
   color: inherit;
 }
 
