@@ -4,17 +4,21 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 
 
-def test_motion_layer_loads_after_result_styles_before_accessibility_guard():
+def test_motion_layer_respects_react_result_ownership_and_accessibility_order():
     base = (ROOT / "app" / "templates" / "base.html").read_text(encoding="utf-8")
+    player = (ROOT / "frontend" / "src" / "player" / "main.jsx").read_text(
+        encoding="utf-8"
+    )
 
-    results = "css/v19-game-results.css"
     motion = "css/crew-motion.css"
+    block_head = "{% block head %}"
     foundation = "css/phase1-foundation.css"
 
-    assert results in base
+    assert "css/v19-game-results.css" not in base
+    assert "import './styles/results.css';" in player
     assert motion in base
     assert foundation in base
-    assert base.index(results) < base.index(motion) < base.index(foundation)
+    assert base.index(motion) < base.index(block_head) < base.index(foundation)
 
 
 def test_motion_helper_loads_before_page_specific_scripts():
