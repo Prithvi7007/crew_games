@@ -171,3 +171,65 @@ def test_mystery_and_tick_tock_styles_are_react_owned():
         ".timer-page .timer-action",
     ):
         assert selector not in legacy_v18
+
+
+def test_wordle_styles_are_react_owned():
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    word = (
+        ROOT / "frontend/src/player/styles/word.css"
+    ).read_text(encoding="utf-8")
+    legacy_main = (
+        ROOT / "app/static/css/main.css"
+    ).read_text(encoding="utf-8")
+    legacy_v18 = (
+        ROOT / "app/static/css/v18-pages.css"
+    ).read_text(encoding="utf-8")
+    foundation = (
+        ROOT / "app/static/css/phase1-foundation.css"
+    ).read_text(encoding="utf-8")
+    results = (
+        ROOT / "frontend/src/player/styles/results.css"
+    ).read_text(encoding="utf-8")
+
+    assert "import './styles/word.css';" in source
+
+    for token in (
+        "--word-unused-bg: #263444",
+        "--word-absent-bg: #111821",
+        "--word-present-bg: #9a6516",
+        "--word-correct-bg: #107052",
+        ".word-page .word-layout",
+        ".word-page .word-tile.absent",
+        ".word-page .key.present",
+        ".word-page .legend-swatch.unused",
+    ):
+        assert token in word
+
+    for token in (
+        ".word-shell {",
+        ".word-main {",
+        ".word-heading {",
+        ".word-layout {",
+        ".word-game-panel {",
+        ".word-board {",
+        ".word-tile {",
+        ".word-keyboard {",
+        ".keyboard-row {",
+        ".key.correct {",
+        ".score-scale {",
+    ):
+        assert token not in legacy_main
+
+    assert ".word-page" not in legacy_v18
+
+    # Cross-cutting accessibility/result layers may reference Wordle.
+    assert ".word-page .back-link" in foundation
+    assert ".word-page .keyboard-legend" in foundation
+    assert ".crew-game-complete.word-page::before" in results
+    assert ".crew-game-complete.word-page::after" in results
+
+    assert "Unused" in source
+    assert "Not in word" in source
+    assert "Wrong spot" in source
+    assert "Correct spot" in source
+    assert ">In word<" not in source

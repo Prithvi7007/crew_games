@@ -32,11 +32,22 @@ def test_wordle_handles_backend_tile_state_objects():
     assert "tileState(item.tiles?.[i])" in source
 
 
-def test_wordle_absent_state_is_visually_distinct():
+def test_wordle_keyboard_states_use_semantic_palette():
     css = (ROOT / "frontend/src/player/styles/word.css").read_text(encoding="utf-8")
-    assert ".word-page .key.absent" in css
-    assert "#465565" in css
+
+    assert "--word-unused-bg: #263444" in css
+    assert "--word-absent-bg: #111821" in css
+    assert "--word-present-bg: #9a6516" in css
+    assert "--word-correct-bg: #107052" in css
+
+    assert ".word-page .legend-swatch.unused" in css
     assert ".word-page .legend-swatch.absent" in css
+    assert ".word-page .legend-swatch.present" in css
+    assert ".word-page .legend-swatch.correct" in css
+
+    assert ".word-page .key.absent" in css
+    assert ".word-page .key.present" in css
+    assert ".word-page .key.correct" in css
 
 
 def test_react_player_owns_result_and_word_styles():

@@ -22,7 +22,6 @@
 .leaderboard-page .ambient, .leaderboard-page .noise,
 .profile-page .ambient, .profile-page .noise,
 .game-page .ambient, .game-page .noise,
-.word-page .ambient, .word-page .noise,
 .login-page .ambient, .login-page .noise,
 .auth-body .ambient, .auth-body .noise {
   display: none !important;
@@ -35,8 +34,7 @@
 .v14-games-page,
 .leaderboard-page,
 .profile-page,
-.game-page,
-.word-page {
+.game-page {
   min-height: 100svh;
   margin: 0;
   color: var(--crew18-text);
@@ -47,8 +45,7 @@
 .v14-games-page .app-shell,
 .leaderboard-page .app-shell,
 .profile-page .app-shell,
-.game-page .app-shell,
-.word-page .app-shell {
+.game-page .app-shell {
   width: 100%;
   max-width: none;
   min-height: 100svh;
@@ -939,257 +936,11 @@
 
 /* -------------------------------------------------------------------------- */
 
-.word-page {
-  --game-accent: var(--crew18-gold);
-  position: relative;
-  background: #02070b;
-}
-.word-page { --game-accent: var(--crew18-blue); }
 .trivia-page { --game-accent: var(--crew18-gold); }
-.word-page::before {
-  content: "";
-  position: fixed;
-  inset: 76px 0 0;
-  z-index: -2;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  opacity: .46;
-  filter: saturate(.88) contrast(1.03);
-}
-
-.word-page::before {
-  background-image: url("../images/v14/word.png");
-  background-position: 61% center;
-}
 
 .trivia-page::before {
   background-image: url("../images/v14/trivia.png");
   background-position: 62% center;
-}
-.word-page::after {
-  content: "";
-  position: fixed;
-  inset: 76px 0 0;
-  z-index: -1;
-  background:
-    linear-gradient(90deg, rgba(2,7,11,.98) 0%, rgba(2,7,11,.91) 34%, rgba(2,7,11,.66) 58%, rgba(2,7,11,.52) 100%),
-    linear-gradient(180deg, rgba(2,7,11,.15), rgba(2,7,11,.55));
-}
-.word-page .word-shell { background: transparent; }
-.word-page .word-main {
-  width: min(1320px, calc(100% - 64px));
-  margin: 0 auto;
-  padding: clamp(46px,6vw,78px) 0 90px;
-}
-.word-page .word-heading {
-  display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
-  align-items: end;
-  gap: 42px;
-  margin-bottom: 28px;
-}
-.word-page .back-link {
-  display: inline-flex;
-  margin-bottom: 17px;
-  color: rgba(225,234,243,.52);
-  font: 700 .66rem/1 Inter,sans-serif;
-  text-decoration: none;
-}
-.word-page .word-heading .eyebrow {
-  display: block;
-  color: color-mix(in srgb,var(--game-accent) 76%,white);
-  font: 800 .56rem/1 Inter,sans-serif;
-  letter-spacing: .18em;
-}
-.word-page .word-heading h1 {
-  margin: 13px 0 10px;
-  color: #fff;
-  font: 850 clamp(4rem,6vw,6.4rem)/.84 Manrope,Inter,sans-serif;
-  letter-spacing: -.07em;
-}
-.word-page .word-heading p {
-  max-width: 680px;
-  margin: 0;
-  color: var(--crew18-muted);
-  font: 500 .82rem/1.55 Inter,sans-serif;
-}
-.word-page .glass-stat {
-  min-width: 190px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  border: 1px solid var(--crew18-line);
-  border-radius: 14px;
-  background: rgba(6,13,19,.66);
-  box-shadow: none;
-  backdrop-filter: blur(14px);
-}
-.word-page .archive-play-banner {
-  margin: 0 0 18px;
-  padding: 13px 16px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid rgba(255,255,255,.09);
-  border-radius: 11px;
-  background: rgba(6,13,19,.68);
-  color: var(--crew18-muted);
-  font-size: .68rem;
-}
-.word-page .word-game-panel,
-.word-page .word-side-card{
-  border: 1px solid var(--crew18-line);
-  border-radius: 20px;
-  background: rgba(5,12,18,.74);
-  box-shadow:
-    0 24px 70px rgba(0,0,0,.20),
-    inset 0 1px 0 rgba(255,255,255,.025);
-  backdrop-filter: blur(16px) saturate(112%);
-  -webkit-backdrop-filter: blur(16px) saturate(112%);
-}
-
-/* Wordle */
-.word-page .word-layout {
-  display: grid;
-  grid-template-columns: minmax(0,1.25fr) minmax(310px,.55fr);
-  gap: 16px;
-}
-
-.word-page .word-game-panel { padding: 28px; }
-
-.word-page .word-side-stack {
-  display: grid;
-  align-content: start;
-  gap: 16px;
-}
-
-.word-page .word-side-card { padding: 25px; }
-
-.word-page .word-panel-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  margin-bottom: 22px;
-}
-
-.word-page .word-panel-top > div {
-  display: grid;
-  gap: 6px;
-}
-
-.word-page .game-kicker {
-  color: var(--crew18-blue);
-  font: 800 .52rem/1 Inter,sans-serif;
-  letter-spacing: .16em;
-}
-
-.word-page .word-attempt-label {
-  color: var(--crew18-soft);
-  font-size: .62rem;
-}
-
-.word-page .help-chip {
-  min-height: 36px;
-  padding: 0 11px;
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 999px;
-  color: rgba(236,242,248,.70);
-  background: rgba(255,255,255,.035);
-  font: 700 .60rem/1 Inter,sans-serif;
-}
-
-.word-page .word-help {
-  margin-bottom: 18px;
-  padding: 13px 14px;
-  border: 1px solid rgba(85,185,255,.15);
-  border-radius: 11px;
-  color: var(--crew18-muted);
-  background: rgba(85,185,255,.035);
-  font-size: .68rem;
-  line-height: 1.5;
-}
-
-.word-page .word-board {
-  width: min(100%,390px);
-  margin: 0 auto 24px;
-}
-
-.word-page .word-row {
-  display: grid;
-  grid-template-columns: repeat(5,1fr);
-  gap: 7px;
-  margin-bottom: 7px;
-}
-
-.word-page .word-tile {
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255,255,255,.13);
-  border-radius: 10px;
-  color: #fff;
-  background: rgba(255,255,255,.025);
-  font: 800 clamp(1.05rem,2.4vw,1.5rem)/1 Manrope,Inter,sans-serif;
-}
-
-.word-page .keyboard-legend {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 14px 0;
-  color: var(--crew18-soft);
-  font-size: .52rem;
-}
-
-.word-page .word-keyboard {
-  display: grid;
-  gap: 6px;
-  max-width: 660px;
-  margin: 0 auto;
-}
-
-.word-page .keyboard-row {
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-}
-
-.word-page .key {
-  min-width: 42px;
-  height: 48px;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 8px;
-  color: rgba(244,247,250,.88);
-  background: rgba(255,255,255,.055);
-  font: 750 .66rem/1 Inter,sans-serif;
-}
-
-.word-page .key-wide { min-width: 67px; }
-
-.word-page .word-side-card h2 {
-  margin: 10px 0 17px;
-  color: #fff;
-  font: 800 1.55rem/1.05 Manrope,Inter,sans-serif;
-  letter-spacing: -.04em;
-}
-
-.word-page .score-scale {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 7px;
-}
-
-.word-page .score-scale > div {
-  display: grid;
-  gap: 3px;
-  padding: 11px;
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 9px;
-  background: rgba(255,255,255,.025);
 }
 
 /* Trivia React — loaded after the existing compiled React CSS. */
@@ -1315,7 +1066,6 @@
 @media (max-width:760px) {
   .leaderboard-page .leaderboard-main,
   .profile-page .profile-main,
-  .word-page .word-main,
   .trivia-page .single-game-main.react-island-game {
     width: calc(100% - 28px);
     padding: 34px 0 96px;
@@ -1431,32 +1181,6 @@
   .login-page .login-form input[type="password"] {
     font-size:16px;
   }
-  .word-page::before, .word-page::after {
-    inset:64px 0 68px;
-  }
-  .word-page .word-heading {
-    grid-template-columns:1fr;
-    gap:18px;
-  }
-  .word-page .word-heading h1 {
-    font-size:clamp(3rem,13vw,4.4rem);
-  }
-  .word-page .word-layout {
-    grid-template-columns:1fr;
-  }
-  .word-page .word-game-panel {
-    padding:20px;
-  }
-
-  .word-page .key {
-    min-width:0;
-    flex:1 1 0;
-    height:44px;
-    padding:0 3px;
-  }
-
-  .word-page .key-wide { flex:1.45 1 0; }
-
   .trivia-page .react-trivia-stage {
     min-height: calc(100svh - 230px);
     padding: 22px 17px 20px;
@@ -1487,47 +1211,4 @@
   .trivia-page .react-trivia-option {
     transition:none;
   }
-}
-/* Wordle evaluated state colors */
-.word-page .word-tile.correct {
-  background: linear-gradient(145deg, rgba(70,225,166,.42), rgba(28,121,90,.32));
-  border-color: rgba(120,255,203,.53);
-  box-shadow: 0 0 24px rgba(78,226,169,.09), inset 0 1px rgba(255,255,255,.12);
-}
-
-.word-page .word-tile.present {
-  background: linear-gradient(145deg, rgba(255,201,105,.35), rgba(155,105,28,.28));
-  border-color: rgba(255,218,145,.48);
-}
-
-.word-page .word-tile.absent {
-  background: linear-gradient(145deg, rgba(95,113,135,.30), rgba(39,49,62,.38));
-  border-color: rgba(179,197,219,.19);
-  color: rgba(241,247,255,.76);
-}
-
-.word-page .key.correct {
-  background: linear-gradient(180deg, #1c986f 0%, #11684f 100%);
-  border-color: #70efc0;
-  color: #fff;
-  box-shadow:
-    inset 0 -3px 0 rgba(5,52,39,.34),
-    inset 0 1px 0 rgba(255,255,255,.18),
-    0 0 18px rgba(43,212,157,.24);
-}
-
-.word-page .key.present {
-  background: linear-gradient(180deg, #c78924 0%, #925e12 100%);
-  border-color: #ffd06a;
-  color: #fff;
-  box-shadow:
-    inset 0 -3px 0 rgba(90,54,5,.32),
-    inset 0 1px 0 rgba(255,255,255,.17),
-    0 0 18px rgba(236,169,49,.20);
-}
-
-.word-page .key.absent {
-  background: linear-gradient(180deg, #151e29 0%, #101720 100%);
-  border-color: rgba(127,148,168,.18);
-  color: #90a0af;
 }
