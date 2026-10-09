@@ -121,3 +121,53 @@ def test_player_page_primitives_are_react_owned():
     assert not (ROOT / "app/static/css/crew-pages.css").exists()
     assert (ROOT / "frontend/src/player/styles/page.css").exists()
     assert "import './styles/page.css';" in source
+
+
+def test_mystery_and_tick_tock_styles_are_react_owned():
+    source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    gameplay = (
+        ROOT / "frontend/src/player/styles/gameplay.css"
+    ).read_text(encoding="utf-8")
+    legacy_main = (
+        ROOT / "app/static/css/main.css"
+    ).read_text(encoding="utf-8")
+    legacy_v18 = (
+        ROOT / "app/static/css/v18-pages.css"
+    ).read_text(encoding="utf-8")
+
+    assert "import './styles/gameplay.css';" in source
+
+    for selector in (
+        ".game-stage::before",
+        ".game-theme {",
+        ".mystery-stage",
+        ".clue-list",
+        ".answer-entry",
+        ".timer-stage",
+        ".timer-ring",
+        ".timer-action",
+    ):
+        assert selector in gameplay
+
+    for selector in (
+        ".mystery-stage",
+        ".clue-list",
+        ".clue-card",
+        ".answer-entry",
+        ".game-stage::before",
+        ".game-theme {",
+        ".timer-stage",
+        ".timer-ring",
+        ".timer-action",
+        ".timer-result",
+    ):
+        assert selector not in legacy_main
+
+    for selector in (
+        ".mystery-page .game-two-column",
+        ".mystery-page .game-stage",
+        ".timer-page .timer-stage",
+        ".timer-page .timer-ring",
+        ".timer-page .timer-action",
+    ):
+        assert selector not in legacy_v18

@@ -938,22 +938,14 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* Gameplay backgrounds and shared headings                                   */
-/* -------------------------------------------------------------------------- */
 
-.game-page,
 .word-page {
   --game-accent: var(--crew18-gold);
   position: relative;
   background: #02070b;
 }
-
-.mystery-page { --game-accent: var(--crew18-green); }
 .word-page { --game-accent: var(--crew18-blue); }
-.timer-page { --game-accent: var(--crew18-purple); }
 .trivia-page { --game-accent: var(--crew18-gold); }
-
-.game-page::before,
 .word-page::before {
   content: "";
   position: fixed;
@@ -966,27 +958,15 @@
   filter: saturate(.88) contrast(1.03);
 }
 
-.mystery-page::before {
-  background-image: url("../images/v14/mystery.png");
-  background-position: 62% center;
-}
-
 .word-page::before {
   background-image: url("../images/v14/word.png");
   background-position: 61% center;
-}
-
-.timer-page::before {
-  background-image: url("../images/v14/tick_tock.png");
-  background-position: 62% center;
 }
 
 .trivia-page::before {
   background-image: url("../images/v14/trivia.png");
   background-position: 62% center;
 }
-
-.game-page::after,
 .word-page::after {
   content: "";
   position: fixed;
@@ -996,18 +976,12 @@
     linear-gradient(90deg, rgba(2,7,11,.98) 0%, rgba(2,7,11,.91) 34%, rgba(2,7,11,.66) 58%, rgba(2,7,11,.52) 100%),
     linear-gradient(180deg, rgba(2,7,11,.15), rgba(2,7,11,.55));
 }
-
-.game-page .game-shell,
 .word-page .word-shell { background: transparent; }
-
-.game-page .single-game-main,
 .word-page .word-main {
   width: min(1320px, calc(100% - 64px));
   margin: 0 auto;
   padding: clamp(46px,6vw,78px) 0 90px;
 }
-
-.game-page .game-title-row,
 .word-page .word-heading {
   display: grid;
   grid-template-columns: minmax(0,1fr) auto;
@@ -1015,8 +989,6 @@
   gap: 42px;
   margin-bottom: 28px;
 }
-
-.game-page .back-link,
 .word-page .back-link {
   display: inline-flex;
   margin-bottom: 17px;
@@ -1024,32 +996,24 @@
   font: 700 .66rem/1 Inter,sans-serif;
   text-decoration: none;
 }
-
-.game-page .game-title-row .eyebrow,
 .word-page .word-heading .eyebrow {
   display: block;
   color: color-mix(in srgb,var(--game-accent) 76%,white);
   font: 800 .56rem/1 Inter,sans-serif;
   letter-spacing: .18em;
 }
-
-.game-page .game-title-row h1,
 .word-page .word-heading h1 {
   margin: 13px 0 10px;
   color: #fff;
   font: 850 clamp(4rem,6vw,6.4rem)/.84 Manrope,Inter,sans-serif;
   letter-spacing: -.07em;
 }
-
-.game-page .game-title-row p,
 .word-page .word-heading p {
   max-width: 680px;
   margin: 0;
   color: var(--crew18-muted);
   font: 500 .82rem/1.55 Inter,sans-serif;
 }
-
-.game-page .glass-stat,
 .word-page .glass-stat {
   min-width: 190px;
   display: flex;
@@ -1062,8 +1026,6 @@
   box-shadow: none;
   backdrop-filter: blur(14px);
 }
-
-.game-page .archive-play-banner,
 .word-page .archive-play-banner {
   margin: 0 0 18px;
   padding: 13px 16px;
@@ -1076,19 +1038,8 @@
   color: var(--crew18-muted);
   font-size: .68rem;
 }
-
-/* Mystery */
-.mystery-page .game-two-column {
-  display: grid;
-  grid-template-columns: minmax(0,1.45fr) minmax(290px,.55fr);
-  gap: 16px;
-}
-
-.mystery-page .game-stage,
-.mystery-page .game-side-panel,
 .word-page .word-game-panel,
-.word-page .word-side-card,
-.timer-page .timer-stage {
+.word-page .word-side-card{
   border: 1px solid var(--crew18-line);
   border-radius: 20px;
   background: rgba(5,12,18,.74);
@@ -1098,75 +1049,6 @@
   backdrop-filter: blur(16px) saturate(112%);
   -webkit-backdrop-filter: blur(16px) saturate(112%);
 }
-
-.mystery-page .game-stage {
-  min-height: 470px;
-  padding: 28px;
-}
-
-.mystery-page .game-side-panel { padding: 28px; }
-
-.mystery-page .stage-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  color: var(--crew18-soft);
-  font: 750 .60rem/1 Inter,sans-serif;
-}
-
-.mystery-page .clue-list {
-  display: grid;
-  gap: 10px;
-  margin: 30px 0 24px;
-}
-
-.mystery-page .clue-list > * {
-  padding: 14px 15px;
-  border: 1px solid rgba(255,255,255,.075);
-  border-radius: 11px;
-  background: rgba(255,255,255,.025);
-}
-
-.mystery-page .answer-entry {
-  display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.mystery-page .answer-entry input {
-  min-width: 0;
-  height: 48px;
-  padding: 0 14px;
-  border: 1px solid rgba(255,255,255,.11);
-  border-radius: 10px;
-  outline: none;
-  color: #fff;
-  background: rgba(255,255,255,.04);
-}
-
-.mystery-page .game-side-panel h2 {
-  margin: 11px 0 20px;
-  color: #fff;
-  font: 800 2rem/1 Manrope,Inter,sans-serif;
-  letter-spacing: -.045em;
-}
-
-.mystery-page .score-ladder {
-  display: grid;
-  gap: 7px;
-}
-
-.mystery-page .score-ladder span {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-  color: var(--crew18-muted);
-  font-size: .70rem;
-}
-
-.mystery-page .score-ladder b { color: #fff; }
 
 /* Wordle */
 .word-page .word-layout {
@@ -1310,63 +1192,6 @@
   background: rgba(255,255,255,.025);
 }
 
-/* Tick-Tock */
-.timer-page .single-game-main {
-  width: min(1160px, calc(100% - 64px));
-}
-
-.timer-page .timer-stage {
-  min-height: 500px;
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  padding: 42px;
-  text-align: center;
-}
-
-.timer-page .timer-label {
-  margin: 16px 0 8px;
-  color: var(--crew18-soft);
-  font: 800 .50rem/1 Inter,sans-serif;
-  letter-spacing: .18em;
-}
-
-.timer-page .target-time {
-  color: #fff;
-  font: 850 clamp(4.8rem,10vw,8.8rem)/.82 Manrope,Inter,sans-serif;
-  letter-spacing: -.07em;
-}
-
-.timer-page .target-time small {
-  margin-left: 8px;
-  color: var(--crew18-purple);
-  font-size: .12em;
-  letter-spacing: .14em;
-}
-
-.timer-page .timer-visual { margin: 30px 0 22px; }
-
-.timer-page .timer-ring {
-  width: 160px;
-  height: 160px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(197,92,255,.32);
-  border-radius: 50%;
-  color: #fff;
-  background: radial-gradient(circle, rgba(197,92,255,.10), transparent 62%);
-  box-shadow:
-    0 0 0 18px rgba(197,92,255,.025),
-    0 0 70px rgba(197,92,255,.10);
-  font: 800 1rem/1 Manrope,Inter,sans-serif;
-}
-
-.timer-page .timer-action {
-  min-width: 190px;
-  min-height: 50px;
-  margin-top: 18px;
-}
-
 /* Trivia React — loaded after the existing compiled React CSS. */
 .trivia-page .single-game-main.react-island-game {
   width: min(1240px, calc(100% - 64px));
@@ -1490,7 +1315,6 @@
 @media (max-width:760px) {
   .leaderboard-page .leaderboard-main,
   .profile-page .profile-main,
-  .game-page .single-game-main,
   .word-page .word-main,
   .trivia-page .single-game-main.react-island-game {
     width: calc(100% - 28px);
@@ -1607,35 +1431,21 @@
   .login-page .login-form input[type="password"] {
     font-size:16px;
   }
-
-  .game-page::before, .game-page::after,
   .word-page::before, .word-page::after {
     inset:64px 0 68px;
   }
-
-  .game-page .game-title-row,
   .word-page .word-heading {
     grid-template-columns:1fr;
     gap:18px;
   }
-
-  .game-page .game-title-row h1,
   .word-page .word-heading h1 {
     font-size:clamp(3rem,13vw,4.4rem);
   }
-
-  .mystery-page .game-two-column,
   .word-page .word-layout {
     grid-template-columns:1fr;
   }
-
-  .mystery-page .game-stage,
   .word-page .word-game-panel {
     padding:20px;
-  }
-
-  .mystery-page .answer-entry {
-    grid-template-columns:1fr;
   }
 
   .word-page .key {
@@ -1646,16 +1456,6 @@
   }
 
   .word-page .key-wide { flex:1.45 1 0; }
-
-  .timer-page .timer-stage {
-    min-height:440px;
-    padding:28px 18px;
-  }
-
-  .timer-page .timer-ring {
-    width:135px;
-    height:135px;
-  }
 
   .trivia-page .react-trivia-stage {
     min-height: calc(100svh - 230px);
