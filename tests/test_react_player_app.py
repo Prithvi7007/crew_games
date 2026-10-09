@@ -70,3 +70,37 @@ def test_player_template_loads_page_owned_styles():
     template = (ROOT / "app/templates/player_app.html").read_text(encoding="utf-8")
     for stylesheet in ("home.css", "games.css", "rankings.css", "v20-profile.css", "v19-trivia.css"):
         assert stylesheet in template
+
+def test_react_assets_use_content_fingerprinted_cache_busting():
+    helper = (ROOT / "app/player_ui.py").read_text(encoding="utf-8")
+    template = (ROOT / "app/templates/player_app.html").read_text(encoding="utf-8")
+    assert "def react_asset_version" in helper
+    assert 'react_js_version=react_asset_version("player.js")' in helper
+    assert 'react_css_version=react_asset_version("player.css")' in helper
+    assert "v=react_js_version" in template
+    assert "v=react_css_version" in template
+
+
+def test_mobile_shell_keeps_account_controls_available():
+    css = (ROOT / "app/static/css/crew-shell.css").read_text(encoding="utf-8")
+    assert "/* React player runtime hardening. */" in css
+    assert '.account-trigger[aria-expanded="true"]' in css
+    assert ".crew-runtime-notice" in css
+    assert "Override the earlier mobile rule that hid the entire account menu" in css
+
+
+def test_runtime_fetch_handles_session_expiry_and_rankings_races():
+    source = (ROOT / "app/static/js/ui.js").read_text(encoding="utf-8")
+    assert "response.redirected" in source
+    assert "redirectedUrl.pathname === '/login'" in source
+    assert "encodeURIComponent(next)" in source
+    assert "leaderboardRequestId" in source
+    assert "crewLeaderboardStale" in source
+    assert "crewLeaderboard" in source
+
+
+def test_trivia_motion_targets_shared_react_root():
+    source = (ROOT / "app/static/js/motion.js").read_text(encoding="utf-8")
+    assert "crew-player-root" in source
+    assert "root.dataset.page !== 'trivia'" in source
+    assert "crew-trivia-root" not in source

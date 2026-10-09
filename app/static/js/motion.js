@@ -1,10 +1,11 @@
+
 (() => {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   if (reduceMotion.matches) return;
 
-  const root = document.getElementById('crew-trivia-root');
-  if (!root) return;
+  const root = document.getElementById('crew-player-root');
+  if (!root || root.dataset.page !== 'trivia') return;
 
   let lastQuestion = '';
 

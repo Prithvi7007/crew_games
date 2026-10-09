@@ -201,3 +201,66 @@
     stroke-linejoin: round;
   }
 }
+
+
+/* React player runtime hardening. */
+.crew-app-page .crew-nav-account .account-trigger[aria-expanded="true"] {
+  background: rgba(255, 255, 255, .055);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .13);
+}
+
+.crew-app-page .crew-nav-account .account-trigger[aria-expanded="true"] .account-chevron {
+  color: #55ddff;
+  transform: translateY(1px) rotate(180deg);
+}
+
+.crew-runtime-notice {
+  position: fixed;
+  top: 76px;
+  left: 50%;
+  z-index: 140;
+  width: min(520px, calc(100% - 32px));
+  transform: translateX(-50%);
+  padding: 12px 16px;
+  border: 1px solid rgba(132, 199, 235, .24);
+  border-radius: 12px;
+  color: rgba(246, 250, 255, .94);
+  background: rgba(9, 22, 34, .97);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, .34);
+  font: 700 .72rem/1.4 var(--crew-font-body);
+  text-align: center;
+}
+
+.crew-runtime-notice[hidden] {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  /* Override the earlier mobile rule that hid the entire account menu. */
+  .crew-app-page .crew-nav-account {
+    display: flex;
+    gap: 0;
+  }
+
+  .crew-app-page .crew-nav-account .profile-copy,
+  .crew-app-page .crew-nav-account .account-chevron,
+  .crew-app-page .crew-nav-account .crew-points-chip {
+    display: none;
+  }
+
+  .crew-app-page .crew-nav-account .account-trigger {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .crew-app-page .crew-nav-account .avatar {
+    order: 0;
+    width: 36px;
+    height: 36px;
+  }
+
+  .crew-runtime-notice {
+    top: 72px;
+  }
+}

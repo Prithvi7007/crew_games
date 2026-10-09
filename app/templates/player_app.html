@@ -2,7 +2,7 @@
 {% block title %}{{ react_title }} · CREW{% endblock %}
 {% block body_class %}crew-app-page {{ react_body_class }} react-player-page{% endblock %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='react/player.css', v='1.1.0') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='react/player.css', v=react_css_version) }}">
 {% if react_page == 'home' %}<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css', v='1.0.0') }}">{% endif %}
 {% if react_page == 'games' %}<link rel="stylesheet" href="{{ url_for('static', filename='css/games.css', v='1.0.0') }}">{% endif %}
 {% if react_page == 'leaderboard' %}<link rel="stylesheet" href="{{ url_for('static', filename='css/rankings.css', v='1.0.0') }}">{% endif %}
@@ -14,5 +14,5 @@
 <script nonce="{{ csp_nonce }}" id="player-state" type="application/json">{{ react_payload|tojson }}</script>
 {% endblock %}
 {% block scripts %}
-<script type="module" src="{{ url_for('static', filename='react/player.js', v='1.1.0') }}"></script>
+<script type="module" src="{{ url_for('static', filename='react/player.js', v=react_js_version) }}"></script>
 {% endblock %}

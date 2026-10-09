@@ -1,16 +1,133 @@
 (() => {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const nativeFetch = window.fetch.bind(window);
-    window.fetch = (input, init = {}) => {
-        const requestUrl = typeof input === 'string' ? new URL(input, window.location.href) : new URL(input.url, window.location.href);
-        const method = String(init.method || (typeof input !== 'string' && input.method) || 'GET').toUpperCase();
-        if (requestUrl.origin === window.location.origin && !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
-            const headers = new Headers(init.headers || (typeof input !== 'string' ? input.headers : undefined));
-            if (csrfToken && !headers.has('X-CSRFToken')) headers.set('X-CSRFToken', csrfToken);
+    let leaderboardRequestId = 0;
+
+    function showRuntimeNotice(message) {
+        let notice = document.querySelector('[data-crew-runtime-notice]');
+        if (!notice) {
+            notice = document.createElement('div');
+            notice.className = 'crew-runtime-notice';
+            notice.dataset.crewRuntimeNotice = '';
+            notice.setAttribute('role', 'status');
+            notice.setAttribute('aria-live', 'polite');
+            document.body.append(notice);
+        }
+        notice.textContent = message;
+        notice.hidden = false;
+        window.clearTimeout(showRuntimeNotice.timer);
+        showRuntimeNotice.timer = window.setTimeout(() => {
+            notice.hidden = true;
+        }, 5000);
+    }
+
+    function taggedError(message, key) {
+        const error = new Error(message);
+        error[key] = true;
+        return error;
+    }
+
+    window.fetch = async (input, init = {}) => {
+        const requestUrl = typeof input === 'string'
+            ? new URL(input, window.location.href)
+            : new URL(input.url, window.location.href);
+
+        const method = String(
+            init.method || (typeof input !== 'string' && input.method) || 'GET'
+        ).toUpperCase();
+
+        const sameOrigin = requestUrl.origin === window.location.origin;
+        const isLeaderboard =
+            sameOrigin &&
+            method === 'GET' &&
+            requestUrl.pathname === '/api/leaderboard';
+
+        const requestId = isLeaderboard ? ++leaderboardRequestId : 0;
+
+        if (sameOrigin && !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
+            const headers = new Headers(
+                init.headers || (typeof input !== 'string' ? input.headers : undefined)
+            );
+            if (csrfToken && !headers.has('X-CSRFToken')) {
+                headers.set('X-CSRFToken', csrfToken);
+            }
             init = { ...init, headers };
         }
-        return nativeFetch(input, init);
+
+        try {
+            const response = await nativeFetch(input, init);
+
+            // Flask redirects expired authenticated requests to /login.
+            // Fetch follows that redirect automatically, which previously made
+            // React try to parse the HTML login page as JSON.
+            if (response.redirected && sameOrigin) {
+                const redirectedUrl = new URL(response.url, window.location.href);
+                if (
+                    redirectedUrl.origin === window.location.origin &&
+                    redirectedUrl.pathname === '/login'
+                ) {
+                    const next = `${window.location.pathname}${window.location.search}`;
+                    window.location.assign(`/login?next=${encodeURIComponent(next)}`);
+                    return new Promise(() => {});
+                }
+            }
+
+            if (isLeaderboard) {
+                // A slower response from an older filter selection must never
+                // overwrite the player's newer selection.
+                if (requestId !== leaderboardRequestId) {
+                    throw taggedError(
+                        'Stale leaderboard response.',
+                        'crewLeaderboardStale'
+                    );
+                }
+
+                if (!response.ok) {
+                    throw taggedError(
+                        "Couldn't refresh rankings.",
+                        'crewLeaderboard'
+                    );
+                }
+            }
+
+            return response;
+        } catch (error) {
+            if (!isLeaderboard) throw error;
+
+            if (
+                requestId !== leaderboardRequestId ||
+                error?.crewLeaderboardStale
+            ) {
+                throw taggedError(
+                    'Stale leaderboard response.',
+                    'crewLeaderboardStale'
+                );
+            }
+
+            if (error?.crewLeaderboard) throw error;
+
+            const wrapped = taggedError(
+                "Couldn't refresh rankings.",
+                'crewLeaderboard'
+            );
+            wrapped.cause = error;
+            throw wrapped;
+        }
     };
+
+    window.addEventListener('unhandledrejection', (event) => {
+        if (event.reason?.crewLeaderboardStale) {
+            event.preventDefault();
+            return;
+        }
+
+        if (event.reason?.crewLeaderboard) {
+            event.preventDefault();
+            showRuntimeNotice(
+                "Couldn't refresh rankings. Your current results are still shown. Try again."
+            );
+        }
+    });
 })();
 
 // Password reveal controls on CREW auth screens.
