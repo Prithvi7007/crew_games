@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CREW favicon">
+  <defs>
+    <clipPath id="c-shape">
+      <path d="
+        M10 10
+        H52
+        V20
+        H27
+        L21 26
+        V38
+        L27 44
+        H52
+        V54
+        H10
+        Z
+      "/>
+    </clipPath>
+
+    <radialGradient id="bg" cx="72%" cy="18%" r="100%">
+      <stop offset="0%" stop-color="#1A0D35"/>
+      <stop offset="40%" stop-color="#08101A"/>
+      <stop offset="100%" stop-color="#02070B"/>
+    </radialGradient>
+
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+
+  <circle cx="46" cy="16" r="14" fill="#C55CFF" opacity=".12"/>
+  <circle cx="18" cy="48" r="14" fill="#55B9FF" opacity=".10"/>
+
+  <g clip-path="url(#c-shape)" filter="url(#glow)">
+    <rect x="8" y="8" width="48" height="12" fill="#C55CFF"/>
+    <rect x="8" y="20" width="48" height="12" fill="#55E6AC"/>
+    <rect x="8" y="32" width="48" height="12" fill="#FFBD45"/>
+    <rect x="8" y="44" width="48" height="12" fill="#55B9FF"/>
+  </g>
+
+  <path
+    d="M12 12 H48"
+    stroke="white"
+    stroke-width="1"
+    opacity=".18"
+  />
+</svg>
