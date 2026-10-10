@@ -6,8 +6,7 @@ umask 077
 
 PROD=/opt/crew
 STAGE=/opt/crew-v15-rehearsal
-SOURCE=/var/backups/crew/crew_20261010T001254Z.dump
-BACKUP=/var/backups/crew/release-checkpoints/pre_v15_20261010T001254Z.dump
+BACKUP_DIR=/var/backups/crew
 TEST_DB=crew_v15_migration_test
 
 exec 9>/run/lock/crew-v15-migration-rehearsal.lock
@@ -28,14 +27,21 @@ flock -n 9 || { echo "STOP: rehearsal already running." >&2; exit 1; }
 grep -q '^revision = "v15_badges"$' "$STAGE/alembic/versions/v15_badges.py"
 grep -q '^down_revision = "v14_seasons"$' "$STAGE/alembic/versions/v15_badges.py"
 
-[[ -f "$SOURCE" && -f "$SOURCE.sha256" && -f "$BACKUP" ]] || {
-  echo "STOP: missing approved recovery checkpoint or original checksum." >&2; exit 1;
+# Rehearse the *fresh* backup created immediately before deployment.
+# Never restore or modify the live DB. This script accepts no DB/path args.
+BACKUP=$(find "$BACKUP_DIR" -maxdepth 1 -type f -name 'crew_*.dump' \
+  -printf '%T@ %p\n' | sort -nr | head -n1 | cut -d' ' -f2-)
+[[ -n "${BACKUP:-}" && -f "$BACKUP" && ! -L "$BACKUP" &&
+   -f "$BACKUP.sha256" && ! -L "$BACKUP.sha256" ]] || {
+  echo "STOP: missing verified fresh backup." >&2; exit 1;
 }
-sha256sum --status --check "$SOURCE.sha256" || {
-  echo "STOP: checksum failed." >&2; exit 1;
+NOW=$(date +%s)
+BACKUP_TIME=$(stat -c %Y "$BACKUP")
+(( BACKUP_TIME <= NOW && NOW - BACKUP_TIME <= 1200 )) || {
+  echo "STOP: backup is not fresh enough for rehearsal." >&2; exit 1;
 }
-cmp -s "$SOURCE" "$BACKUP" || {
-  echo "STOP: release checkpoint does not match the verified backup." >&2; exit 1;
+sha256sum --status --check "$BACKUP.sha256" || {
+  echo "STOP: fresh backup checksum failed." >&2; exit 1;
 }
 pg_restore --list "$BACKUP" >/dev/null
 
@@ -182,5 +188,5 @@ tables=$(scratch_sql "SELECT count(*) FROM information_schema.tables
 [[ "$after_revision" == v15_badges && "$before_counts" == "$after_counts" && "$tables" == 3 ]] || {
   echo "STOP: migration result or saved-record counts do not match." >&2; exit 1;
 }
-echo "CREW v15 rehearsal passed: revision=v15_badges prior_counts_unchanged=yes badge_tables=3"
+echo "CREW v15 fresh-backup rehearsal passed: revision=v15_badges prior_counts_unchanged=yes badge_tables=3"
 echo "Scratch database will be removed. Production database was not migrated."

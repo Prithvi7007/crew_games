@@ -1,0 +1,36 @@
+[Unit]
+Description=CREW pinned-release deployment worker (approval required)
+After=network.target postgresql.service crew-ops.service
+RequiresMountsFor=/opt/crew /var/backups/crew
+
+[Service]
+Type=simple
+User=root
+Group=crew-ops
+WorkingDirectory=/
+ExecStart=/usr/bin/python3 -I -B /usr/local/libexec/crew-deploy/release_broker.py
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+RuntimeDirectory=crew-deploy
+RuntimeDirectoryMode=0750
+StateDirectory=crew-deploy
+StateDirectoryMode=0700
+UMask=0077
+# Root service must call runuser/systemd-run; never relax the existing
+# unprivileged crew-ops.service to accomplish this.
+NoNewPrivileges=no
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/crew /var/lib/crew-deploy /run/crew-deploy /run/lock
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+[Install]
+WantedBy=multi-user.target
