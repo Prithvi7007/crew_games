@@ -33,12 +33,12 @@ class ReleaseHalted(RuntimeError):
     """Safe-to-display failure code; never expose command stderr or secrets."""
 
 
-def execute(argv: tuple[str, ...], *, timeout: int = TIMEOUT) -> str:
+def execute(argv: tuple[str, ...], *, timeout: int = TIMEOUT, child_umask: int = -1) -> str:
     """Execute a developer-defined argv, never a caller-provided command."""
     try:
         finished = subprocess.run(
             argv, input="", stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            text=True, timeout=timeout, check=False,
+            text=True, timeout=timeout, check=False, umask=child_umask,
             env={"PATH": "/usr/sbin:/usr/bin:/bin", "LANG": "C"},
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
@@ -60,7 +60,7 @@ def git(*args: str, directory: Path = PRODUCTION) -> str:
         "/usr/sbin/runuser", "-u", APP_ROLE, "-g", "www-data", "--",
         "/usr/bin/git", "-c", f"safe.directory={directory}",
         "-c", "core.fsmonitor=false", "-C", str(directory), *args,
-    ))
+    ), child_umask=(0o022 if args == ("reset", "--hard", RELEASE) else -1))
 
 
 def require(cond: bool, name: str) -> None:
@@ -144,6 +144,23 @@ def record_counts() -> tuple[int, int, int]:
     return tuple(int(v) for v in parts)
 
 
+def verify_public_react_assets() -> None:
+    """Fail before app restart if Nginx cannot read the React entrypoint."""
+    import stat
+    for filename in ("player.js", "player.css"):
+        path = PRODUCTION / "app" / "static" / "react" / filename
+        try:
+            file_stat = path.lstat()
+        except OSError as exc:
+            raise ReleaseHalted("public_asset_missing") from exc
+        require(stat.S_ISREG(file_stat.st_mode), "public_asset_not_regular_file")
+        # Test as the Nginx identity, not as the root deployment worker.
+        execute((
+            "/usr/sbin/runuser", "-u", "www-data", "--",
+            "/usr/bin/test", "-r", str(path),
+        ))
+
+
 def service_health() -> None:
     execute(("/usr/bin/systemctl", "is-active", "--quiet", "crew.service"))
     execute((
@@ -216,6 +233,7 @@ def run_release() -> None:
 
             state("switching_code")
             git("reset", "--hard", RELEASE)
+            verify_public_react_assets()
             execute(("/usr/bin/systemctl", "restart", "crew.service"), timeout=90)
             service_health()
             require(git("rev-parse", "HEAD") == RELEASE, "deployed_commit_mismatch")

@@ -115,6 +115,38 @@ def test_engine_git_uses_fixed_unprivileged_identity(monkeypatch):
     assert "core.fsmonitor=false" in commands[0]
 
 
+def test_git_reset_overrides_umask_only_for_code_switch(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        engine, "execute",
+        lambda argv, **kwargs: calls.append((argv, kwargs)) or "",
+    )
+    engine.git("reset", "--hard", engine.RELEASE)
+    engine.git("rev-parse", "HEAD")
+    assert calls[0][1]["child_umask"] == 0o022
+    assert calls[1][1]["child_umask"] == -1
+
+
+def test_nginx_readability_checked_for_both_react_assets(monkeypatch, tmp_path):
+    static = tmp_path / "app" / "static" / "react"
+    static.mkdir(parents=True)
+    for name in ("player.js", "player.css"):
+        (static / name).write_text("test")
+    calls = []
+    monkeypatch.setattr(engine, "PRODUCTION", tmp_path)
+    monkeypatch.setattr(engine, "execute", lambda argv, **kw: calls.append(argv) or "")
+    engine.verify_public_react_assets()
+    assert len(calls) == 2
+    assert all(argv[:5] == (
+        "/usr/sbin/runuser", "-u", "www-data", "--", "/usr/bin/test"
+    ) for argv in calls)
+    assert all(argv[5] == "-r" for argv in calls)
+    (static / "player.js").unlink()
+    (static / "player.js").symlink_to(static / "player.css")
+    with pytest.raises(engine.ReleaseHalted, match="public_asset_not_regular_file"):
+        engine.verify_public_react_assets()
+
+
 def test_engine_denies_non_root_even_before_lock(monkeypatch):
     monkeypatch.setattr(engine.os, "geteuid", lambda: 10001)
     with pytest.raises(engine.ReleaseHalted, match="requires_host_worker"):
@@ -195,6 +227,7 @@ def test_release_sequence_rehearses_fresh_backup_before_migration(monkeypatch, t
     monkeypatch.setattr(engine, "verify_checkout", lambda: None)
     monkeypatch.setattr(engine, "service_health", lambda: None)
     monkeypatch.setattr(engine, "protected_script", lambda: None)
+    monkeypatch.setattr(engine, "verify_public_react_assets", lambda: None)
     monkeypatch.setattr(engine, "record_counts", lambda: (14, 100, 14))
     monkeypatch.setattr(engine, "latest_backup", lambda: tmp_path / "fresh.dump")
 
