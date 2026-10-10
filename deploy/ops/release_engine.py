@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import tempfile
 import time
 
 BASE = "c5a9275629ba4389c2b66a14b61a523868d40673"
@@ -162,11 +163,18 @@ def state(phase: str, *, detail: str = "") -> None:
         "release_sha": RELEASE,
         "updated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
     }
-    tmp = STATE_FILE.with_suffix(".tmp")
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as stream:
-        json.dump(payload, stream)
-    os.replace(tmp, STATE_FILE)
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=".state-", suffix=".tmp", dir=STATE_FILE.parent,
+    )
+    tmp = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(payload, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(tmp, STATE_FILE)
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 def run_release() -> None:
