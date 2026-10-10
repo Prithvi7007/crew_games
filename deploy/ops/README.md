@@ -44,6 +44,30 @@ These corrections are still only an offline review candidate. The host security
 review, local PostgreSQL cluster confirmation and controlled acceptance test
 remain mandatory.
 
+
+## Read-only installation preflight (new)
+
+The standalone `host_readiness.py` is an **inspection tool only**. It checks
+the pinned production/staging commits, unchanged worktrees, root-owned
+production configuration permissions **without loading credentials**, matching
+backup hashes, PostgreSQL archive readability, active CREW service, and the
+local PostgreSQL cluster with an unused scratch database. It reports only
+PASS/FAIL/INFO, never database URLs or secrets.
+
+An operator must review it and stage a copy in a private **root-owned**
+directory before running it on the VPS. The check does not call systemctl
+start/restart, create databases, change the deployed git checkout, or invoke
+the migration. It does not install the gateway or expose any new MCP tool.
+
+An existing or unexpected scratch database, modified release checkout, lost
+checkpoint, unhealthy application, or differing PostgreSQL cluster fails
+closed. The optional crew-ops group/service/socket status is informational
+because these are not yet installed.
+
+**The gateway should remain disabled until this audit and independent host
+security review pass.** A passing inspection alone does not authorize a
+production deployment.
+
 ## Mandatory host acceptance review before any activation
 
 1. Review the pre-existing v15-migration-rehearsal.sh for scratch DB isolation, correct local PostgreSQL cluster/port, cleanup on failure, and secrets handling. Confirm preservation and age of the recovery checkpoint.
