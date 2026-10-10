@@ -19,10 +19,10 @@ flock -n 9 || { echo "STOP: rehearsal already running." >&2; exit 1; }
 [[ -z "$(runuser -u crew -g www-data -- git -C "$PROD" status --porcelain)" ]] || {
   echo "STOP: production checkout dirty." >&2; exit 1;
 }
-[[ "$(git -C "$STAGE" rev-parse HEAD)" == f4a35026d1df0e86e987d4bca310b8d32aed4134 ]] || {
+[[ "$(runuser -u crew -g www-data -- git -c safe.directory="$STAGE" -c core.fsmonitor=false -C "$STAGE" rev-parse HEAD)" == f4a35026d1df0e86e987d4bca310b8d32aed4134 ]] || {
   echo "STOP: staging is not the approved release." >&2; exit 1;
 }
-[[ -z "$(git -C "$STAGE" status --porcelain)" ]] || {
+[[ -z "$(runuser -u crew -g www-data -- git -c safe.directory="$STAGE" -c core.fsmonitor=false -C "$STAGE" status --porcelain)" ]] || {
   echo "STOP: staging checkout dirty." >&2; exit 1;
 }
 grep -q '^revision = "v15_badges"$' "$STAGE/alembic/versions/v15_badges.py"

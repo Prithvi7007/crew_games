@@ -68,6 +68,20 @@ because these are not yet installed.
 security review pass.** A passing inspection alone does not authorize a
 production deployment.
 
+## Unprivileged Git inspection (additional installation prerequisite)
+
+The production checkout and the staged worktree share Git metadata under the
+application repository. A privileged Git status command can invoke configured
+helpers (for example, filesystem monitors) from that metadata. **Never run
+Git status or commit inspection as root against either checkout.**
+
+The gateway, preflight, and rehearsal now run all Git inspection as the
+unprivileged `crew` user, with a narrowly pinned safe.directory setting for
+the root-created staging path and `core.fsmonitor=false`. A staging path that
+cannot be inspected as `crew` must fail closed; do not revert to root Git.
+This change supersedes the earlier merged host_readiness.py version. Before
+installation, stage the reviewed newer revision only.
+
 ## Mandatory host acceptance review before any activation
 
 1. Review the pre-existing v15-migration-rehearsal.sh for scratch DB isolation, correct local PostgreSQL cluster/port, cleanup on failure, and secrets handling. Confirm preservation and age of the recovery checkpoint.

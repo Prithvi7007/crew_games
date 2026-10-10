@@ -40,9 +40,14 @@ def command(*argv: str, timeout: int = 10) -> tuple[bool, str]:
 
 
 def git_status(path: Path, *, as_crew: bool) -> tuple[bool, bool]:
-    prefix = ("/usr/sbin/runuser", "-u", "crew", "-g", "www-data", "--") if as_crew else ()
-    ok, commit = command(*prefix, "/usr/bin/git", "-C", str(path), "rev-parse", "HEAD")
-    clean_ok, changes = command(*prefix, "/usr/bin/git", "-C", str(path), "status", "--porcelain")
+    """Never inspect either shared-metadata worktree with root Git privileges."""
+    if path not in (PROD, STAGE):
+        return False, False
+    prefix = ("/usr/sbin/runuser", "-u", "crew", "-g", "www-data", "--")
+    argv = (*prefix, "/usr/bin/git", "-c", f"safe.directory={path}",
+            "-c", "core.fsmonitor=false", "-C", str(path))
+    ok, commit = command(*argv, "rev-parse", "HEAD")
+    clean_ok, changes = command(*argv, "status", "--porcelain")
     return ok and commit == (PROD_SHA if as_crew else RELEASE_SHA), clean_ok and not changes
 
 

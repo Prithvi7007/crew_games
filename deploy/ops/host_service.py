@@ -81,11 +81,18 @@ def file_digest(path: Path) -> str:
 
 
 def git_inspect(path: Path, *args: str) -> tuple[bool, str]:
-    # /opt/crew is owned by the crew user; root Git may refuse dubious ownership.
-    argv = ["/usr/bin/git", "-C", str(path), *args]
-    if path == PRODUCTION:
-        argv = ["/usr/sbin/runuser", "-u", "crew", "--", *argv]
-    return run_fixed(*argv)
+    """Never invoke Git as root on a checkout sharing CREW-writable metadata.
+
+    Both the production and root-created staging worktree reference the same
+    repository metadata. Git may execute configured helpers during inspection.
+    """
+    if path not in (PRODUCTION, STAGING):
+        return False, ""
+    return run_fixed(
+        "/usr/sbin/runuser", "-u", "crew", "-g", "www-data", "--",
+        "/usr/bin/git", "-c", f"safe.directory={path}",
+        "-c", "core.fsmonitor=false", "-C", str(path), *args,
+    )
 
 
 def preflight() -> dict:
