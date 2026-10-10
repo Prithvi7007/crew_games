@@ -29,7 +29,11 @@ ProtectKernelTunables=yes
 ProtectKernelModules=yes
 ProtectControlGroups=yes
 LockPersonality=yes
-RestrictAddressFamilies=AF_UNIX
+# Allow only localhost TCP for the fixed PostgreSQL migration rehearsal.
+# Keep remote network destinations denied to the privileged worker.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
 Environment=PYTHONDONTWRITEBYTECODE=1
 
 [Install]

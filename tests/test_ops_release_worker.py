@@ -164,6 +164,17 @@ def test_unit_never_modifies_original_readonly_gateway():
     assert "ExecStart=/usr/bin/python3 -B /usr/local/libexec/crew-ops/host_service.py" in gateway
 
 
+def test_release_worker_allows_only_loopback_tcp_for_database_rehearsal():
+    service = (Path(__file__).resolve().parents[1] /
+               "deploy/ops/crew-deploy.service").read_text()
+    assert "RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6" in service
+    assert "IPAddressDeny=any" in service
+    assert "IPAddressAllow=localhost" in service
+    assert "IPAddressAllow=any" not in service
+    assert "IPAddressDeny=" in service
+    assert "User=root" in service
+
+
 def test_engine_contains_no_automatic_db_downgrade_or_restore():
     source = (Path(__file__).resolve().parents[1] /
               "deploy/ops/release_engine.py").read_text()
