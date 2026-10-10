@@ -1,104 +1,90 @@
-# CREW Operations Gateway — Phase 2 candidate
+# CREW Operations Gateway — unprivileged read-only phase
 
-**Not installed. Not connected to the live MCP bridge. Production deploys are not supported yet.**
+**State: candidate update for the installed gateway. It is not deployed by
+merging this PR. Production deployments and migrations remain disabled.**
 
-This change introduces a candidate **host-side, finite-operation Unix-socket gateway** for CREW. The intention is to make limited vetted operations callable by ChatGPT without giving its development MCP general root shell access. All changes need host security review before systemd activation.
+## Why the gateway identity changes
 
-## Protocol
+On the VPS, the original root-owned gateway with
+`NoNewPrivileges=yes` could not switch to `crew` with `runuser`.
+All four Git preflight checks therefore failed. A supervised systemd
+diagnostic running Git directly as `User=crew` passed under comparable
+sandbox restrictions.
 
-The request is a newline-terminated JSON object of at most 2048 bytes. Replies are newline-delimited JSON. Unknown operation names and extra fields fail closed. There is no arbitrary command, path, environment or database-name parameter.
+The correct design is to separate privileges, **not disable the protection**:
 
-| Operation | Effect |
+1. **MCP-facing read-only gateway:** `User=crew`, `Group=crew-ops`,
+   `NoNewPrivileges=yes`, `ProtectSystem=strict`. It inspects only the
+   pinned CREW production and staged Git worktrees, directly as `crew`.
+   It accepts NO command, executable, filesystem path, environment or
+   target database name from MCP.
+2. **Future privileged worker:** Separate, tightly scoped service for
+   verified backups, scratch migration rehearsals and eventually approved
+   deployments. This does not exist yet. Never grant the gateway privileged
+   host access or mount production secrets into the development MCP.
+
+## Read-only protocol
+
+Requests are newline-delimited JSON over `/run/crew-ops/ops.sock`:
+
+| Operation | Result |
 |---|---|
-| capabilities | Lists allowed operations; deployment_enabled is false |
-| release_preflight | Read-only pinned commit, worktree and backup integrity checks |
-| start_v15_rehearsal | Launches a fixed script that restores a backup and migrates ONLY a disposable DB |
-| rehearsal_status | Returns the sanitized result of a rehearsal job |
+| `capabilities` | Reports the two read-only methods; `deployment_enabled=false` and `rehearsal_enabled=false` |
+| `release_preflight` | Reports pinned production/staging SHAs and clean-worktree checks |
 
-The v15 release and recovery backup are pinned in code. Rehearsal refuses unexpected Git SHAs, modified backup contents and already-existing scratch databases. A missing local root-owned enablement marker forbids starting rehearsals.
+An explicit attempt to call `start_v15_rehearsal` is always rejected.
+Arbitrary shell commands, production deployment and backup restoration are
+also rejected. The read-only preflight returns `git_ready=true` when
+Git checks pass, but **always returns `ready=false`** because protected
+backup validation and migration rehearsal require the future privileged
+worker. Do not interpret `git_ready` as authorization to deploy.
 
-**The gateway does not support production deployment, code rollback, live database upgrades, general command execution, or restoring a backup over production.**
+## Operator review / controlled VPS upgrade
 
-## Trust boundary
+After reviewing a specific, immutable merged commit:
 
-ChatGPT -> existing restricted CREW MCP bridge -> dedicated group-protected Unix socket -> root-owned operations gateway -> fixed vetted script.
+- Leave the running CREW Games `crew.service` and its database untouched.
+- The already-installed binary directory
+  `/usr/local/libexec/crew-ops` is currently root-owned mode 0700,
+  with `host_service.py` root-owned mode 0400. The new **unprivileged**
+  service cannot read those paths. An operator must change the directory
+  to root-owned mode 0755 and the gateway Python file to root-owned
+  mode 0444. Neither directory nor file must ever become writable by
+  `crew`, `www-data` or `crew-ops`.
+- Stop **only** `crew-ops.service` before replacing its gateway file and
+  systemd unit with the reviewed, pinned commit. Copy the corrected systemd
+  unit to `/etc/systemd/system/crew-ops.service`, root-owned mode 0644.
+  Run `systemd-analyze verify`, reload systemd and start
+  `crew-ops.service` again. Do not enable the separate rehearsal marker.
+- systemd's `RuntimeDirectory=crew-ops` creates
+  `/run/crew-ops` with owner `crew:crew-ops` mode 0750. The gateway's
+  Unix socket should have owner `crew:crew-ops` and mode 0660.
+  Only the eventual restricted MCP bridge identity should gain access
+  to the socket group; **do not** add the `crew` application service to
+  a privileged group.
+- Run explicit local protocol tests for capabilities, Git readiness,
+  rejected shell/deployment/rehearsal requests and no credential disclosure.
+  Verify production health and the deployed application commit independently.
 
-The host gateway, systemd unit and executable script must be copied by an operator into the root-owned, non-group-writable /usr/local/libexec/crew-ops directory. Never execute privileged scripts directly out of the /opt/crew deployment tree. Only the socket should be accessible to the bridge container, NOT any host secrets, PostgreSQL sockets, Docker socket, root filesystem, or SSH keys.
+No root-owned script in the gateway directory is executed by this read-only
+service. The existing v15 migration rehearsal shell script remains only a
+security-review candidate for a separate isolated execution worker.
 
-The example bridge client in bridge_client.py still requires an independently reviewed bridge adapter and Docker socket mount. The development bridge resides in a *different project* (/opt/crew-dev-bridge), so merging this branch does not add MCP tools to ChatGPT.
+## Next architecture milestones
 
-## Trust-boundary security correction (Phase 3)
+- A strictly controlled **privileged backup/migration worker** with
+  root-owned immutable scripts, scratch DB collision checks and tested
+  cleanup behavior.
+- Signed, short-lived, **out-of-band human approval** bound to release SHA,
+  release artifact digest, verified fresh backup, migration plan and operation.
+  An MCP-provided `approved=true` flag must never count as authorization.
+- A deployment state machine with locking, accurate live-game maintenance
+  handling, health checks, durable audit records and code-only rollback
+  where schema compatibility permits. **Never** automatically downgrade
+  or restore a prior database over new player progress.
+- A separately reviewed adapter in the independent
+  `/opt/crew-dev-bridge` project. Merging the CREW application repository
+  does not update the installed MCP bridge.
 
-The first candidate rehearsal sourced a helper script from the application checkout
-as root and launched the application-owned Python interpreter as root. That would
-have crossed the privilege boundary from an application-writable directory into
-the host operations service. **Do not install or execute that earlier script.**
-
-The hardened rehearsal parses the root-owned environment with system Python
-instead, validates file and parent-directory ownership and permissions, refuses
-an unexpected production database name/port, and runs production Git inspection
-as the unprivileged CREW account. Timed-out subprocesses run in their own process
-groups so the gateway can terminate children rather than only the parent shell.
-
-These corrections are still only an offline review candidate. The host security
-review, local PostgreSQL cluster confirmation and controlled acceptance test
-remain mandatory.
-
-
-## Read-only installation preflight (new)
-
-The standalone `host_readiness.py` is an **inspection tool only**. It checks
-the pinned production/staging commits, unchanged worktrees, root-owned
-production configuration permissions **without loading credentials**, matching
-backup hashes, PostgreSQL archive readability, active CREW service, and the
-local PostgreSQL cluster with an unused scratch database. It reports only
-PASS/FAIL/INFO, never database URLs or secrets.
-
-An operator must review it and stage a copy in a private **root-owned**
-directory before running it on the VPS. The check does not call systemctl
-start/restart, create databases, change the deployed git checkout, or invoke
-the migration. It does not install the gateway or expose any new MCP tool.
-
-An existing or unexpected scratch database, modified release checkout, lost
-checkpoint, unhealthy application, or differing PostgreSQL cluster fails
-closed. The optional crew-ops group/service/socket status is informational
-because these are not yet installed.
-
-**The gateway should remain disabled until this audit and independent host
-security review pass.** A passing inspection alone does not authorize a
-production deployment.
-
-## Unprivileged Git inspection (additional installation prerequisite)
-
-The production checkout and the staged worktree share Git metadata under the
-application repository. A privileged Git status command can invoke configured
-helpers (for example, filesystem monitors) from that metadata. **Never run
-Git status or commit inspection as root against either checkout.**
-
-The gateway, preflight, and rehearsal now run all Git inspection as the
-unprivileged `crew` user, with a narrowly pinned safe.directory setting for
-the root-created staging path and `core.fsmonitor=false`. A staging path that
-cannot be inspected as `crew` must fail closed; do not revert to root Git.
-This change supersedes the earlier merged host_readiness.py version. Before
-installation, stage the reviewed newer revision only.
-
-## Mandatory host acceptance review before any activation
-
-1. Review the pre-existing v15-migration-rehearsal.sh for scratch DB isolation, correct local PostgreSQL cluster/port, cleanup on failure, and secrets handling. Confirm preservation and age of the recovery checkpoint.
-2. Review host_service.py and crew-ops.service; run systemd-analyze verify and a supervised installation test. This Git change does NOT install the service.
-3. Create a dedicated crew-ops group. Grant only the verified bridge service identity permission to access the operations socket; check Docker UID/GID behavior after container recreation.
-4. Initially leave /etc/crew/ops-rehearsal-enabled ABSENT and verify that only preflight/capability reads work. The optional marker must be a root-owned mode 0600 regular file containing exactly enable-v15-rehearsal. Enable only after a reviewed scratch-only test plan.
-5. Verify the bridge cannot edit the installed gateway, change the installed scripts, inspect host credentials or execute arbitrary host commands.
-6. Verify scratch migration, cleanup, and that live service health and production database revision remain unchanged.
-
-## Important limitations and future work
-
-- **No deployment method is implemented in this phase.** Later deployment must bind a short-lived human approval to exact commit SHA, artifact hashes, verified backup, migration plan and operation; an MCP-provided "approved=true" field must never count as approval.
-- This rehearsal is pinned to the v15 migration and not a generic migration engine.
-- Job statuses are in memory and reset by service restarts. The systemd proposal kills in-progress jobs on service shutdown. Durable jobs and recovery tracking are required before long-running production use.
-- Never automatically downgrade the database or restore a previous backup over live user activity. Only code rollback where schema compatibility has been verified.
-- CI and host acceptance tests must pass; current tests alone do not prove this host service is safe.
-
-## Bridge adapter outline
-
-After review and installation, copy bridge_client.py into the separate bridge project and register only four fixed FastMCP methods delegating to its four client functions. Refresh the ChatGPT MCP tool inventory. Do not add a general-purpose execute-shell MCP tool.
+The production database, player profiles, scores and activity should never
+be touched by upgrading this read-only service.

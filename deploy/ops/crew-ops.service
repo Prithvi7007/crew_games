@@ -1,12 +1,12 @@
 [Unit]
-Description=CREW restricted operations gateway (non-deployment preview)
-After=network.target postgresql.service
-RequiresMountsFor=/opt/crew /var/backups/crew
+Description=CREW unprivileged read-only operations gateway
+After=network.target
+RequiresMountsFor=/opt/crew
 Documentation=file:/usr/local/libexec/crew-ops/README.md
 
 [Service]
 Type=simple
-User=root
+User=crew
 Group=crew-ops
 WorkingDirectory=/
 ExecStart=/usr/bin/python3 -B /usr/local/libexec/crew-ops/host_service.py
@@ -21,7 +21,7 @@ PrivateTmp=yes
 PrivateDevices=yes
 ProtectHome=yes
 ProtectSystem=strict
-ReadWritePaths=/run/crew-ops /run/lock
+ReadWritePaths=/run/crew-ops
 ProtectKernelTunables=yes
 ProtectKernelModules=yes
 ProtectControlGroups=yes

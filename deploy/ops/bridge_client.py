@@ -1,34 +1,25 @@
 """Example bridge-side client for the restricted CREW host operations socket.
 
-Only calls a finite list of operations. Do not expose a generic
+Only calls two read-only, finite operations. Do not expose a generic
 run(command=...) MCP tool. To be copied into the separate development bridge
 only after reviewing host socket access, Docker mounts and permissions.
 """
 from __future__ import annotations
 
 import json
-import re
 import socket
 
 SOCKET_PATH = "/run/crew-ops/ops.sock"
-JOB_ID = re.compile(r"[a-f0-9]{32}\Z")
 
 
 class OpsUnavailable(RuntimeError):
     pass
 
 
-def _request(operation: str, *, job_id: str | None = None) -> dict:
-    if operation not in {"capabilities", "release_preflight",
-                         "start_v15_rehearsal", "rehearsal_status"}:
+def _request(operation: str) -> dict:
+    if operation not in {"capabilities", "release_preflight"}:
         raise ValueError("Operation not allowed")
     payload = {"operation": operation}
-    if operation == "rehearsal_status":
-        if not isinstance(job_id, str) or not JOB_ID.fullmatch(job_id):
-            raise ValueError("Invalid job ID")
-        payload["job_id"] = job_id
-    elif job_id is not None:
-        raise ValueError("Unexpected job ID")
     try:
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
             sock.settimeout(40)
@@ -56,9 +47,3 @@ def crew_release_preflight() -> dict:
     return _request("release_preflight")
 
 
-def crew_start_v15_rehearsal() -> dict:
-    return _request("start_v15_rehearsal")
-
-
-def crew_v15_rehearsal_status(job_id: str) -> dict:
-    return _request("rehearsal_status", job_id=job_id)
