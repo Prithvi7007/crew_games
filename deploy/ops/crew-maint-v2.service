@@ -1,0 +1,36 @@
+[Unit]
+Description=CREW Ops v2 controlled maintenance socket
+After=network.target postgresql.service crew.service
+RequiresMountsFor=/opt/crew /var/lib/crew-deploy
+
+[Service]
+Type=simple
+User=root
+Group=crew-ops
+WorkingDirectory=/
+ExecStart=/usr/bin/python3 -I -B /usr/local/libexec/crew-maint/maintenance_v2.py serve
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+RuntimeDirectory=crew-maint
+RuntimeDirectoryMode=0750
+StateDirectory=crew-maint
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=no
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/run/crew-maint /var/lib/crew-maint /opt/crew
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+[Install]
+WantedBy=multi-user.target
