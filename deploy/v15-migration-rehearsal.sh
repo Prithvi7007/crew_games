@@ -13,10 +13,10 @@ TEST_DB=crew_v15_migration_test
 exec 9>/run/lock/crew-v15-migration-rehearsal.lock
 flock -n 9 || { echo "STOP: rehearsal already running." >&2; exit 1; }
 
-[[ "$(git -C "$PROD" rev-parse HEAD)" == c5a9275629ba4389c2b66a14b61a523868d40673 ]] || {
+[[ "$(runuser -u crew -g www-data -- git -C "$PROD" rev-parse HEAD)" == c5a9275629ba4389c2b66a14b61a523868d40673 ]] || {
   echo "STOP: production commit changed." >&2; exit 1;
 }
-[[ -z "$(git -C "$PROD" status --porcelain)" ]] || {
+[[ -z "$(runuser -u crew -g www-data -- git -C "$PROD" status --porcelain)" ]] || {
   echo "STOP: production checkout dirty." >&2; exit 1;
 }
 [[ "$(git -C "$STAGE" rev-parse HEAD)" == f4a35026d1df0e86e987d4bca310b8d32aed4134 ]] || {
@@ -39,20 +39,60 @@ cmp -s "$SOURCE" "$BACKUP" || {
 }
 pg_restore --list "$BACKUP" >/dev/null
 
-# Load host-protected credentials without logging their values.
+# Root must never source code from the crew-writable application directory.
+# Only the root-owned configuration file is sourced; URL decoding is performed
+# with trusted system Python (never /opt/crew/.venv/bin/python as root).
+ENV_FILE=/etc/crew/crew.env
+[[ ! -L "$ENV_FILE" && -f "$ENV_FILE" ]] || {
+  echo "STOP: unsafe environment file." >&2; exit 1;
+}
+[[ "$(stat -c %u "$ENV_FILE")" == 0 ]] || {
+  echo "STOP: environment file is not root-owned." >&2; exit 1;
+}
+case "$(stat -c %a "$ENV_FILE")" in
+  600|640|400|440) ;;
+  *) echo "STOP: environment file permissions are unsafe." >&2; exit 1 ;;
+esac
+[[ ! -L /etc/crew && "$(stat -c %u /etc/crew)" == 0 ]] || {
+  echo "STOP: environment directory is not root-owned." >&2; exit 1;
+}
+DIR_MODE=$(stat -c %a /etc/crew)
+(( (8#$DIR_MODE & 8#022) == 0 )) || {
+  echo "STOP: environment directory is group/world-writable." >&2; exit 1;
+}
 set -a
 # shellcheck disable=SC1091
-source /etc/crew/crew.env
+source "$ENV_FILE"
 set +a
-# shellcheck disable=SC1091
-source "$PROD/deploy/postgres-env.sh"
-crew_load_pg_env
+mapfile -d '' -t pg_parts < <(/usr/bin/python3 - <<'PY'
+import os
+import sys
+from urllib.parse import unquote, urlsplit
+raw = os.environ.get("DATABASE_URL", "")
+for old in ("postgresql+psycopg://", "postgres://"):
+    if raw.startswith(old):
+        raw = "postgresql://" + raw[len(old):]
+parsed = urlsplit(raw)
+database = unquote(parsed.path.lstrip("/"))
+if parsed.scheme != "postgresql" or not parsed.hostname or not parsed.username or not database:
+    raise SystemExit("STOP: invalid PostgreSQL URL")
+for part in (parsed.hostname, str(parsed.port or 5432),
+             unquote(parsed.username), unquote(parsed.password or ""), database):
+    sys.stdout.write(part + "\0")
+PY
+)
+[[ "${#pg_parts[@]}" == 5 ]] || {
+  echo "STOP: could not load database connection." >&2; exit 1;
+}
+export PGHOST="${pg_parts[0]}" PGPORT="${pg_parts[1]}"
+export PGUSER="${pg_parts[2]}" PGPASSWORD="${pg_parts[3]}" PGDATABASE="${pg_parts[4]}"
+unset pg_parts
 
 case "$PGHOST" in
   localhost|127.0.0.1|::1|/var/run/postgresql|/run/postgresql) ;;
   *) echo "STOP: remote PostgreSQL is not supported." >&2; exit 1 ;;
 esac
-[[ -n "$PGDATABASE" && "$PGDATABASE" != "$TEST_DB" && "$PGDATABASE" != postgres ]] || {
+[[ "$PGDATABASE" == crew_prod && "$PGPORT" == 5432 ]] || {
   echo "STOP: unsafe production database name." >&2; exit 1;
 }
 
@@ -85,6 +125,9 @@ cleanup() {
 trap cleanup EXIT
 
 DB_ROLE="${CREW_DB_ROLE:-crew_app}"
+[[ "$DB_ROLE" == "$PGUSER" ]] || {
+  echo "STOP: app database role does not match restore role." >&2; exit 1;
+}
 [[ "$DB_ROLE" =~ ^[a-z_][a-z_0-9]*$ ]] || {
   echo "STOP: invalid application role." >&2; exit 1;
 }
@@ -109,7 +152,7 @@ COUNTS_SQL="SELECT (SELECT count(*) FROM profiles)::text || ':' ||
 before_counts=$(scratch_sql "$COUNTS_SQL")
 
 # Construct a scratch-only SQLAlchemy URL, keeping credentials out of argv.
-TEST_URL=$("$PROD/.venv/bin/python" - <<'PY'
+TEST_URL=$(/usr/bin/python3 - <<'PY'
 import os
 from urllib.parse import urlsplit, urlunsplit
 parsed = urlsplit(os.environ["DATABASE_URL"])

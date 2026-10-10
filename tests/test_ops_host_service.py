@@ -125,3 +125,44 @@ def test_completed_rehearsal_status_uses_opaque_job_id(monkeypatch):
                            "job_id": "0" * 32}) == {
         "ok": False, "error": "unknown_job"
     }
+
+
+def test_v15_shell_script_syntax_and_trust_boundary():
+    """Do not execute root-owned rehearsal through crew-writable Python or code."""
+    from pathlib import Path
+    import subprocess
+
+    script = Path(__file__).resolve().parents[1] / "deploy/v15-migration-rehearsal.sh"
+    source = script.read_text(encoding="utf-8")
+    assert subprocess.run(["bash", "-n", str(script)], check=False).returncode == 0
+    assert 'source "$PROD/deploy/postgres-env.sh"' not in source
+    assert 'TEST_URL=$(/usr/bin/python3' in source
+    assert 'source "$ENV_FILE"' in source
+    assert '[[ "$PGDATABASE" == crew_prod && "$PGPORT" == 5432 ]]' in source
+    assert '[[ "$existing" == 0 ]]' in source
+    assert 'pg_admin dropdb "$TEST_DB"' in source
+
+
+def test_runner_timeout_terminates_process_group(monkeypatch):
+    import signal
+    import subprocess
+
+    sent = []
+
+    class FakeProcess:
+        pid = 24680
+        returncode = -signal.SIGTERM
+
+        def __init__(self, *args, **kwargs):
+            assert kwargs["start_new_session"] is True
+            assert kwargs["stdin"] == subprocess.DEVNULL
+
+        def communicate(self, timeout=None):
+            if timeout != 3:
+                raise subprocess.TimeoutExpired(cmd=("fixed",), timeout=timeout)
+            return "", ""
+
+    monkeypatch.setattr(ops.subprocess, "Popen", FakeProcess)
+    monkeypatch.setattr(ops.os, "killpg", lambda pid, sig: sent.append((pid, sig)))
+    assert ops.run_fixed("/bin/bash", str(ops.SCRIPT), timeout=1) == (False, "")
+    assert sent == [(24680, signal.SIGTERM)]

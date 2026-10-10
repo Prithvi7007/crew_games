@@ -27,6 +27,23 @@ The host gateway, systemd unit and executable script must be copied by an operat
 
 The example bridge client in bridge_client.py still requires an independently reviewed bridge adapter and Docker socket mount. The development bridge resides in a *different project* (/opt/crew-dev-bridge), so merging this branch does not add MCP tools to ChatGPT.
 
+## Trust-boundary security correction (Phase 3)
+
+The first candidate rehearsal sourced a helper script from the application checkout
+as root and launched the application-owned Python interpreter as root. That would
+have crossed the privilege boundary from an application-writable directory into
+the host operations service. **Do not install or execute that earlier script.**
+
+The hardened rehearsal parses the root-owned environment with system Python
+instead, validates file and parent-directory ownership and permissions, refuses
+an unexpected production database name/port, and runs production Git inspection
+as the unprivileged CREW account. Timed-out subprocesses run in their own process
+groups so the gateway can terminate children rather than only the parent shell.
+
+These corrections are still only an offline review candidate. The host security
+review, local PostgreSQL cluster confirmation and controlled acceptance test
+remain mandatory.
+
 ## Mandatory host acceptance review before any activation
 
 1. Review the pre-existing v15-migration-rehearsal.sh for scratch DB isolation, correct local PostgreSQL cluster/port, cleanup on failure, and secrets handling. Confirm preservation and age of the recovery checkpoint.
