@@ -166,3 +166,31 @@ def test_runner_timeout_terminates_process_group(monkeypatch):
     monkeypatch.setattr(ops.os, "killpg", lambda pid, sig: sent.append((pid, sig)))
     assert ops.run_fixed("/bin/bash", str(ops.SCRIPT), timeout=1) == (False, "")
     assert sent == [(24680, signal.SIGTERM)]
+
+
+def test_git_inspection_always_drops_root_privileges(monkeypatch):
+    calls = []
+    def safe_command(*args, timeout=8):
+        calls.append(args)
+        return True, ""
+
+    monkeypatch.setattr(ops, "run_fixed", safe_command)
+    for path in (ops.PRODUCTION, ops.STAGING):
+        assert ops.git_inspect(path, "status", "--porcelain") == (True, "")
+        assert calls[-1][:6] == (
+            "/usr/sbin/runuser", "-u", "crew", "-g", "www-data", "--"
+        )
+        assert "core.fsmonitor=false" in calls[-1]
+        assert f"safe.directory={path}" in calls[-1]
+    assert ops.git_inspect(ops.PRODUCTION.parent / "other", "status") == (False, "")
+    assert len(calls) == 2
+
+
+def test_rehearsal_never_inspects_stage_with_root_git():
+    from pathlib import Path
+    source = (
+        Path(__file__).resolve().parents[1] / "deploy/v15-migration-rehearsal.sh"
+    ).read_text(encoding="utf-8")
+    for line in source.splitlines():
+        if 'git -' in line and 'rev-parse' in line or 'git -' in line and 'status --porcelain' in line:
+            assert "runuser -u crew -g www-data -- git" in line

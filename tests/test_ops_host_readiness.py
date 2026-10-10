@@ -72,3 +72,23 @@ def test_report_fails_closed_on_unverified_backup(monkeypatch, capsys):
     monkeypatch.setattr(h, "command", lambda *args, **kwargs: (True, ""))
     assert h.main() == 1
     assert "STOP: fix failed checks" in capsys.readouterr().out
+
+
+def test_staged_git_inspection_uses_unprivileged_crew(monkeypatch):
+    calls = []
+
+    def command(*argv, timeout=10):
+        calls.append(argv)
+        if argv[-2:] == ("rev-parse", "HEAD"):
+            return True, h.RELEASE_SHA
+        return True, ""
+
+    monkeypatch.setattr(h, "command", command)
+    assert h.git_status(h.STAGE, as_crew=False) == (True, True)
+    assert calls
+    for call in calls:
+        assert call[:6] == (
+            "/usr/sbin/runuser", "-u", "crew", "-g", "www-data", "--"
+        )
+        assert "core.fsmonitor=false" in call
+        assert f"safe.directory={h.STAGE}" in call
