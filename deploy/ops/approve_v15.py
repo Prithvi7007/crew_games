@@ -7,13 +7,16 @@ does not authorize future releases and never performs a deployment itself.
 from __future__ import annotations
 
 import datetime as dt
-import getpass
 import json
 import os
 from pathlib import Path
 import secrets
 import stat
 import sys
+
+# Isolated Python (-I) omits the script directory from sys.path. Import only
+# our protected, fixed-installation sibling after resolving this directory.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from release_broker import (
     APPROVAL, BASE, RELEASE, approval_plan_digest, deployment_engine_safe,
@@ -40,7 +43,7 @@ def stage_one_approval(input_func=input) -> dict:
     print("Scope: v14 to v15 badge migration, code update, and crew restart")
     print("Requires successful scratch rehearsal and fresh database backup.")
     print("No automatic database restore or downgrade.")
-    print("This arms ONE attempt for 15 minutes; it does not deploy anything.")
+    print("This arms ONE attempt for 10 minutes; it does not deploy anything.")
     typed = input_func(f"Type exactly {CONFIRMATION!r} to approve: ")
     if typed != CONFIRMATION:
         raise RuntimeError("approval_not_granted")

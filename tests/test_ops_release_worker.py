@@ -222,3 +222,30 @@ def test_rehearsal_uses_fresh_dump_and_never_prod_restore():
     assert '--dbname="$TEST_DB" "$BACKUP"' in source
     assert '[[ "$existing" == 0 ]]' in source
     assert 'pg_admin dropdb "$TEST_DB"' in source
+
+
+def test_operator_approval_helper_imports_with_isolated_python():
+    import subprocess
+    import sys
+    helper = (Path(__file__).resolve().parents[1] /
+              "deploy/ops/approve_v15.py")
+    result = subprocess.run(
+        [sys.executable, "-I", "-c",
+         "import runpy, sys; runpy.run_path(sys.argv[1], "
+         "run_name='test_approval_import')", str(helper)],
+        capture_output=True, text=True, timeout=8,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_engine_state_is_atomic_and_tolerates_stale_tmp(monkeypatch, tmp_path):
+    import json
+    monkeypatch.setattr(engine, "STATE_FILE", tmp_path / "state.json")
+    (tmp_path / ".state-stale.tmp").write_text("crashed")
+    engine.state("validating")
+    engine.state("backing_up")
+    current = json.loads((tmp_path / "state.json").read_text())
+    assert current["phase"] == "backing_up"
+    assert current["release_sha"] == engine.RELEASE
+    assert (tmp_path / ".state-stale.tmp").exists()
+    assert list(tmp_path.glob(".state-*.tmp")) == [tmp_path / ".state-stale.tmp"]
