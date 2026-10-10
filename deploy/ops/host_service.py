@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import re
+import signal
 import socketserver
 import stat
 import subprocess
@@ -33,24 +34,42 @@ VALID_JOB = re.compile(r"[0-9a-f]{32}\Z")
 
 
 def run_fixed(*args: str, timeout: int = 8) -> tuple[bool, str]:
-    """Run a *code-chosen* argv; caller input never becomes an argument."""
+    """Run an internal fixed argv; terminate the entire process group on timeout.
+
+    The rehearsal invokes multiple subprocesses. Killing its parent shell alone
+    could leave orphaned PostgreSQL jobs, so each job gets an isolated session.
+    """
+    is_rehearsal = args == ("/bin/bash", str(SCRIPT))
+    proc = None
     try:
-        # The privileged rehearsal can emit a lot of PostgreSQL diagnostics.
-        # Never buffer or return that output through an MCP-facing process.
-        is_rehearsal = args == ("/bin/bash", str(SCRIPT))
-        proc = subprocess.run(
+        proc = subprocess.Popen(
             args,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL if is_rehearsal else subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
-            timeout=timeout,
-            check=False,
+            start_new_session=True,
             env={"PATH": "/usr/bin:/bin", "LANG": "C"},
         )
-    except (OSError, subprocess.TimeoutExpired):
+        try:
+            output, _ = proc.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(proc.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            try:
+                proc.communicate(timeout=3)
+            except subprocess.TimeoutExpired:
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                proc.communicate()
+            return False, ""
+    except OSError:
         return False, ""
-    return proc.returncode == 0, (proc.stdout or "").strip()[:256]
+    return proc.returncode == 0, (output or "").strip()[:256]
 
 
 def file_digest(path: Path) -> str:
