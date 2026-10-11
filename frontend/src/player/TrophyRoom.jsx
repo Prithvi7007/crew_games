@@ -92,7 +92,7 @@ function toneFor(badge) {
   return badge.gameKey || (badge.vertical === 'secret' ? 'legendary' : 'spectrum');
 }
 
-export function BadgeMedallion({ badge, size = 'normal', concealed = false }) {
+export function BadgeMedallion({ badge, size = 'normal', concealed = false, seasonNumber = null }) {
   return <span className={'trophy-medallion trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + ' trophy-medallion-' + size + (concealed ? ' is-concealed' : '')} aria-hidden="true">
     <span className="trophy-aura-field"/><svg viewBox="0 0 100 100" focusable="false" fill="none">
       <path className="medallion-outer" d="M50 6a44 44 0 1 1 0 88a44 44 0 1 1 0-88"/>
@@ -101,14 +101,16 @@ export function BadgeMedallion({ badge, size = 'normal', concealed = false }) {
       <circle cx="50" cy="4" r="2" fill="currentColor"/>
     </svg>
     <span className="trophy-medallion-shine"/><span className="trophy-aura-flare trophy-aura-flare-left"/><span className="trophy-aura-flare trophy-aura-flare-right"/>
+    <span className="trophy-achievement-emblem">{badge.gameKey === "mystery" ? "⌕" : badge.gameKey === "trivia" ? "✦" : badge.gameKey === "word" ? "W" : badge.gameKey === "tick_tock" ? "◷" : badge.vertical === "collection" ? "✧" : badge.vertical === "secret" ? "★" : "♛"}</span>
+    {seasonNumber != null ? <span className="trophy-season-emblem">S{String(seasonNumber).padStart(2, "0")}</span> : null}
   </span>;
 }
 
-function BadgeCard({ badge }) {
+function BadgeCard({ badge, seasonNumber }) {
   const hidden = !badge.earned && (badge.vertical === 'secret' || ['epic', 'legendary'].includes(badge.rarity));
   return <article className={'trophy-badge-card trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (badge.earned ? ' is-earned' : ' is-locked') + (hidden ? ' is-mysterious' : '')}>
     <div className="trophy-badge-top"><span>{badge.vertical === 'game_mastery' ? 'GAME MASTERY' : badge.vertical === 'leaderboard' ? 'RIVALRY' : badge.vertical.toUpperCase()}</span><span className="trophy-rarity-label">{badge.rarity.toUpperCase()}</span></div>
-    <BadgeMedallion badge={badge} concealed={hidden}/>
+    <BadgeMedallion badge={badge} concealed={hidden} seasonNumber={seasonNumber}/>
     <div className="trophy-badge-copy"><strong>{hidden ? 'Undiscovered achievement' : badge.name}</strong><p>{hidden ? 'Earn this badge to reveal its identity and story.' : DETAILS[badge.code]}</p></div>
     <div className="trophy-badge-bottom"><span>{badge.earned ? '✦ UNLOCKED' : '◇ LOCKED'}</span>{badge.earned && badge.sourceDate ? <time dateTime={badge.sourceDate}>{badge.sourceDate}</time> : null}</div>
   </article>;
@@ -162,7 +164,7 @@ export default function TrophyRoom({ data, Header, saveSlot }) {
         <header className="trophy-section-header"><div><span className="trophy-eyebrow">THE FRONT ROW</span><h2 id="trophy-showcase-title">Your showcase</h2></div><p>Three badges to represent your CREW story.</p></header>
         <div className="trophy-showcase-grid">{displayedShowcase.map(({slot, saved, badge}) => <div key={slot} className={'trophy-showcase-slot' + (saved && badge ? ' is-filled' : '')}>
           <span className="trophy-slot-index">SLOT 0{slot}</span>
-          {saved && badge ? <><BadgeMedallion badge={badge} size="showcase"/><strong>{badge.name}</strong><span className="trophy-showcase-rarity">{badge.rarity.toUpperCase()}</span></>
+          {saved && badge ? <><BadgeMedallion badge={badge} size="showcase" seasonNumber={season?.number}/><strong>{badge.name}</strong><span className="trophy-showcase-rarity">{badge.rarity.toUpperCase()}</span></>
             : <><span className="trophy-empty-mark" aria-hidden="true">✧</span><strong>Open spotlight</strong><span className="trophy-slot-hint">Reserved for an earned badge</span></>}
           <label className="trophy-slot-editor"><span className="trophy-sr-only">Showcase slot {slot}</span>
             <select aria-label={'Choose badge for showcase slot ' + slot} value={saved?.awardId || ''} disabled={savingSlot !== null} onChange={event => updateSlot(slot, event.target.value)}>
@@ -178,7 +180,7 @@ export default function TrophyRoom({ data, Header, saveSlot }) {
       <section className="trophy-collection" aria-labelledby="trophy-collection-title">
         <header className="trophy-section-header"><div><span className="trophy-eyebrow">THE COMPLETE SET</span><h2 id="trophy-collection-title">The collection <small>{earned} / {badges.length} discovered</small></h2></div><p>Four rarities. Twenty-one reasons to keep playing.</p></header>
         <div className="trophy-filters" aria-label="Filter badges">{FILTERS.map(([key,label]) => <button type="button" key={key} className={'trophy-filter' + (key === filter ? ' is-active' : '')} aria-pressed={key === filter} onClick={() => setFilter(key)}>{label}<span>{key === 'all' ? badges.length : badges.filter(b => b.vertical === key).length}</span></button>)}</div>
-        <div className="trophy-badge-grid">{filtered.map(badge => <BadgeCard key={badge.code} badge={badge}/>)}</div>
+        <div className="trophy-badge-grid">{filtered.map(badge => <BadgeCard key={badge.code} badge={badge} seasonNumber={season?.number}/>)}</div>
         <p className="trophy-collection-footnote">Season championship badges are finalized at season end. Previously earned badges remain in your season history.</p>
       </section>
     </main>
