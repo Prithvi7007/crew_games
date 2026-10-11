@@ -62,13 +62,13 @@ function toneFor(badge) {
 
 export function BadgeMedallion({ badge, size = 'normal' }) {
   return <span className={'trophy-medallion trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + ' trophy-medallion-' + size} aria-hidden="true">
-    <svg viewBox="0 0 100 100" focusable="false" fill="none">
-      <path className="medallion-outer" d="M50 4 82 22 94 50 82 78 50 96 18 78 6 50 18 22z"/>
-      <path className="medallion-inner" d="M50 13 74 27 85 50 74 73 50 87 26 73 15 50 26 27z"/>
+    <span className="trophy-aura-field"/><svg viewBox="0 0 100 100" focusable="false" fill="none">
+      <path className="medallion-outer" d="M50 6a44 44 0 1 1 0 88a44 44 0 1 1 0-88"/>
+      <path className="medallion-inner" d="M50 13a37 37 0 1 1 0 74a37 37 0 1 1 0-74"/>
       <path className="medallion-motif" d={MOTIFS[badge.code] || MOTIFS.badge_hunter}/>
       <circle cx="50" cy="4" r="2" fill="currentColor"/>
     </svg>
-    <span className="trophy-medallion-shine"/>
+    <span className="trophy-medallion-shine"/><span className="trophy-aura-flare trophy-aura-flare-left"/><span className="trophy-aura-flare trophy-aura-flare-right"/>
   </span>;
 }
 

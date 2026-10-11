@@ -125,3 +125,22 @@
  .crew-badge-celebration a {width:100%;text-align:center;}
  .trophy-slot-editor {width:calc(100% - 14px);}
 }
+
+/* Circular neon badge identities with layered radial sci-fi energy accents. */
+.trophy-medallion {isolation:isolate;--aura-power:.52;--aura-rarity:#a8d6f6;}
+.trophy-medallion .trophy-aura-field {position:absolute;inset:-8%;z-index:-1;border-radius:50%;pointer-events:none;background:radial-gradient(circle,transparent 40%,color-mix(in srgb,var(--badge-accent) 9%,transparent) 57%,transparent 68%),repeating-radial-gradient(circle,transparent 0 40%,color-mix(in srgb,var(--aura-rarity) 10%,transparent) 41%,transparent 42%,transparent 48%);box-shadow:0 0 28px color-mix(in srgb,var(--badge-accent) 17%,transparent);opacity:var(--aura-power);}
+.trophy-medallion svg {position:relative;z-index:1;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--badge-accent) 48%,transparent));}
+.trophy-medallion .medallion-outer {stroke-width:2.3;filter:drop-shadow(0 0 3px currentColor);}
+.trophy-medallion .medallion-inner {stroke-width:.6;opacity:.27;}
+.trophy-medallion .medallion-motif {stroke-width:2.9;filter:drop-shadow(0 0 2px currentColor);}
+.trophy-aura-flare {position:absolute;top:50%;width:24%;height:2px;z-index:2;pointer-events:none;background:linear-gradient(90deg,transparent,var(--badge-accent),#fff,var(--badge-accent),transparent);box-shadow:0 0 10px 2px var(--badge-accent);opacity:var(--aura-power);}
+.trophy-aura-flare::after {content:"";position:absolute;top:50%;left:50%;width:2px;height:20px;transform:translate(-50%,-50%);background:linear-gradient(transparent,var(--badge-accent),transparent);}
+.trophy-aura-flare-left {left:-7%;transform:translateY(-50%);}
+.trophy-aura-flare-right {right:-7%;transform:translateY(-50%);}
+.trophy-medallion.trophy-rarity-common {--aura-power:.38;--aura-rarity:#8ec9f0;}
+.trophy-medallion.trophy-rarity-rare {--aura-power:.62;--aura-rarity:#37cfff;}
+.trophy-medallion.trophy-rarity-epic {--aura-power:.83;--aura-rarity:#d275ff;}
+.trophy-medallion.trophy-rarity-legendary {--aura-power:1;--aura-rarity:#ffd45c;}
+.trophy-medallion.trophy-rarity-legendary .medallion-outer {stroke:#ffd76d;filter:drop-shadow(0 0 6px #f8bb4d);}
+.trophy-badge-card.is-locked .trophy-medallion {filter:none;opacity:.73;}
+.trophy-badge-card.is-locked .trophy-medallion .trophy-aura-field,.trophy-badge-card.is-locked .trophy-medallion .trophy-aura-flare {opacity:.3;}
