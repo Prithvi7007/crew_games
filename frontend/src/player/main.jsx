@@ -10,7 +10,7 @@ import './styles/rankings.css';
 import './styles/profile.css';
 import './styles/trivia.css';
 import './styles/trophies.css';
-import TrophyRoom from './TrophyRoom';
+import TrophyRoom, { BadgeMedallion, badgeFromAwardCode } from './TrophyRoom';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -303,9 +303,23 @@ function AppHeader({ shell }) {
 function TrophyPage({data}) { return <TrophyRoom data={data} Header={AppHeader} saveSlot={(slot,awardId)=>postJson(data.showcaseUrl,{slot,awardId})}/>; }
 
 function BadgeUnlockCelebration({ codes=[] }) {
-  if (!codes.length) return null;
-  const label = code => code.split('_').map(word => word.charAt(0).toUpperCase()+word.slice(1)).join(' ');
-  return <aside className="crew-badge-celebration" role="status" aria-live="polite"><span aria-hidden="true">✦</span><div><strong>{codes.length===1?'Badge unlocked!':`${codes.length} badges unlocked!`}</strong><p>{codes.map(label).join(' · ')}</p></div><a href="/trophies">View trophies <span aria-hidden="true">→</span></a></aside>;
+  const [dismissed, setDismissed] = useState(false);
+  // Game routes return newly persisted badge_awards codes, not client guesses.
+  const medals = [...new Set(codes)].map(badgeFromAwardCode).filter(Boolean);
+  if (!medals.length || dismissed) return null;
+  const rank = { common: 0, rare: 1, epic: 2, legendary: 3 };
+  const featured = [...medals].sort((a, b) => rank[b.rarity] - rank[a.rarity])[0];
+  return <aside className={'crew-badge-celebration trophy-rarity-' + featured.rarity + ' trophy-tone-' + (featured.gameKey || 'spectrum')} role="region" aria-label="New badges unlocked">
+    <span className="crew-badge-sparks" aria-hidden="true">✦</span>
+    <div className="crew-badge-reveal-art"><BadgeMedallion badge={featured} size="victory"/></div>
+    <div className="crew-badge-reveal-content">
+      <span className="crew-badge-reveal-kicker">✦ ACHIEVEMENT UNLOCKED</span>
+      <strong>{medals.length === 1 ? featured.name : medals.length + ' new badges!'}</strong>
+      <p>{medals.length === 1 ? 'A new trophy for your CREW collection.' : 'Your latest CREW performance earned more than one trophy.'}</p>
+      <ul aria-label="Newly earned badges">{medals.map(badge => <li key={badge.code}><span>{badge.name}</span><small>{badge.rarity.toUpperCase()}</small></li>)}</ul>
+      <div className="crew-badge-reveal-actions"><a href="/trophies">View in Trophy Room <span aria-hidden="true">→</span></a><button type="button" onClick={() => setDismissed(true)}>Continue to results</button></div>
+    </div>
+  </aside>;
 }
 
 function GameResult({ game, icon='✦', kicker='ROUND COMPLETE', score=0, meta=[], copy='', badges=[] }) {

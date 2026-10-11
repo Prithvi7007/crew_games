@@ -56,16 +56,48 @@ const MOTIFS = {
   crew_legend: 'M50 12l12 24 27 4-19 19 5 27-25-13-25 13 5-27-19-19 27-4zM50 37v26M37 50h26',
 };
 
+
+// Keep the victory reveal in sync with the server's fixed badge catalog.
+// Only server-awarded codes are rendered as newly earned trophies.
+export const BADGE_CATALOG = Object.freeze({
+  case_closed: ['Case Closed', 'common', 'mystery'],
+  sharp_instincts: ['Sharp Instincts', 'rare', 'mystery'],
+  mind_reader: ['Mind Reader', 'epic', 'mystery'],
+  sharp_shooter: ['Sharp Shooter', 'common', 'trivia'],
+  brainiac: ['Brainiac', 'rare', 'trivia'],
+  flawless_victory: ['Flawless Victory', 'epic', 'trivia'],
+  word_wizard: ['Word Wizard', 'common', 'word'],
+  word_ninja: ['Word Ninja', 'rare', 'word'],
+  one_shot_wonder: ['One-Shot Wonder', 'legendary', 'word'],
+  close_call: ['Close Call', 'common', 'tick_tock'],
+  precision_pro: ['Precision Pro', 'rare', 'tick_tock'],
+  human_stopwatch: ['Human Stopwatch', 'epic', 'tick_tock'],
+  season_champion: ['Season Champion', 'legendary', null],
+  season_trivia_master: ['Season Trivia Master', 'epic', null],
+  season_wordle_master: ['Season Wordle Master', 'epic', null],
+  season_mystery_master: ['Season Mystery Master', 'epic', null],
+  season_tick_tock_master: ['Season Tick-Tock Master', 'epic', null],
+  high_roller: ['High Roller', 'epic', null],
+  unicorn: ['Unicorn', 'legendary', null],
+  badge_hunter: ['Badge Hunter', 'epic', null],
+  crew_legend: ['CREW Legend', 'legendary', null],
+});
+
+export function badgeFromAwardCode(code) {
+  const entry = Object.prototype.hasOwnProperty.call(BADGE_CATALOG, code) ? BADGE_CATALOG[code] : null;
+  return entry ? { code, name: entry[0], rarity: entry[1], gameKey: entry[2], vertical: code === 'unicorn' ? 'secret' : 'game_mastery' } : null;
+}
+
 function toneFor(badge) {
   return badge.gameKey || (badge.vertical === 'secret' ? 'legendary' : 'spectrum');
 }
 
-export function BadgeMedallion({ badge, size = 'normal' }) {
-  return <span className={'trophy-medallion trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + ' trophy-medallion-' + size} aria-hidden="true">
+export function BadgeMedallion({ badge, size = 'normal', concealed = false }) {
+  return <span className={'trophy-medallion trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + ' trophy-medallion-' + size + (concealed ? ' is-concealed' : '')} aria-hidden="true">
     <span className="trophy-aura-field"/><svg viewBox="0 0 100 100" focusable="false" fill="none">
       <path className="medallion-outer" d="M50 6a44 44 0 1 1 0 88a44 44 0 1 1 0-88"/>
       <path className="medallion-inner" d="M50 13a37 37 0 1 1 0 74a37 37 0 1 1 0-74"/>
-      <path className="medallion-motif" d={MOTIFS[badge.code] || MOTIFS.badge_hunter}/>
+      <path className="medallion-motif" d={concealed ? "M38 44v-9a12 12 0 0 1 24 0v9M32 44h36v31H32zM50 56v9" : (MOTIFS[badge.code] || MOTIFS.badge_hunter)}/>
       <circle cx="50" cy="4" r="2" fill="currentColor"/>
     </svg>
     <span className="trophy-medallion-shine"/><span className="trophy-aura-flare trophy-aura-flare-left"/><span className="trophy-aura-flare trophy-aura-flare-right"/>
@@ -73,11 +105,11 @@ export function BadgeMedallion({ badge, size = 'normal' }) {
 }
 
 function BadgeCard({ badge }) {
-  const hidden = badge.vertical === 'secret' && !badge.earned;
-  return <article className={'trophy-badge-card trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (badge.earned ? ' is-earned' : ' is-locked')}>
+  const hidden = !badge.earned && (badge.vertical === 'secret' || ['epic', 'legendary'].includes(badge.rarity));
+  return <article className={'trophy-badge-card trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (badge.earned ? ' is-earned' : ' is-locked') + (hidden ? ' is-mysterious' : '')}>
     <div className="trophy-badge-top"><span>{badge.vertical === 'game_mastery' ? 'GAME MASTERY' : badge.vertical === 'leaderboard' ? 'RIVALRY' : badge.vertical.toUpperCase()}</span><span className="trophy-rarity-label">{badge.rarity.toUpperCase()}</span></div>
-    <BadgeMedallion badge={badge}/>
-    <div className="trophy-badge-copy"><strong>{hidden ? 'Secret achievement' : badge.name}</strong><p>{hidden ? 'A surprise worth chasing.' : DETAILS[badge.code]}</p></div>
+    <BadgeMedallion badge={badge} concealed={hidden}/>
+    <div className="trophy-badge-copy"><strong>{hidden ? 'Undiscovered achievement' : badge.name}</strong><p>{hidden ? 'Earn this badge to reveal its identity and story.' : DETAILS[badge.code]}</p></div>
     <div className="trophy-badge-bottom"><span>{badge.earned ? '✦ UNLOCKED' : '◇ LOCKED'}</span>{badge.earned && badge.sourceDate ? <time dateTime={badge.sourceDate}>{badge.sourceDate}</time> : null}</div>
   </article>;
 }
