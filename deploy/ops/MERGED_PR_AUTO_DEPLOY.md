@@ -91,3 +91,58 @@ passes, including Trophy Room badge PR #24 if still pending in production.
 No caller-provided release SHA or force option exists. For blocked releases,
 inspect the sanitized journal reason; do not delete state, bypass evidence or
 reset the production checkout to make a safety gate pass.
+
+
+## PR #25 post-restart readiness incident (one-time recovery)
+
+The first automatic release switched production from
+`f4a35026d1df0e86e987d4bca310b8d32aed4134` to
+`5e53a3d3d281dd039fd5d1edd1bc550a2189f9b1`, but the immediate,
+single-shot health probe ran before the Unix socket became ready.
+The watcher deliberately retained `phase=failed`; subsequent checks report
+`previous_release_needs_review`. Production was later independently verified
+healthy, with database `v15_badges`, at least 14 profiles, 111 completions,
+and 14 user stats, and both React assets served with HTTP 200.
+
+This is **not** a reason to delete `merge_auto_state.json` or override
+the deployment engine. The reviewed recovery adds a bounded (20 probes,
+two seconds apart, plus each probe's existing timeout) post-restart wait,
+and a one-time incident-specific operator reconciliation. The existing
+maintenance daemon, database and backup safeguards are not modified.
+
+After the repair PR is merged by the owner **and its merged-main CI succeeds**,
+execute the following on the VPS as root, replacing the SHA with that exact
+reviewed **merge commit** (not the feature-branch commit):
+
+```bash
+set -euo pipefail
+REVIEWED_SHA="<EXACT_REVIEWED_REPAIR_MERGE_SHA>"
+runuser -u crew -g www-data -- git -C /opt/crew fetch --no-tags origin main
+runuser -u crew -g www-data -- git -C /opt/crew show \
+  "$REVIEWED_SHA:deploy/ops/reconcile_merge_auto_pr25.py" \
+  > /root/reconcile_crew_pr25.py
+chmod 0400 /root/reconcile_crew_pr25.py
+python3 -I -B /root/reconcile_crew_pr25.py "$REVIEWED_SHA"
+```
+
+The script requires a root terminal and the phrase `RECONCILE CREW PR25`.
+It rejects mismatched GitHub main SHA, missing owner-merge / passing main CI,
+a changed prior root-owned watcher, a different failed release, absent
+`post_restart_health_failed` journal evidence, untrusted manifest or state,
+a concurrent release, unhealthy app, unreadable assets or regressed DB counts.
+It preserves the failed state as
+`/var/lib/crew-maint/merge_auto_pr25_failed_snapshot.json` (root-only),
+installs only the new reviewed watcher source as a root-owned file, then
+reconciles the *already deployed and verified healthy* PR #25 release.
+It does not restart CREW, reset Git or change production application files.
+The normal timer then evaluates PR #26 and the repair PR together, with all
+usual GitHub, backup, readiness, and data-integrity requirements.
+A blocked or interrupted recovery remains blocked for operator review.
+
+Read-only verification afterward:
+
+```bash
+systemctl list-timers crew-auto-release.timer --no-pager
+journalctl -u crew-auto-release.service -n 25 --no-pager
+runuser -u crew -g www-data -- git -C /opt/crew rev-parse HEAD
+```
