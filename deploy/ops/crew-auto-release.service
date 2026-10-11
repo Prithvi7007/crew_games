@@ -1,0 +1,29 @@
+[Unit]
+Description=CREW verified merged-PR code-only release watcher
+After=network-online.target postgresql.service crew-maint-v2.service
+Wants=network-online.target
+RequiresMountsFor=/opt/crew /opt/crew-release-candidate /var/lib/crew-maint
+
+[Service]
+Type=oneshot
+User=root
+Group=crew-ops
+WorkingDirectory=/
+ExecStart=/usr/bin/python3 -I -B /usr/local/libexec/crew-maint/merge_auto_deploy.py
+TimeoutStartSec=900
+UMask=0077
+NoNewPrivileges=no
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/crew /opt/crew-release-candidate /var/lib/crew-maint
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+# GitHub read-only evidence is fetched over TLS; no API token or SSH key is used.
+# The watched repository, branch, maintainer, workflow and CI steps are hardcoded.
