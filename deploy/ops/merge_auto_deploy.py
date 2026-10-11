@@ -18,6 +18,7 @@ import re
 import stat
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 from urllib.parse import urlsplit
@@ -264,6 +265,22 @@ def write_manifest(base: str, release: str, pr: int, state: dict) -> dict:
     return updated
 
 
+def restart_crew_with_readiness() -> None:
+    """Wait for the app socket after systemd reports restart success.
+
+    systemctl restart can complete before the app binds its Unix socket.
+    Keep a bounded, fail-closed readiness window; never skip the actual probe.
+    """
+    if not maint.fixed("/usr/bin/systemctl", "restart", "crew.service", timeout=90)[0]:
+        raise maint.Refused("restart_failed")
+    for attempt in range(20):
+        if maint.service_active("crew.service") and maint.socket_health():
+            return
+        if attempt < 19:
+            time.sleep(2)
+    raise maint.Refused("post_restart_health_failed")
+
+
 def run_once() -> dict:
     if os.geteuid() != 0:
         raise Blocked("root_only")
@@ -332,12 +349,19 @@ def _run_once_locked() -> dict:
         maint.release_preflight()
         state_write({**state, "phase": "running", "base": live,
                      "release": target, "reviewed_pr": pr})
+        original_restart = maint.restart_crew
+        # Only this trusted auto-release invocation gets the bounded wait.
+        # The separately running maintenance daemon remains untouched.
+        maint.restart_crew = restart_crew_with_readiness
         try:
-            maint.deploy_code_only()
-        except Exception:
-            state_write({**state, "phase": "failed", "base": live,
-                         "release": target, "reviewed_pr": pr})
-            raise
+            try:
+                maint.deploy_code_only()
+            except Exception:
+                state_write({**state, "phase": "failed", "base": live,
+                             "release": target, "reviewed_pr": pr})
+                raise
+        finally:
+            maint.restart_crew = original_restart
         state_write({**state, "phase": "succeeded", "base": live,
                      "release": target, "reviewed_pr": pr})
         return {"phase": "succeeded", "release": target, "reviewed_pr": pr}
