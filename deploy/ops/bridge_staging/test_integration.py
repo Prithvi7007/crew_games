@@ -49,6 +49,14 @@ class IntegrationTests(unittest.TestCase):
         exec(CORE_HOOK, namespace)
         self.sync = namespace['sync_frontend_assets']
 
+    def test_runner_export_permissions_explicit(self):
+        self.assertIn("os.chown(export_root, 0, 10001)", RUNNER_HOOK)
+        self.assertIn("os.chmod(export_root, 0o750)", RUNNER_HOOK)
+        self.assertIn("os.chown(dest, 0, 10001)", RUNNER_HOOK)
+        self.assertIn("os.chmod(dest, 0o640)", RUNNER_HOOK)
+        self.assertIn("os.chown(manifest_file, 0, 10001)", RUNNER_HOOK)
+        self.assertIn("os.chmod(manifest_file, 0o640)", RUNNER_HOOK)
+
     def test_successful_import(self):
         result = self.sync(self.job)
         self.assertTrue(result['requires_new_checks'])

@@ -19,6 +19,10 @@ RUNNER_HOOK = '''
             allowed = ('app/static/react/player.js', 'app/static/react/player.css')
             export_root = QUEUE / 'artifacts' / job_id
             export_root.mkdir(parents=True, exist_ok=False)
+            # Supervisor is 0:10001; bridge is 10001:10001.
+            # Do not rely on host umask or inherited directory modes.
+            os.chown(export_root, 0, 10001)
+            os.chmod(export_root, 0o750)
             manifest = {}
             try:
                 for rel in allowed:
@@ -32,8 +36,13 @@ RUNNER_HOOK = '''
                         raise ValueError('Oversized frontend artifact')
                     dest = export_root / Path(rel).name
                     dest.write_bytes(raw)
+                    os.chown(dest, 0, 10001)
+                    os.chmod(dest, 0o640)
                     manifest[rel] = hashlib.sha256(raw).hexdigest()
-                (export_root / 'manifest.json').write_text(json.dumps(manifest))
+                manifest_file = export_root / 'manifest.json'
+                manifest_file.write_text(json.dumps(manifest))
+                os.chown(manifest_file, 0, 10001)
+                os.chmod(manifest_file, 0o640)
             except Exception:
                 shutil.rmtree(export_root, ignore_errors=True)
                 raise
