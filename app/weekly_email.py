@@ -1,6 +1,5 @@
 import json
-from datetime import date, datetime, time, timedelta, timezone
-from zoneinfo import ZoneInfo
+from datetime import date, timedelta
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from uuid import uuid4
@@ -60,21 +59,11 @@ def _weekly_email_recipients():
 
 
 def build_weekly_kickoff_context(reference_day=None):
-    """Build the Monday recap from games completed by Sunday 11:59 PM CREW time."""
+    """Build Monday recap from saved prior-week scores available at generation time."""
     reference_day = reference_day or crew_today()
     current_week_start = get_week_start(reference_day)
     previous_week_start = current_week_start - timedelta(days=7)
     previous_week_end = previous_week_start + timedelta(days=6)
-    # Completions are stored as naive UTC timestamps. Exclusive Monday midnight
-    # in the CREW timezone includes Sunday 11:59:59 PM, even across DST.
-    from app.schedule import CREW_TIMEZONE
-    completed_before = (
-        datetime.combine(current_week_start, time.min, tzinfo=ZoneInfo(CREW_TIMEZONE))
-        .astimezone(timezone.utc)
-        .replace(tzinfo=None)
-        .isoformat(timespec="seconds")
-    )
-
     current_week_number = get_crew_week_number(current_week_start)
     previous_week_number = get_crew_week_number(previous_week_start)
 
@@ -82,10 +71,10 @@ def build_weekly_kickoff_context(reference_day=None):
     season_leaders = []
     if previous_week_number > 0:
         previous_leaders = get_rankings_between(
-            previous_week_start, previous_week_end, limit=10, completed_before=completed_before
+            previous_week_start, previous_week_end, limit=10
         )
         season_leaders = get_rankings_between(
-            CREW_WEEK_ONE_DATE, previous_week_end, limit=10, completed_before=completed_before
+            CREW_WEEK_ONE_DATE, previous_week_end, limit=10
         )
 
     public_url = current_app.config.get("CREW_PUBLIC_URL", "https://cadacrew.fun").rstrip("/")
@@ -240,7 +229,7 @@ def _send_with_resend(subject, html_body, text_body, recipients, send_key):
     return result
 
 
-def send_weekly_kickoff(reference_day=None, force=False, dry_run=False, correction=False):
+def send_weekly_kickoff(reference_day=None, force=False, dry_run=False):
     if not _weekly_email_enabled():
         return {
             "status": "disabled",
@@ -252,18 +241,6 @@ def send_weekly_kickoff(reference_day=None, force=False, dry_run=False, correcti
         return rendered
 
     context = rendered["context"]
-    if correction:
-        # Explicit correction sends are intentional resends of an already mailed week.
-        force = True
-        rendered["subject"] = "CORRECTION: " + rendered["subject"]
-        rendered["html"] = current_app.jinja_env.get_template(
-            "emails/weekly_kickoff.html"
-        ).render(**context, correction_notice=True)
-        rendered["text"] = (
-            "CORRECTION: This replaces the earlier weekly standings email. "
-            "The standings below include all saved scores, including catch-up plays.\n\n"
-            + rendered["text"]
-        )
     send_key = f"crew-weekly-kickoff-{context['current_week_start'].isoformat()}"
     setting_key = f"email.weekly_kickoff.{context['current_week_start'].isoformat()}"
 
@@ -312,7 +289,6 @@ def send_weekly_kickoff(reference_day=None, force=False, dry_run=False, correcti
 def init_app(app):
     @app.cli.command("send-weekly-kickoff")
     @click.option("--force", is_flag=True, help="Send even if this CREW week is already marked sent.")
-    @click.option("--correction", is_flag=True, help="Resend with a clear correction notice and a fresh idempotency key.")
     @click.option("--dry-run", is_flag=True, help="Render and validate without contacting Resend.")
     @click.option(
         "--date",
@@ -321,7 +297,7 @@ def init_app(app):
         metavar="YYYY-MM-DD",
         help="Optional reference date for testing. Defaults to the current CREW date.",
     )
-    def send_weekly_kickoff_command(force, dry_run, raw_date, correction):
+    def send_weekly_kickoff_command(force, dry_run, raw_date):
         """Send the Monday recap + new-week kickoff email."""
         reference_day = None
         if raw_date:
@@ -331,7 +307,7 @@ def init_app(app):
                 raise click.ClickException("--date must use YYYY-MM-DD.") from exc
 
         try:
-            result = send_weekly_kickoff(reference_day=reference_day, force=force, dry_run=dry_run, correction=correction)
+            result = send_weekly_kickoff(reference_day=reference_day, force=force, dry_run=dry_run)
         except RuntimeError as exc:
             raise click.ClickException(str(exc)) from exc
 
