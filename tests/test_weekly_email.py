@@ -142,22 +142,30 @@ def test_weekly_email_uses_admin_recipient_override(app):
     assert result["status"] == "dry_run"
     assert result["recipients"] == ["crew-list@example.com"]
 
-def test_corrected_weekly_email_has_notice_and_resend_subject(app):
+def test_force_resend_keeps_standard_newsletter_without_correction_notice(app):
     alpha = _profile(app, "Alpha")
     with app.app_context():
-        _record_at("2026-09-27T12:00:00", profile_user_key(alpha), "mystery", "2026-09-21", 80, False)
+        _record_at("2026-09-27T12:00:00", profile_user_key(alpha),
+                   "mystery", "2026-09-21", 80, False)
         set_setting("email.weekly_kickoff.to", "crew-list@example.com")
         set_setting("email.weekly_kickoff.2026-09-28", '{"resend_id":"already-sent"}')
+        already_sent = send_weekly_kickoff(
+            reference_day=date(2026, 9, 28), dry_run=True
+        )
         result = send_weekly_kickoff(
-            reference_day=date(2026, 9, 28), correction=True, dry_run=True
+            reference_day=date(2026, 9, 28), force=True, dry_run=True
         )
 
+    assert already_sent["status"] == "already_sent"
     assert result["status"] == "dry_run"
-    assert result["subject"].startswith("CORRECTION: CREW Games Weekly")
-    assert "CORRECTION" in result["html"]
-    assert "including catch-up plays" in result["html"]
-    assert "CORRECTION:" in result["text"]
+    assert result["recipients"] == ["crew-list@example.com"]
+    assert result["subject"] == "CREW Games Weekly | Week 02 is Live"
+    assert "CORRECTION" not in result["html"]
+    assert "CORRECTION" not in result["text"]
+    assert "correction_notice" not in result["html"]
+    assert "force-" in result["send_key"]
     assert result["context"]["previous_leaders"][0]["points"] == 80
+
 
 def test_sunday_1159_eastern_included_monday_midnight_excluded(app):
     early = _profile(app, "SundayFinisher")
