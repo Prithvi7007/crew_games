@@ -1,5 +1,6 @@
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from uuid import uuid4
@@ -31,10 +32,10 @@ def _week_number_label(number):
 
 
 def _week_range_label(monday):
-    thursday = monday + timedelta(days=3)
-    if monday.month == thursday.month:
-        return f"{monday.strftime('%b')} {monday.day}–{thursday.day}, {monday.year}"
-    return f"{monday.strftime('%b %d')}–{thursday.strftime('%b %d')}, {monday.year}"
+    sunday = monday + timedelta(days=6)
+    if monday.month == sunday.month:
+        return f"{monday.strftime('%b')} {monday.day}–{sunday.day}, {monday.year}"
+    return f"{monday.strftime('%b %d')}–{sunday.strftime('%b %d')}, {monday.year}"
 
 
 def _long_date_label(day):
@@ -59,11 +60,20 @@ def _weekly_email_recipients():
 
 
 def build_weekly_kickoff_context(reference_day=None):
-    """Build a frozen Monday recap through the previous CREW Thursday."""
+    """Build the Monday recap from games completed by Sunday 11:59 PM CREW time."""
     reference_day = reference_day or crew_today()
     current_week_start = get_week_start(reference_day)
     previous_week_start = current_week_start - timedelta(days=7)
-    previous_week_end = previous_week_start + timedelta(days=3)
+    previous_week_end = previous_week_start + timedelta(days=6)
+    # Completions are stored as naive UTC timestamps. Exclusive Monday midnight
+    # in the CREW timezone includes Sunday 11:59:59 PM, even across DST.
+    from app.schedule import CREW_TIMEZONE
+    completed_before = (
+        datetime.combine(current_week_start, time.min, tzinfo=ZoneInfo(CREW_TIMEZONE))
+        .astimezone(timezone.utc)
+        .replace(tzinfo=None)
+        .isoformat(timespec="seconds")
+    )
 
     current_week_number = get_crew_week_number(current_week_start)
     previous_week_number = get_crew_week_number(previous_week_start)
@@ -72,10 +82,10 @@ def build_weekly_kickoff_context(reference_day=None):
     season_leaders = []
     if previous_week_number > 0:
         previous_leaders = get_rankings_between(
-            previous_week_start, previous_week_end, limit=10
+            previous_week_start, previous_week_end, limit=10, completed_before=completed_before
         )
         season_leaders = get_rankings_between(
-            CREW_WEEK_ONE_DATE, previous_week_end, limit=10
+            CREW_WEEK_ONE_DATE, previous_week_end, limit=10, completed_before=completed_before
         )
 
     public_url = current_app.config.get("CREW_PUBLIC_URL", "https://cadacrew.fun").rstrip("/")

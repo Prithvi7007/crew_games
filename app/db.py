@@ -1006,10 +1006,15 @@ def get_weekly_leaderboard(reference_day=None, limit=25):
         for row in rows
     ]
 
-def get_rankings_between(start_date, end_date, limit=10, competitive_only=False):
+def get_rankings_between(start_date, end_date, limit=10, competitive_only=False, completed_before=None):
     """Rank saved scores in an inclusive range using the public leaderboard rules."""
     start_date = max(start_date, CREW_WEEK_ONE_DATE)
     competitive_clause = "AND gc.competitive = 1" if competitive_only else ""
+    cutoff_clause = "AND gc.completed_at < ?" if completed_before is not None else ""
+    params = [start_date.isoformat(), end_date.isoformat()]
+    if completed_before is not None:
+        params.append(completed_before)
+    params.append(int(limit))
     rows = get_db().execute(
         f"""
         SELECT
@@ -1021,12 +1026,13 @@ def get_rankings_between(start_date, end_date, limit=10, competitive_only=False)
           ON gc.profile_id = p.id
          {competitive_clause}
          AND gc.game_date BETWEEN ? AND ?
+         {cutoff_clause}
         GROUP BY p.id, p.username, p.avatar
         HAVING SUM(gc.score) > 0
         ORDER BY points DESC, completed DESC, LOWER(p.username) ASC
         LIMIT ?
         """,
-        (start_date.isoformat(), end_date.isoformat(), int(limit)),
+        params,
     ).fetchall()
     return [
         {
