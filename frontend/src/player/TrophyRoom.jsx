@@ -88,6 +88,35 @@ export function badgeFromAwardCode(code) {
   return entry ? { code, name: entry[0], rarity: entry[1], gameKey: entry[2], vertical: code === 'unicorn' ? 'secret' : 'game_mastery' } : null;
 }
 
+
+// One medal grammar: the outer frame is rarity, the inner enamel is game identity.
+const GAME_COLORS = Object.freeze({ mystery:'#55e6ac', trivia:'#ffbd45', word:'#55b9ff', tick_tock:'#c55cff' });
+const GAME_ORDER = ['mystery', 'trivia', 'word', 'tick_tock'];
+const RIVALRY_GAME = Object.freeze({
+  season_mystery_master:'mystery', season_trivia_master:'trivia',
+  season_wordle_master:'word', season_tick_tock_master:'tick_tock',
+});
+function ringSegments(badge) {
+  const focus = RIVALRY_GAME[badge.code];
+  if (focus) return [[focus, .5], ...GAME_ORDER.filter(key => key !== focus).map(key => [key, 1/6])];
+  if (badge.gameKey && GAME_COLORS[badge.gameKey]) return [[badge.gameKey, 1]];
+  return GAME_ORDER.map(key => [key, .25]);
+}
+function GameIdentityRing({ badge, radius = 37, className = 'medallion-inner' }) {
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+  return <g className={className} transform="rotate(-90 50 50)">
+    {ringSegments(badge).map(([key, fraction]) => {
+      const start = offset;
+      offset += fraction;
+      return <circle key={key} cx="50" cy="50" r={radius} fill="none"
+        stroke={GAME_COLORS[key]} strokeWidth="3.3"
+        strokeDasharray={`${fraction * circumference} ${circumference}`}
+        strokeDashoffset={-start * circumference}/>;
+    })}
+  </g>;
+}
+
 function toneFor(badge) {
   return badge.gameKey || (badge.vertical === 'secret' ? 'legendary' : 'spectrum');
 }
@@ -95,9 +124,9 @@ function toneFor(badge) {
 export function BadgeMedallion({ badge, size = 'normal', concealed = false, seasonNumber = null }) {
   return <span className={'trophy-medallion trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + ' trophy-medallion-' + size + (concealed ? ' is-concealed' : '')} aria-hidden="true">
     <span className="trophy-aura-field"/><svg viewBox="0 0 100 100" focusable="false" fill="none">
-      <path className="medallion-outer" d="M50 6a44 44 0 1 1 0 88a44 44 0 1 1 0-88"/>
-      <path className="medallion-inner" d="M50 13a37 37 0 1 1 0 74a37 37 0 1 1 0-74"/>
-      <path className="medallion-motif" d={concealed ? "M38 44v-9a12 12 0 0 1 24 0v9M32 44h36v31H32zM50 56v9" : (MOTIFS[badge.code] || MOTIFS.badge_hunter)}/>
+      <circle className="medallion-outer" cx="50" cy="50" r="44"/>
+      <GameIdentityRing badge={badge}/>
+      <circle className="medallion-insignia-disc" cx="50" cy="50" r="29"/><path className="medallion-motif" d={concealed ? "M38 44v-9a12 12 0 0 1 24 0v9M32 44h36v31H32zM50 56v9" : (MOTIFS[badge.code] || MOTIFS.badge_hunter)}/>
       <circle cx="50" cy="4" r="2" fill="currentColor"/>
     </svg>
     <span className="trophy-medallion-shine"/><span className="trophy-aura-flare trophy-aura-flare-left"/><span className="trophy-aura-flare trophy-aura-flare-right"/>
@@ -111,7 +140,7 @@ export function EquippedProfileBadge({ badge, avatar }) {
     <span className="crew-equipped-avatar" aria-hidden="true">{avatar}</span>
     <svg className="crew-equipped-rings" viewBox="0 0 100 100" focusable="false" aria-hidden="true" fill="none">
       <circle className="crew-equipped-outer" cx="50" cy="50" r="46"/>
-      <circle className="crew-equipped-inner" cx="50" cy="50" r="39"/>
+      <GameIdentityRing badge={badge} radius={39} className="crew-equipped-game-ring"/>
     </svg>
     <span className="crew-equipped-achievement" aria-hidden="true">
       <svg viewBox="0 0 100 100" fill="none" focusable="false">
