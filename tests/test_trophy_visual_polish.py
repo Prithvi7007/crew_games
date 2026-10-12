@@ -1,4 +1,4 @@
-"""Trophy polish contracts: rarity art, concealed surprises, and real award reveals.
+"""Trophy polish contracts: rarity art, visible trophy identities, and real award reveals.
 
 These static checks complement the full backend award integration suite and
 the production React build.
@@ -34,14 +34,11 @@ def test_result_award_catalog_exactly_matches_server_definitions():
     assert "Object.prototype.hasOwnProperty.call(BADGE_CATALOG, code)" in source
 
 
-def test_concealed_epic_and_legendary_do_not_render_the_actual_motif_or_copy():
+def test_locked_badges_reveal_identity_and_artwork():
     source = TROPHIES.read_text(encoding="utf-8")
-    assert "['epic', 'legendary'].includes(badge.rarity)" in source
-    assert "badge.vertical === 'secret'" in source
-    assert "concealed ? " in source
+    assert "const hidden = false;" in source
     assert "concealed={hidden}" in source
     assert "hidden ? 'Undiscovered achievement' : badge.name" in source
-    assert "hidden ? 'Earn this badge to reveal its identity and story.' : DETAILS[badge.code]" in source
     assert "badge.earned" in source
 
 
