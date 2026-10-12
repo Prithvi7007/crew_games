@@ -187,7 +187,7 @@ function BadgeCard({ badge, seasonNumber, isEquipped, saving, onSelect }) {
   </article>;
 }
 
-export default function TrophyRoom({ data, Header, saveSlot, onReplayTour }) {
+export default function TrophyRoom({ data, Header, saveSlot }) {
   const [showcase, setShowcase] = useState(data.showcase || []);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -220,14 +220,8 @@ export default function TrophyRoom({ data, Header, saveSlot, onReplayTour }) {
   return <div className="trophy-room-shell">
     <Header shell={data.shell}/>
     <main className="trophy-room-main">
-      <header className="trophy-simple-header">
-        <div><span className="trophy-eyebrow">CREW ACHIEVEMENTS</span><h1>Your badges</h1><p>Collect achievements. Select an unlocked badge to wear it.</p>{data.tourReplay && onReplayTour ? <button type="button" className="crew-tour-replay" onClick={onReplayTour}>Replay welcome tour ↗</button> : null}</div>
-        <div className="trophy-season-row">
-          {(data.seasons || []).map(item => <a key={item.id} href={'/trophies?season=' + item.id} className={'trophy-season-chip' + (season?.id === item.id ? ' is-active' : '')} aria-current={season?.id === item.id ? 'page' : undefined}>S{String(item.number).padStart(2,'0')}</a>)}
-        </div>
-      </header>
       <section className="trophy-collection" aria-labelledby="trophy-collection-title">
-        <header className="trophy-section-header"><div><span className="trophy-eyebrow">ACHIEVEMENT COLLECTION</span><h2 id="trophy-collection-title">All badges <small>{earned} / {badges.length} unlocked</small></h2><p className="trophy-equip-guidance">{equippedBadge ? `Wearing: ${equippedBadge.name}. Select another unlocked badge to switch, or select the equipped badge again to remove it.` : 'Select an unlocked badge to wear it on your profile. Select it again to remove it.'}</p></div></header>
+        <header className="trophy-section-header"><div><span className="trophy-eyebrow">ACHIEVEMENT COLLECTION</span><h1 id="trophy-collection-title">All badges <small>{earned} / {badges.length} unlocked</small></h1><p className="trophy-equip-guidance">{equippedBadge ? `Wearing: ${equippedBadge.name}. Select another unlocked badge to switch, or select the equipped badge again to remove it.` : 'Select an unlocked badge to wear it on your profile. Select it again to remove it.'}</p></div></header>
         <p className="trophy-editor-feedback trophy-collection-feedback" role="status" aria-live="polite">{feedback}</p>
         <div className="trophy-filters" aria-label="Filter badges">{FILTERS.map(([key,label]) => <button type="button" key={key} className={'trophy-filter' + (key === filter ? ' is-active' : '')} aria-pressed={key === filter} onClick={() => setFilter(key)}>{label}<span>{key === 'all' ? badges.length : badges.filter(b => b.vertical === key).length}</span></button>)}</div>
         <div className="trophy-badge-grid">{filtered.map(badge => <BadgeCard key={badge.code} badge={badge} seasonNumber={season?.number} isEquipped={Boolean(equipped?.awardId === badge.awardId)} saving={saving} onSelect={selectBadge}/>)}</div>

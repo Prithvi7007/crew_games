@@ -18,8 +18,8 @@
 .trophy-count-ring small {font:700 .84rem/1 Inter,sans-serif;color:#8c9bae;letter-spacing:0;}
 .trophy-showcase,.trophy-collection {padding-top:57px;}
 .trophy-section-header {display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:25px;}
-.trophy-section-header h2 {margin:10px 0 0;font:850 clamp(1.75rem,3vw,2.55rem)/1.05 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.055em;color:#f5f8fd;}
-.trophy-section-header h2 small {font:700 .75rem/1.3 Inter,sans-serif;color:#8796aa;letter-spacing:0;vertical-align:middle;margin-left:9px;}
+.trophy-section-header h1 {margin:10px 0 0;font:850 clamp(1.75rem,3vw,2.55rem)/1.05 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.055em;color:#f5f8fd;}
+.trophy-section-header h1 small {font:700 .75rem/1.3 Inter,sans-serif;color:#8796aa;letter-spacing:0;vertical-align:middle;margin-left:9px;}
 .trophy-section-header p {margin:0 0 3px;color:#92a0b3;font:500 .8rem/1.5 Inter,sans-serif;}
 .trophy-showcase-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
 .trophy-showcase-slot {min-height:237px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;position:relative;border:1px dashed #364156;border-radius:16px;background:linear-gradient(150deg,rgba(27,40,61,.35),rgba(15,23,35,.2));text-align:center;}
@@ -348,11 +348,6 @@
 @media (prefers-reduced-motion:reduce) {
   .trophy-medallion svg { transition:none; }
 }
-
-/* Compact room heading remains after removing the old equipped-badge panel. */
-.trophy-room-main .trophy-simple-header {display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:0 0 24px;}
-.trophy-simple-header h1 {font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.1;margin:9px 0;}
-.trophy-simple-header p {color:#9daabd;margin:8px 0 0;}
 
 /* Trophy Room: direct equip from the unlocked collectible, without a separate selector. */
 .trophy-room-main .trophy-collection {padding-top:8px;}
