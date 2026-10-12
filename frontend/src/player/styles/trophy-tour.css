@@ -417,3 +417,117 @@
   .crew-tour-anatomy-medal,.crew-tour-anatomy-note,.crew-tour-anatomy-center-note,
   .crew-tour-anatomy-rarities{animation:none!important;transition:none!important}
 }
+
+
+/* Guided medal anatomy: a single uncluttered trophy, no avatar on this step. */
+.crew-tour-medal-guide{
+  display:grid;justify-items:center;gap:12px;
+  width:min(100%,580px);margin:8px auto 2px
+}
+.crew-tour-medal-build{
+  position:relative;width:clamp(190px,34vw,265px);aspect-ratio:1;
+  display:grid;place-items:center;isolation:isolate
+}
+.crew-tour-medal-build::before{
+  content:"";position:absolute;inset:4%;z-index:-1;border-radius:50%;
+  background:radial-gradient(circle,rgba(81,174,250,.18),transparent 72%);
+  filter:blur(15px);pointer-events:none
+}
+.crew-tour-medal-build .trophy-medallion,
+.crew-tour-medal-build .trophy-medallion-victory{
+  display:grid;place-items:center;width:100%;height:100%;max-width:none;
+  margin:0;animation:none;filter:drop-shadow(0 0 16px rgba(75,197,247,.17))
+}
+.crew-tour-medal-build .medallion-outer{
+  stroke:#b7c3d6;transition:stroke .5s ease;stroke-width:3.4
+}
+.crew-tour-medal-build .medallion-inner,
+.crew-tour-medal-build .medallion-insignia-disc,
+.crew-tour-medal-build .crew-insignia{
+  opacity:0;transition:opacity .5s ease,transform .65s cubic-bezier(.16,1,.3,1);
+  transform-origin:50% 50%
+}
+.crew-tour-medal-build .medallion-inner{transform:rotate(-90deg) scale(.78)}
+.crew-tour-medal-build .crew-insignia{transform:scale(.55)}
+.crew-tour-medal-season{
+  position:absolute;right:9%;bottom:10%;
+  width:23%;aspect-ratio:1;display:grid;place-items:center;
+  border:2px solid #b7c3d6;border-radius:50%;
+  background:linear-gradient(145deg,#223451,#08111f);
+  color:#fff;font:850 clamp(12px,2.4vw,18px)/1 Inter,sans-serif;
+  box-shadow:0 0 18px rgba(117,201,248,.25);
+  opacity:0;transform:scale(.3);
+  transition:opacity .45s ease,transform .55s cubic-bezier(.16,1.35,.3,1)
+}
+.crew-tour-medal-build[data-phase="1"] .medallion-inner,
+.crew-tour-medal-build[data-phase="2"] .medallion-inner,
+.crew-tour-medal-build[data-phase="3"] .medallion-inner,
+.crew-tour-medal-build[data-phase="4"] .medallion-inner{
+  opacity:1;transform:rotate(0deg) scale(1)
+}
+.crew-tour-medal-build[data-phase="2"] .medallion-insignia-disc,
+.crew-tour-medal-build[data-phase="3"] .medallion-insignia-disc,
+.crew-tour-medal-build[data-phase="4"] .medallion-insignia-disc,
+.crew-tour-medal-build[data-phase="2"] .crew-insignia,
+.crew-tour-medal-build[data-phase="3"] .crew-insignia,
+.crew-tour-medal-build[data-phase="4"] .crew-insignia{
+  opacity:1;transform:scale(1)
+}
+.crew-tour-medal-build[data-phase="3"] .crew-tour-medal-season,
+.crew-tour-medal-build[data-phase="4"] .crew-tour-medal-season{
+  opacity:1;transform:scale(1)
+}
+.crew-tour-medal-narration{
+  display:grid;justify-items:center;gap:7px;
+  min-height:100px;max-width:470px;text-align:center
+}
+.crew-tour-medal-counter{
+  color:#93bedc;font:750 .65rem/1.2 Inter,sans-serif;letter-spacing:.15em
+}
+.crew-tour-medal-narration h3{
+  margin:0;color:#8fe3ff;font:850 clamp(1.05rem,2.1vw,1.35rem)/1.15 Inter,sans-serif;
+  letter-spacing:.09em
+}
+.crew-tour-medal-narration p{
+  margin:0;color:#d4e3f2;font:500 clamp(.83rem,1.5vw,.94rem)/1.5 Inter,sans-serif
+}
+.crew-tour-medal-beats{display:flex;justify-content:center;gap:7px}
+.crew-tour-medal-beats button{
+  border:0;background:transparent;min-width:33px;min-height:33px;padding:9px;
+  cursor:pointer
+}
+.crew-tour-medal-beats span{
+  display:block;width:20px;height:4px;border-radius:5px;
+  background:rgba(142,185,212,.34)
+}
+.crew-tour-medal-beats button.is-active span{background:#8fe3ff}
+.crew-tour-medal-replay{
+  border:0;background:none;color:#a8d5ee;
+  font:750 .72rem/1.3 Inter,sans-serif;
+  padding:8px 14px;cursor:pointer
+}
+.crew-tour-medal-beats button:focus-visible,.crew-tour-medal-replay:focus-visible{
+  outline:2px solid #9ae6ff;outline-offset:2px;border-radius:8px
+}
+@media(prefers-reduced-motion:no-preference){
+  .crew-tour-medal-build[data-phase="0"] .medallion-outer{
+    animation:crew-tour-rarity-cycle 2.4s ease-in-out infinite
+  }
+  .crew-tour-medal-narration{animation:crew-tour-stage-arrival .35s ease-out both}
+  @keyframes crew-tour-rarity-cycle{
+    0%,100%{stroke:#b7c3d6;filter:drop-shadow(0 0 3px #b7c3d6)}
+    25%{stroke:#55b9ff;filter:drop-shadow(0 0 7px #55b9ff)}
+    50%{stroke:#b98aff;filter:drop-shadow(0 0 7px #b98aff)}
+    75%{stroke:#ffc866;filter:drop-shadow(0 0 9px #ffc866)}
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .crew-tour-medal-build *,
+  .crew-tour-medal-build .medallion-outer,
+  .crew-tour-medal-narration{animation:none!important;transition:none!important}
+}
+@media(max-width:480px){
+  .crew-tour-medal-build{width:min(54vw,215px)}
+  .crew-tour-medal-guide{gap:7px;margin:0 auto}
+  .crew-tour-medal-narration{min-height:92px}
+}

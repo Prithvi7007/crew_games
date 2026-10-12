@@ -1,12 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
 
-const TIERS = [
-  ['Common', '#b7c3d6'], ['Rare', '#55b9ff'], ['Epic', '#b98aff'], ['Legendary', '#ffc866'],
+const ANATOMY_PHASES = [
+  ['RARITY FRAME', 'The outer ring moves through Common, Rare, Epic and Legendary.'],
+  ['GAME SIGNATURE', 'The inner ring takes on the colors of the CREW game.'],
+  ['ACHIEVEMENT EMBLEM', 'The center symbol celebrates the milestone you earned.'],
+  ['SEASON STAMP', 'A small season marker completes the achievement.'],
+  ['COMPLETE MEDAL', 'Rarity, game, achievement and season make one CREW medal.'],
 ];
 
 export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction }) {
   const [step, setStep] = useState(0);
+  const [anatomyPhase, setAnatomyPhase] = useState(0);
+  const [anatomyReplay, setAnatomyReplay] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const dialogRef = useRef(null);
@@ -16,10 +22,25 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
   const headings = ['The Trophy Room is unlocked', 'Anatomy of a CREW badge', 'Look what you have earned', 'Wear your victory'];
   const copy = [
     'Your Trophy Room vault is open. Every CREW victory now has a place to shine.',
-    'Five deliberate layers make every badge yours: rarity, game identity, achievement, season and the avatar at its heart.',
+    'Watch the medal come together, one detail at a time.',
     earned.length ? 'These are real achievements from your saved games. You earned every one of them.' : 'Your collection is waiting. Play your favorite CREW games to earn your first trophy.',
     'Choose an unlocked badge in the Trophy Room to wear it around your profile avatar. Switch it anytime.',
   ];
+
+  useEffect(() => {
+    if (step !== 1) return undefined;
+    // Advance a single explanatory beat at a time; never layer paragraphs together.
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { setAnatomyPhase(4); return undefined; }
+    setAnatomyPhase(0);
+    let phase = 0;
+    const interval = window.setInterval(() => {
+      phase += 1;
+      setAnatomyPhase(Math.min(phase, ANATOMY_PHASES.length - 1));
+      if (phase >= ANATOMY_PHASES.length - 1) window.clearInterval(interval);
+    }, 2400);
+    return () => window.clearInterval(interval);
+  }, [step, anatomyReplay]);
 
   useEffect(() => {
     returnFocusRef.current = document.activeElement;
@@ -79,40 +100,20 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
         <div className="crew-tour-vault-door is-right"/>
         <span className="crew-tour-vault-status">VAULT ACCESS GRANTED</span>
       </div> : null}
-      {step === 1 ? <div className="crew-tour-anatomy" aria-label="CREW badge design explained">
-        <div className="crew-tour-anatomy-column is-left">
-          <div className="crew-tour-anatomy-note">
-            <span>01 / RARITY FRAME</span>
-            <p>The outer metal signals Common, Rare, Epic or Legendary.</p>
-          </div>
-          <div className="crew-tour-anatomy-note">
-            <span>02 / GAME SIGNATURE</span>
-            <p>The colored inner ring identifies which CREW game shaped the win.</p>
-          </div>
+      {step === 1 ? <div className="crew-tour-medal-guide">
+        <div className="crew-tour-medal-build" data-phase={anatomyPhase} key={anatomyReplay} aria-hidden="true">
+          <BadgeMedallion badge={badgeFromAwardCode('case_closed')} size="victory"/>
+          <span className="crew-tour-medal-season">S{String(tour.seasonNumber || 1).padStart(2, '0')}</span>
         </div>
-        <figure className="crew-tour-anatomy-medal">
-          <div className="crew-tour-anatomy-avatar" aria-hidden="true">
-            <EquippedProfileBadge badge={{ ...badgeFromAwardCode('case_closed'), seasonNumber: tour.seasonNumber || 1, preview: true }} avatar={avatar || '⭐'}/>
-          </div>
-          <figcaption>Illustrative example · not an earned award</figcaption>
-        </figure>
-        <div className="crew-tour-anatomy-column is-right">
-          <div className="crew-tour-anatomy-note">
-            <span>03 / ACHIEVEMENT MARK</span>
-            <p>The upper-right symbol celebrates the exact milestone earned.</p>
-          </div>
-          <div className="crew-tour-anatomy-note">
-            <span>04 / SEASON STAMP</span>
-            <p>The lower-right S-number records the season of the achievement.</p>
-          </div>
+        <div className="crew-tour-medal-narration" aria-live="polite" aria-atomic="true">
+          <span className="crew-tour-medal-counter">{String(anatomyPhase + 1).padStart(2, '0')} / 05</span>
+          <h3>{ANATOMY_PHASES[anatomyPhase][0]}</h3>
+          <p>{ANATOMY_PHASES[anatomyPhase][1]}</p>
         </div>
-        <div className="crew-tour-anatomy-center-note">
-          <span>05 / YOUR AVATAR</span>
-          <p>The player stays at the center. Every achievement frames your identity, never replaces it.</p>
+        <div className="crew-tour-medal-beats" aria-label="Medal design stages">
+          {ANATOMY_PHASES.map(([name], index) => <button key={name} type="button" className={index === anatomyPhase ? 'is-active' : ''} aria-label={`Show ${name.toLowerCase()}`} aria-pressed={index === anatomyPhase} onClick={() => setAnatomyPhase(index)}><span/></button>)}
         </div>
-        <div className="crew-tour-anatomy-rarities" aria-label="Rarity frame colors">
-          {TIERS.map(([name, color]) => <span key={name} style={{'--tier-color': color}}><i aria-hidden="true"/>{name}</span>)}
-        </div>
+        <button type="button" className="crew-tour-medal-replay" onClick={() => setAnatomyReplay(value => value + 1)}>↻ Replay reveal</button>
       </div> : null}
       {step === 2 ? <div>
         <strong className="crew-tour-count" aria-label={tour.earnedCount + ' earned badges'}>{tour.earnedCount} <small>/ 21</small></strong>
