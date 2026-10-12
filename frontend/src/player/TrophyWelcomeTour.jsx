@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
 
 const ANATOMY_PHASES = [
-  ['RARITY FRAME', 'The outer ring moves through Common, Rare, Epic and Legendary.'],
-  ['GAME SIGNATURE', 'The inner ring takes on the colors of the CREW game.'],
-  ['ACHIEVEMENT EMBLEM', 'The center symbol celebrates the milestone you earned.'],
-  ['SEASON STAMP', 'A small season marker completes the achievement.'],
-  ['COMPLETE MEDAL', 'Rarity, game, achievement and season make one CREW medal.'],
+  ['RARITY FRAME', 'Outer ring: Common, Rare, Epic, Legendary.'],
+  ['GAME SIGNATURE', 'Inner ring: your game colors.'],
+  ['ACHIEVEMENT EMBLEM', 'Center symbol: your achievement.'],
+  ['SEASON STAMP', 'Season tag: when you earned it.'],
+  ['COMPLETE BADGE', 'Four details. One badge.'],
 ];
 
 export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction }) {
@@ -19,12 +19,12 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
   const returnFocusRef = useRef(null);
   const earned = tour?.badges || [];
   const featured = earned.slice(0, 8);
-  const headings = ['The Trophy Room is unlocked', 'Anatomy of a CREW badge', 'Look what you have earned', 'Wear your victory'];
+  const headings = ['Your badges are here', 'How a badge works', 'Your badge collection', 'Wear your badge'];
   const copy = [
-    'Your Trophy Room vault is open. Every CREW victory now has a place to shine.',
-    'Watch the medal come together, one detail at a time.',
-    earned.length ? 'These are real achievements from your saved games. You earned every one of them.' : 'Your collection is waiting. Play your favorite CREW games to earn your first trophy.',
-    'Choose an unlocked badge in the Trophy Room to wear it around your profile avatar. Switch it anytime.',
+    'Every win deserves a badge.',
+    'Built one detail at a time.',
+    earned.length ? 'Badges you have earned so far.' : 'Play CREW games to earn your first badge.',
+    'Equip a badge on your profile. Switch anytime.',
   ];
 
   useEffect(() => {
@@ -81,9 +81,9 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
 
   return <div className="crew-tour-backdrop">
     <section className="crew-tour-dialog" role="dialog" aria-modal="true" aria-labelledby="crew-tour-title" aria-describedby="crew-tour-description" tabIndex={-1} ref={dialogRef} onKeyDown={handleKeys}>
-      <button type="button" className="crew-tour-close" aria-label="Close trophy welcome tour" disabled={saving} onClick={() => close('later')}>×</button>
+      <button type="button" className="crew-tour-close" aria-label="Close badge welcome tour" disabled={saving} onClick={() => close('later')}>×</button>
       <div className="crew-tour-stage" key={step}>
-      <p className="crew-tour-kicker">{tour.preview ? 'PREVIEW · ' : ''}CREW TROPHY ROOM · {step + 1} / 4</p>
+      <p className="crew-tour-kicker">{tour.preview ? 'PREVIEW · ' : ''}CREW BADGES · {step + 1} / 4</p>
       <h2 id="crew-tour-title">{headings[step]}</h2>
       <p id="crew-tour-description" className="crew-tour-copy">{copy[step]}</p>
       {step === 0 ? <div className="crew-tour-vault" aria-hidden="true">
@@ -98,7 +98,7 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
         </div>
         <div className="crew-tour-vault-door is-left"/>
         <div className="crew-tour-vault-door is-right"/>
-        <span className="crew-tour-vault-status">VAULT ACCESS GRANTED</span>
+        <span className="crew-tour-vault-status">BADGES UNLOCKED</span>
       </div> : null}
       {step === 1 ? <div className="crew-tour-medal-guide">
         <div className="crew-tour-medal-build" data-phase={anatomyPhase} key={anatomyReplay} aria-hidden="true">
@@ -110,14 +110,14 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
           <h3>{ANATOMY_PHASES[anatomyPhase][0]}</h3>
           <p>{ANATOMY_PHASES[anatomyPhase][1]}</p>
         </div>
-        <div className="crew-tour-medal-beats" aria-label="Medal design stages">
+        <div className="crew-tour-medal-beats" aria-label="Badge design stages">
           {ANATOMY_PHASES.map(([name], index) => <button key={name} type="button" className={index === anatomyPhase ? 'is-active' : ''} aria-label={`Show ${name.toLowerCase()}`} aria-pressed={index === anatomyPhase} onClick={() => setAnatomyPhase(index)}><span/></button>)}
         </div>
-        <button type="button" className="crew-tour-medal-replay" onClick={() => setAnatomyReplay(value => value + 1)}>↻ Replay reveal</button>
+        <button type="button" className="crew-tour-medal-replay" onClick={() => setAnatomyReplay(value => value + 1)}>↻ Replay badge</button>
       </div> : null}
       {step === 2 ? <div>
         <strong className="crew-tour-count" aria-label={tour.earnedCount + ' earned badges'}>{tour.earnedCount} <small>/ 21</small></strong>
-        <span className="crew-tour-kicker">SEASON {tour.seasonNumber || '—'} ACHIEVEMENTS</span>
+        <span className="crew-tour-kicker">SEASON {tour.seasonNumber || '—'} BADGES</span>
         {featured.length ? <div className="crew-tour-badges" aria-label="Your earned badges">{featured.map((badge, index) => <div className="crew-tour-badge" style={{'--badge-index': index}} key={badge.code}><BadgeMedallion badge={badge}/><strong>{badge.name}</strong></div>)}</div> : <div className="crew-tour-art"><BadgeMedallion badge={badgeFromAwardCode("case_closed")} concealed/></div>}
         {earned.length > featured.length ? <p className="crew-tour-copy">And {earned.length - featured.length} more waiting in your collection.</p> : null}
       </div> : null}
@@ -125,14 +125,14 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
         <div className="crew-tour-wearing" aria-hidden="true">
           <EquippedProfileBadge badge={{ ...(earned[0] || badgeFromAwardCode('case_closed')), seasonNumber: tour.seasonNumber || 1, preview: !earned.length }} avatar={avatar || '⭐'}/>
         </div>
-        <p>{earned.length ? 'Your earned badge, ready to wear.' : 'Preview of how a future achievement will frame your avatar.'}</p>
+        <p>{earned.length ? 'Your earned badge.' : 'A preview of your future badge.'}</p>
       </div> : null}
       </div>
       <div className="crew-tour-progress" aria-label={'Step ' + (step + 1) + ' of 4'}>{headings.map((_, index) => <span key={index} className={index === step ? 'is-active' : ''}/>)}</div>
       {error ? <p className="crew-tour-error" role="alert">{error} <button type="button" className="crew-tour-secondary" onClick={onClose}>Continue without saving</button></p> : null}
       <div className="crew-tour-actions">
         {step > 0 ? <button type="button" className="crew-tour-secondary" disabled={saving} onClick={() => setStep(step - 1)}>Back</button> : null}
-        <button type="button" className="crew-tour-primary" disabled={saving} onClick={() => step < 3 ? setStep(step + 1) : close('finished')}>{step === 0 ? 'Discover trophies →' : step < 3 ? 'Next →' : 'Enter my Trophy Room →'}</button>
+        <button type="button" className="crew-tour-primary" disabled={saving} onClick={() => step < 3 ? setStep(step + 1) : close('finished')}>{step === 0 ? 'Explore badges →' : step < 3 ? 'Next →' : 'See my badges →'}</button>
         <button type="button" className="crew-tour-secondary" disabled={saving} onClick={() => close(step === 0 ? 'later' : 'skipped')}>{step === 0 ? 'Maybe later' : 'Skip tour'}</button>
       </div>
     </section>

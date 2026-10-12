@@ -24,11 +24,11 @@ def test_unboxed_blurred_overlay_does_not_use_card_surface():
 def test_anatomy_reveals_standalone_medal_layers_sequentially():
     source = TOUR.read_text(encoding="utf-8")
     css = STYLES.read_text(encoding="utf-8")
-    assert "Anatomy of a CREW badge" in source
-    assert "Watch the medal come together, one detail at a time." in source
+    assert "How a badge works" in source
+    assert "Built one detail at a time." in source
     assert "const ANATOMY_PHASES" in source
     for label in ("RARITY FRAME", "GAME SIGNATURE", "ACHIEVEMENT EMBLEM",
-                  "SEASON STAMP", "COMPLETE MEDAL"):
+                  "SEASON STAMP", "COMPLETE BADGE"):
         assert label in source
     assert "YOUR AVATAR" not in source
     anatomy = source.split('{step === 1 ?', 1)[1].split('{step === 2 ?', 1)[0]
@@ -38,7 +38,7 @@ def test_anatomy_reveals_standalone_medal_layers_sequentially():
     assert "crew-tour-medal-build" in anatomy
     assert "data-phase={anatomyPhase}" in anatomy
     assert "aria-live=\"polite\"" in anatomy
-    assert "Replay reveal" in anatomy
+    assert "Replay badge" in anatomy
     assert "2400" in source
     assert "window.clearInterval(interval)" in source
     for phase in range(5):
@@ -53,10 +53,10 @@ def test_final_step_demonstrates_equipped_avatar_without_fake_awards():
     source = TOUR.read_text(encoding="utf-8")
     assert 'className="crew-tour-wearing"' in source
     assert "preview: !earned.length" in source
-    assert "Your earned badge, ready to wear." in source
-    assert "Preview of how a future achievement" in source
+    assert "Your earned badge." in source
+    assert "A preview of your future badge." in source
     assert "tour.earnedCount" in source
-    assert "earned.length ? 'These are real achievements" in source
+    assert "earned.length ? 'Badges you have earned so far." in source
     assert "if (tour.preview) { onClose(); return; }" in source
 
 

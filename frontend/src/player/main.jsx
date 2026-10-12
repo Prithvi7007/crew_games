@@ -269,7 +269,7 @@ function AccountMenu({ user, trophiesVisible = true }) {
           </a>
         : null}
 
-      {trophiesVisible ? <a className="account-action" role="menuitem" href="/trophies"><span>My trophies</span><span aria-hidden="true">→</span></a> : null}
+      {trophiesVisible ? <a className="account-action" role="menuitem" href="/trophies"><span>My badges</span><span aria-hidden="true">→</span></a> : null}
       <a className="account-action" role="menuitem" href="/profile">
         <span>View profile</span><span aria-hidden="true">→</span>
       </a>
@@ -301,10 +301,10 @@ function AppHeader({ shell }) {
   return <>
     <header className="glass-nav app-nav">
       <a className="nav-brand v13-brand" href="/home" aria-label="CREW home"><span className="v13-brand-copy"><strong>CREW</strong><small><span>PLAY TOGETHER</span><span>GO FURTHER</span></small></span></a>
-      <nav className="desktop-nav" aria-label="Primary navigation">{link('home','Home','/home')}{link('games','Games','/games')}{link('leaderboard','Rankings','/leaderboard')}{trophiesVisible ? link('trophies','Trophies','/trophies') : null}</nav>
+      <nav className="desktop-nav" aria-label="Primary navigation">{link('home','Home','/home')}{link('games','Games','/games')}{link('leaderboard','Rankings','/leaderboard')}{trophiesVisible ? link('trophies','Badges','/trophies') : null}</nav>
       <div className="crew-nav-account"><AccountMenu user={shell?.user ? { ...shell.user, equippedBadge: shell.userEquippedBadge } : null} trophiesVisible={trophiesVisible}/>{shell?.navPoints !== null && shell?.navPoints !== undefined ? <span className="crew-points-chip" aria-label={`${shell.navPoints} points this week`}><span aria-hidden="true">★</span><strong>{shell.navPoints}</strong><small>pts</small></span> : null}</div>
     </header>
-    <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{link('home','Home','/home',true)}{link('games','Games','/games',true)}{link('leaderboard','Rankings','/leaderboard',true)}{trophiesVisible ? link('trophies','Trophies','/trophies',true) : null}</nav>
+    <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{link('home','Home','/home',true)}{link('games','Games','/games',true)}{link('leaderboard','Rankings','/leaderboard',true)}{trophiesVisible ? link('trophies','Badges','/trophies',true) : null}</nav>
   </>;
 }
 function TrophyPage({data}) { return <TrophyRoom data={data} Header={AppHeader} saveSlot={(slot,awardId)=>postJson(data.showcaseUrl,{slot,awardId})} savePreview={badgeCode=>postJson(data.trophyPreview.url,{badgeCode})}/>; }
@@ -322,9 +322,9 @@ function BadgeUnlockCelebration({ codes=[] }) {
     <div className="crew-badge-reveal-content">
       <span className="crew-badge-reveal-kicker">✦ ACHIEVEMENT UNLOCKED</span>
       <strong>{medals.length === 1 ? featured.name : medals.length + ' new badges!'}</strong>
-      <p>{medals.length === 1 ? 'A new trophy for your CREW collection.' : 'Your latest CREW performance earned more than one trophy.'}</p>
+      <p>{medals.length === 1 ? 'A new badge for your CREW collection.' : 'You earned multiple new badges!'}</p>
       <ul aria-label="Newly earned badges">{medals.map(badge => <li key={badge.code}><span>{badge.name}</span><small>{badge.rarity.toUpperCase()}</small></li>)}</ul>
-      <div className="crew-badge-reveal-actions"><a href="/trophies">View in Trophy Room <span aria-hidden="true">→</span></a><button type="button" onClick={() => setDismissed(true)}>Continue to results</button></div>
+      <div className="crew-badge-reveal-actions"><a href="/trophies">View badges <span aria-hidden="true">→</span></a><button type="button" onClick={() => setDismissed(true)}>Continue to results</button></div>
     </div>
   </aside>;
 }
