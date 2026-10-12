@@ -16,6 +16,7 @@ from app.db import (
     create_profile,
     ensure_user_stats,
     get_profile_by_id,
+    get_db,
     get_profile_by_username,
     get_profile_history_summary,
     get_season_summary,
@@ -27,6 +28,8 @@ from app.db import (
     update_profile_password,
     update_profile_recovery_code,
 )
+from app.badge_store import get_showcase
+from app.badges import BADGES_BY_CODE
 from app.player_ui import render_player
 from app.security import (
     audit_security_event,
@@ -382,6 +385,20 @@ def profile():
     stats = ensure_user_stats(current_user_key())
     history = get_profile_history_summary(current_user_key())
     season = get_season_summary(current_user_key())
+    # Showcase slot 1 is the equipped profile badge; only server-owned awards qualify.
+    equipped_row = next((row for row in get_showcase(session["user"]["profile_id"]) if row["slot"] == 1), None)
+    equipped_badge = None
+    if equipped_row:
+        definition = BADGES_BY_CODE[equipped_row["badge_code"]]
+        award_season = get_db().execute(
+            "SELECT number FROM seasons WHERE id = ?", (equipped_row["season_id"],)
+        ).fetchone()
+        equipped_badge = {
+            "code": definition.code, "name": definition.name,
+            "rarity": definition.rarity, "gameKey": definition.game_key,
+            "vertical": definition.vertical,
+            "seasonNumber": int(award_season["number"]) if award_season else None,
+        }
     return render_player(
         "profile",
         "Profile",
@@ -392,6 +409,7 @@ def profile():
                 "avatar": profile_row["avatar"],
             },
             "avatars": AVATARS,
+            "equippedBadge": equipped_badge,
             "stats": {
                 "current_streak": int(stats["current_streak"] or 0),
             },

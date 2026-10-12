@@ -245,3 +245,38 @@
 .trophy-achievement-emblem {width:27%;aspect-ratio:1;top:3%;right:1%;color:var(--badge-accent);}
 .trophy-season-emblem {width:27%;aspect-ratio:1;right:0;bottom:3%;font-size:clamp(7px,1vw,10px);}
 .trophy-medallion-showcase .trophy-season-emblem,.trophy-medallion-victory .trophy-season-emblem {font-size:9px;}
+
+/* Equipped badge: avatar is central; the award artwork and season become satellites. */
+.crew-equipped-badge {
+  --rarity-ring: #c5d1df;
+  --rarity-glow: rgba(197,209,223,.38);
+  position: relative;
+  width: 94px;
+  height: 94px;
+  flex: 0 0 94px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+.crew-equipped-badge.trophy-rarity-rare { --rarity-ring:#35bfff; --rarity-glow:rgba(53,191,255,.52); }
+.crew-equipped-badge.trophy-rarity-epic { --rarity-ring:#d476ff; --rarity-glow:rgba(212,118,255,.55); }
+.crew-equipped-badge.trophy-rarity-legendary { --rarity-ring:#ffd05a; --rarity-glow:rgba(255,208,90,.6); }
+.crew-equipped-avatar {
+  display:grid; place-items:center; width:78%; height:78%; border-radius:50%;
+  background:linear-gradient(145deg,#233956,#0b1426); font-size:40px;
+  box-shadow:inset 0 0 16px rgba(0,0,0,.45);
+}
+.crew-equipped-rings { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.crew-equipped-outer { stroke:var(--rarity-ring); stroke-width:3.6; filter:drop-shadow(0 0 3px var(--rarity-ring)); }
+.crew-equipped-inner { stroke:var(--badge-accent,#9ac8ff); stroke-width:2.8; filter:drop-shadow(0 0 3px var(--badge-accent,#9ac8ff)); }
+.crew-equipped-achievement,.crew-equipped-season {
+  position:absolute; right:-5%; display:grid; place-items:center;
+  width:30%; aspect-ratio:1; border:2px solid var(--rarity-ring);
+  border-radius:50%; background:linear-gradient(145deg,#223451,#08111f);
+  box-shadow:0 0 10px var(--rarity-glow),0 2px 6px #050a12;
+  color:var(--badge-accent,#fff); z-index:2;
+}
+.crew-equipped-achievement { top:0; }
+.crew-equipped-achievement svg { width:75%; height:75%; }
+.crew-equipped-achievement svg path { stroke:currentColor; stroke-width:6; stroke-linecap:round; stroke-linejoin:round; }
+.crew-equipped-season { bottom:0; font:800 9px/1 Inter,sans-serif; color:#fff; }

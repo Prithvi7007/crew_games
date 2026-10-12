@@ -101,9 +101,25 @@ export function BadgeMedallion({ badge, size = 'normal', concealed = false, seas
       <circle cx="50" cy="4" r="2" fill="currentColor"/>
     </svg>
     <span className="trophy-medallion-shine"/><span className="trophy-aura-flare trophy-aura-flare-left"/><span className="trophy-aura-flare trophy-aura-flare-right"/>
-    <span className="trophy-achievement-emblem">{badge.gameKey === "mystery" ? "⌕" : badge.gameKey === "trivia" ? "✦" : badge.gameKey === "word" ? "W" : badge.gameKey === "tick_tock" ? "◷" : badge.vertical === "collection" ? "✧" : badge.vertical === "secret" ? "★" : "♛"}</span>
-    {seasonNumber != null ? <span className="trophy-season-emblem">S{String(seasonNumber).padStart(2, "0")}</span> : null}
+
   </span>;
+}
+
+export function EquippedProfileBadge({ badge, avatar }) {
+  if (!badge) return <div className="v20-profile-avatar" aria-hidden="true">{avatar}</div>;
+  return <div className={'crew-equipped-badge trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity} role="img" aria-label={badge.name + ' equipped, season ' + (badge.seasonNumber ?? 'unknown')}>
+    <span className="crew-equipped-avatar" aria-hidden="true">{avatar}</span>
+    <svg className="crew-equipped-rings" viewBox="0 0 100 100" focusable="false" aria-hidden="true" fill="none">
+      <circle className="crew-equipped-outer" cx="50" cy="50" r="46"/>
+      <circle className="crew-equipped-inner" cx="50" cy="50" r="39"/>
+    </svg>
+    <span className="crew-equipped-achievement" aria-hidden="true">
+      <svg viewBox="0 0 100 100" fill="none" focusable="false">
+        <path d={MOTIFS[badge.code] || MOTIFS.badge_hunter}/>
+      </svg>
+    </span>
+    {badge.seasonNumber != null ? <span className="crew-equipped-season" aria-hidden="true">S{String(badge.seasonNumber).padStart(2, '0')}</span> : null}
+  </div>;
 }
 
 function BadgeCard({ badge, seasonNumber }) {
