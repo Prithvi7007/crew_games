@@ -204,4 +204,28 @@ def test_tour_frontend_contracts():
     assert "BadgeMedallion" in component
     assert "crew-tour-badges" in component
     assert "PlayerWithTour" in shell
-    assert "onReplayTour" in shell
+    assert "TrophyWelcomeTour" in shell
+    assert "data.shell?.trophyTour" in shell
+    assert "trophy_tour_preview=1" not in shell  # Preview remains server-driven.
+
+
+def test_trophy_room_starts_at_collection_without_redundant_hero():
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    component = (root / "frontend/src/player/TrophyRoom.jsx").read_text()
+    styles = (root / "frontend/src/player/styles/trophies.css").read_text()
+    shell = (root / "frontend/src/player/main.jsx").read_text()
+    assert "trophy-simple-header" not in component
+    assert "CREW ACHIEVEMENTS" not in component
+    assert "Your badges" not in component
+    assert "Replay welcome tour" not in component
+    assert "trophy-season-row" not in component
+    assert "ACHIEVEMENT COLLECTION" in component
+    assert '<h1 id="trophy-collection-title">All badges' in component
+    assert "trophy-filters" in component
+    assert "trophy-badge-grid" in component
+    assert "saveSlot" in component
+    assert ".trophy-section-header h1" in styles
+    assert "PlayerWithTour" in shell
+    assert "TrophyWelcomeTour" in shell
+    assert "data.shell?.trophyTour" in shell

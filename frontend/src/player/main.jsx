@@ -303,7 +303,7 @@ function AppHeader({ shell }) {
     <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{link('home','Home','/home',true)}{link('games','Games','/games',true)}{link('leaderboard','Rankings','/leaderboard',true)}{trophiesVisible ? link('trophies','Trophies','/trophies',true) : null}</nav>
   </>;
 }
-function TrophyPage({data,onReplayTour}) { return <TrophyRoom data={data} Header={AppHeader} saveSlot={(slot,awardId)=>postJson(data.showcaseUrl,{slot,awardId})} onReplayTour={onReplayTour}/>; }
+function TrophyPage({data}) { return <TrophyRoom data={data} Header={AppHeader} saveSlot={(slot,awardId)=>postJson(data.showcaseUrl,{slot,awardId})}/>; }
 
 function BadgeUnlockCelebration({ codes=[] }) {
   const [dismissed, setDismissed] = useState(false);
@@ -603,9 +603,8 @@ function TriviaPage({data}) {
 
 function PlayerWithTour({ Component, data }) {
   const [tour, setTour] = useState(data.shell?.trophyTour || null);
-  const replay = () => { if (data.tourReplay) setTour({...data.tourReplay, preview:true}); };
   return <>
-    <Component data={data} onReplayTour={replay}/>
+    <Component data={data}/>
     {tour ? <TrophyWelcomeTour
       key={tour.preview ? 'preview' : 'launch'}
       tour={tour}
