@@ -32,57 +32,188 @@
 @media(prefers-reduced-motion:reduce){.crew-tour-dialog,.crew-tour-badge{animation:none!important;transition:none!important}}
 
 
-/* A clear arrival moment on login; progression is animated without blocking focus. */
+/* Trophy Vault: an actual opening ceremony, not two static sparkles.
+   All scene elements are decorative; the dialog stays usable immediately. */
 .crew-tour-stage{position:relative;z-index:1}
 .crew-tour-dialog{isolation:isolate}
 .crew-tour-dialog::before{
-  content:"";position:absolute;inset:0 0 auto;height:3px;
+  content:"";position:absolute;z-index:2;inset:0 0 auto;height:3px;
   border-radius:24px 24px 0 0;
-  background:linear-gradient(90deg,transparent,#77deff 28%,#edc985 68%,transparent);
-  opacity:.85;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#70d9ff 30%,#ffe2a0 68%,transparent);
+  opacity:.9;pointer-events:none
 }
-.crew-tour-art{position:relative;isolation:isolate}
-.crew-tour-art::before,.crew-tour-art::after{
-  content:"✦";position:absolute;color:#b8eeff;
-  font-size:22px;text-shadow:0 0 15px #68ddff;pointer-events:none;
+.crew-tour-vault{
+  position:relative;isolation:isolate;
+  width:min(100%,450px);height:238px;overflow:hidden;
+  margin:10px auto 24px;border:1px solid rgba(118,197,250,.35);
+  border-radius:20px;
+  background:radial-gradient(ellipse at 50% 45%,#203b61 0%,#101d35 37%,#061021 78%);
+  box-shadow:inset 0 0 44px rgba(0,0,0,.48),0 0 38px rgba(56,141,224,.12)
 }
-.crew-tour-art::before{left:18%;top:13%}
-.crew-tour-art::after{right:19%;bottom:12%;font-size:15px;color:#ffdb85}
+.crew-tour-vault::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,transparent 49.65%,rgba(119,195,242,.11) 49.85% 50.15%,transparent 50.35%),
+    repeating-linear-gradient(0deg,transparent 0 35px,rgba(136,187,240,.06) 36px,transparent 37px),
+    radial-gradient(ellipse at 50% 90%,rgba(237,193,106,.28),transparent 46%);
+}
+.crew-tour-vault-atmosphere{
+  position:absolute;z-index:1;inset:-90px 0 0;
+  background:radial-gradient(ellipse at 50% 55%,rgba(255,205,109,.36) 0%,rgba(73,170,252,.21) 22%,transparent 64%);
+  opacity:.9;pointer-events:none
+}
+.crew-tour-vault-halo{
+  position:absolute;z-index:2;left:50%;top:43%;
+  border:1px solid rgba(126,211,255,.7);
+  border-radius:50%;transform:translate(-50%,-50%);
+  box-shadow:0 0 18px rgba(67,182,255,.28),inset 0 0 12px rgba(67,182,255,.18);
+  pointer-events:none
+}
+.crew-tour-vault-halo.is-outer{width:211px;height:211px;border-style:dashed;opacity:.46}
+.crew-tour-vault-halo.is-middle{
+  width:178px;height:178px;
+  border:2px solid rgba(226,186,101,.62);
+  box-shadow:0 0 16px rgba(253,201,106,.19),inset 0 0 20px rgba(253,201,106,.13)
+}
+.crew-tour-vault-halo.is-inner{width:144px;height:144px;border-color:rgba(144,221,255,.75)}
+.crew-tour-vault-light{
+  position:absolute;z-index:3;top:-30px;left:50%;
+  width:275px;height:238px;transform:translateX(-50%);
+  background:linear-gradient(to bottom,rgba(249,225,165,.08),rgba(255,214,139,.2),transparent);
+  clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);
+  pointer-events:none
+}
+.crew-tour-vault-pedestal{
+  position:absolute;z-index:4;bottom:32px;left:50%;transform:translateX(-50%);
+  width:164px;height:16px;border-radius:50%;
+  background:radial-gradient(ellipse,#ffe5a3,rgba(150,199,255,.58) 40%,transparent 72%);
+  filter:blur(2px);opacity:.7
+}
+.crew-tour-vault-trophy{
+  position:absolute;z-index:6;top:43%;left:50%;
+  width:138px;height:138px;transform:translate(-50%,-50%);
+  display:grid;place-items:center;
+  filter:drop-shadow(0 0 20px rgba(255,198,94,.46));
+}
+.crew-tour-vault-trophy .trophy-medallion-victory{
+  width:134px;max-width:none;margin:0;
+  animation:none;
+}
+.crew-tour-vault-door{
+  position:absolute;z-index:7;top:0;bottom:0;width:50.5%;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 26px,rgba(166,200,244,.07) 27px,transparent 28px),
+    linear-gradient(125deg,#1a344f,#0c182b 54%,#263750);
+  box-shadow:inset 0 0 40px rgba(0,0,0,.56),0 0 20px rgba(0,0,0,.4);
+  pointer-events:none
+}
+.crew-tour-vault-door.is-left{
+  left:0;transform:translateX(-106%);
+  border-right:3px solid #d7b477;
+}
+.crew-tour-vault-door.is-right{
+  right:0;transform:translateX(106%);
+  border-left:3px solid #d7b477;
+}
+.crew-tour-vault-status{
+  position:absolute;z-index:8;bottom:9px;left:0;right:0;
+  color:#ffe4a3;font:850 .68rem/1.2 Inter,sans-serif;
+  letter-spacing:.19em;text-shadow:0 0 12px rgba(255,184,79,.48);
+  text-transform:uppercase
+}
+/* Taller art would hide the buttons on short phones. */
+@media(max-width:480px){
+  .crew-tour-vault{height:178px;margin:7px auto 14px}
+  .crew-tour-vault-halo{top:43%}
+  .crew-tour-vault-halo.is-outer{width:157px;height:157px}
+  .crew-tour-vault-halo.is-middle{width:136px;height:136px}
+  .crew-tour-vault-halo.is-inner{width:112px;height:112px}
+  .crew-tour-vault-trophy{width:108px;height:108px}
+  .crew-tour-vault-trophy .trophy-medallion-victory{width:106px}
+  .crew-tour-vault-pedestal{bottom:25px}
+  .crew-tour-vault-status{font-size:.55rem;letter-spacing:.13em}
+}
 @media(prefers-reduced-motion:no-preference){
-  .crew-tour-backdrop{animation:crew-tour-curtain .38s ease-out both}
-  .crew-tour-dialog{animation:crew-tour-arrival .65s cubic-bezier(.18,1,.3,1) both}
-  .crew-tour-stage{animation:crew-tour-stage-arrival .38s cubic-bezier(.2,.9,.35,1) both}
-  .crew-tour-stage .crew-tour-art .trophy-medallion{animation:crew-tour-emblem .82s cubic-bezier(.16,1.2,.32,1) both}
-  .crew-tour-art::before,.crew-tour-art::after{animation:crew-tour-star 1.2s ease-out both}
-  .crew-tour-art::after{animation-delay:.18s}
+  .crew-tour-backdrop{animation:crew-tour-curtain .36s ease-out both}
+  .crew-tour-dialog{animation:crew-tour-arrival .64s cubic-bezier(.18,1,.3,1) both}
+  .crew-tour-stage{animation:crew-tour-stage-arrival .34s ease-out both}
+  .crew-tour-vault-door.is-left{animation:crew-vault-door-left 1.05s .12s cubic-bezier(.18,.68,.17,1) both}
+  .crew-tour-vault-door.is-right{animation:crew-vault-door-right 1.05s .12s cubic-bezier(.18,.68,.17,1) both}
+  .crew-tour-vault-atmosphere{animation:crew-vault-ignite 1.2s .17s ease-out both}
+  .crew-tour-vault-halo.is-outer{animation:crew-vault-ring-outer 1.3s .3s ease-out both}
+  .crew-tour-vault-halo.is-middle{animation:crew-vault-ring 1.2s .43s cubic-bezier(.2,1,.3,1) both}
+  .crew-tour-vault-halo.is-inner{animation:crew-vault-ring 1s .53s cubic-bezier(.2,1,.3,1) both}
+  .crew-tour-vault-light{animation:crew-vault-flare 1.05s .55s ease-out both}
+  .crew-tour-vault-trophy{animation:crew-vault-medal 1.15s .48s cubic-bezier(.18,1,.22,1) both}
+  .crew-tour-vault-pedestal{animation:crew-vault-pedestal .9s .72s ease-out both}
+  .crew-tour-vault-status{animation:crew-vault-status .52s 1.05s ease-out both}
+  .crew-tour-tier{animation:crew-tour-tier .5s cubic-bezier(.16,1,.3,1) both}
+  .crew-tour-tier:nth-child(1){animation-delay:.07s}
+  .crew-tour-tier:nth-child(2){animation-delay:.15s}
+  .crew-tour-tier:nth-child(3){animation-delay:.23s}
+  .crew-tour-tier:nth-child(4){animation-delay:.31s}
   @keyframes crew-tour-curtain{
-    from{opacity:0;backdrop-filter:blur(0)}
-    to{opacity:1;backdrop-filter:blur(12px)}
+    from{opacity:0}
+    to{opacity:1}
   }
   @keyframes crew-tour-arrival{
-    from{opacity:0;transform:translateY(35px) scale(.92);filter:brightness(1.55)}
-    70%{filter:brightness(1.1)}
-    to{opacity:1;transform:none;filter:brightness(1)}
+    from{opacity:0;transform:translateY(32px) scale(.93)}
+    to{opacity:1;transform:none}
   }
   @keyframes crew-tour-stage-arrival{
     from{opacity:0;transform:translateY(10px)}
     to{opacity:1;transform:none}
   }
-  @keyframes crew-tour-emblem{
-    0%{opacity:0;transform:rotate(-35deg) scale(.5)}
-    70%{opacity:1;transform:rotate(5deg) scale(1.07)}
-    100%{transform:rotate(0) scale(1)}
+  @keyframes crew-vault-door-left{
+    0%,24%{transform:translateX(0)}
+    100%{transform:translateX(-106%)}
   }
-  @keyframes crew-tour-star{
-    from{opacity:0;transform:translateY(18px) scale(.1)}
-    50%{opacity:1}
-    to{opacity:.8;transform:none}
+  @keyframes crew-vault-door-right{
+    0%,24%{transform:translateX(0)}
+    100%{transform:translateX(106%)}
+  }
+  @keyframes crew-vault-ignite{
+    0%,30%{opacity:.05;transform:scale(.68)}
+    65%{opacity:1}
+    100%{opacity:.9;transform:scale(1)}
+  }
+  @keyframes crew-vault-ring-outer{
+    from{opacity:0;transform:translate(-50%,-50%) rotate(-75deg) scale(.48)}
+    to{opacity:.46;transform:translate(-50%,-50%) rotate(15deg) scale(1)}
+  }
+  @keyframes crew-vault-ring{
+    0%,24%{opacity:0;transform:translate(-50%,-50%) scale(.48)}
+    80%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}
+    100%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  }
+  @keyframes crew-vault-flare{
+    0%,32%{opacity:0}
+    55%{opacity:1}
+    100%{opacity:.8}
+  }
+  @keyframes crew-vault-medal{
+    0%,23%{opacity:0;transform:translate(-50%,-35%) rotate(-35deg) scale(.18);filter:brightness(2) blur(5px)}
+    70%{opacity:1;transform:translate(-50%,-54%) rotate(5deg) scale(1.16);filter:brightness(1.35) blur(0)}
+    100%{opacity:1;transform:translate(-50%,-50%) rotate(0) scale(1);filter:brightness(1) blur(0)}
+  }
+  @keyframes crew-vault-pedestal{
+    from{opacity:0;transform:translateX(-50%) scale(.3)}
+    to{opacity:.7;transform:translateX(-50%) scale(1)}
+  }
+  @keyframes crew-vault-status{
+    from{opacity:0;transform:translateY(9px);letter-spacing:.32em}
+    to{opacity:1;transform:none;letter-spacing:.19em}
+  }
+  @keyframes crew-tour-tier{
+    from{opacity:0;transform:translateY(15px) scale(.92)}
+    to{opacity:1;transform:none}
   }
 }
 @media(prefers-reduced-motion:reduce){
-  .crew-tour-backdrop,.crew-tour-dialog,.crew-tour-stage,
-  .crew-tour-stage .crew-tour-art .trophy-medallion,
-  .crew-tour-art::before,.crew-tour-art::after{
+  .crew-tour-backdrop,.crew-tour-dialog,.crew-tour-stage,.crew-tour-badge,
+  .crew-tour-vault-atmosphere,.crew-tour-vault-halo,.crew-tour-vault-light,
+  .crew-tour-vault-pedestal,.crew-tour-vault-trophy,.crew-tour-vault-door,
+  .crew-tour-vault-status,.crew-tour-tier,
+  .crew-tour-vault-trophy .trophy-medallion-victory{
     animation:none!important;transition:none!important;
   }
 }
