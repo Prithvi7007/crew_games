@@ -54,7 +54,7 @@ AVATARS = [
     {"value": "⭐", "label": "Star"},
     {"value": "🚀", "label": "Rocket"},
     {"value": "🧩", "label": "Puzzle"},
-    {"value": "🏆", "label": "Trophy"},
+    {"value": "🏆", "label": "Badge"},
     {"value": "🌎", "label": "World"},
     {"value": "🦈", "label": "Shark"},
     {"value": "✨", "label": "Spark"},

@@ -19,10 +19,10 @@ def test_first_welcome_step_has_full_vault_opening_scene():
     assert 'className="crew-tour-vault-halo is-outer"' in source
     assert 'className="crew-tour-vault-halo is-middle"' in source
     assert 'className="crew-tour-vault-halo is-inner"' in source
-    assert "VAULT ACCESS GRANTED" in source
+    assert "BADGES UNLOCKED" in source
     assert '<BadgeMedallion badge={badgeFromAwardCode("badge_hunter")} size="victory"/>' in source
     # Animation must not falsely represent unearned achievements as the user's trophies.
-    assert "earned.length ? 'These are real achievements" in source
+    assert "earned.length ? 'Badges you have earned so far." in source
     assert "tour.earnedCount" in source
 
 
