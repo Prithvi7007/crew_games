@@ -161,13 +161,29 @@ export function EquippedProfileBadge({ badge, avatar }) {
   </div>;
 }
 
-function BadgeCard({ badge, seasonNumber }) {
+function BadgeCard({ badge, seasonNumber, isEquipped, saving, onSelect }) {
   const hidden = false;
-  return <article className={'trophy-badge-card trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (badge.earned ? ' is-earned' : ' is-locked') + (hidden ? ' is-mysterious' : '')}>
-    <div className="trophy-badge-top"><span>{badge.vertical === 'game_mastery' ? 'GAME MASTERY' : badge.vertical === 'leaderboard' ? 'RIVALRY' : badge.vertical.toUpperCase()}</span><span className="trophy-rarity-label">{badge.rarity.toUpperCase()}</span></div>
-    <BadgeMedallion badge={badge} concealed={hidden} seasonNumber={seasonNumber}/>
-    <div className="trophy-badge-copy"><strong>{hidden ? 'Undiscovered achievement' : badge.name}</strong><p>{hidden ? 'Earn this badge to reveal its identity and story.' : DETAILS[badge.code]}</p></div>
-    <div className="trophy-badge-bottom"><span>{badge.earned ? '✦ UNLOCKED' : '◇ LOCKED'}</span>{badge.earned && badge.sourceDate ? <time dateTime={badge.sourceDate}>{badge.sourceDate}</time> : null}</div>
+  const canEquip = Boolean(badge.earned && badge.awardId);
+  const Surface = canEquip ? 'button' : 'div';
+  return <article className={'trophy-badge-card trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (badge.earned ? ' is-earned' : ' is-locked') + (isEquipped ? ' is-equipped' : '') + (hidden ? ' is-mysterious' : '')}>
+    <Surface
+      className="trophy-badge-surface"
+      {...(canEquip ? {
+        type: 'button',
+        disabled: saving,
+        'aria-pressed': isEquipped,
+        'aria-label': isEquipped
+          ? `${badge.name} equipped on your profile. Select again to unequip.`
+          : `${badge.name} unlocked. Select to equip on your profile.`,
+        onClick: () => onSelect(badge.awardId),
+      } : {})}
+    >
+      <span className="trophy-badge-top"><span>{badge.vertical === 'game_mastery' ? 'GAME MASTERY' : badge.vertical === 'leaderboard' ? 'RIVALRY' : badge.vertical.toUpperCase()}</span><span className="trophy-rarity-label">{badge.rarity.toUpperCase()}</span></span>
+      <BadgeMedallion badge={badge} concealed={hidden} seasonNumber={seasonNumber}/>
+      {isEquipped ? <span className="trophy-equipped-mark" aria-hidden="true">✓</span> : null}
+      <span className="trophy-badge-copy"><strong>{hidden ? 'Undiscovered achievement' : badge.name}</strong><span className="trophy-badge-description">{hidden ? 'Earn this badge to reveal its identity and story.' : DETAILS[badge.code]}</span></span>
+      <span className="trophy-badge-bottom"><span>{isEquipped ? '✓ EQUIPPED' : canEquip ? '✦ EQUIP' : '◇ LOCKED'}</span>{badge.earned && badge.sourceDate ? <time dateTime={badge.sourceDate}>{badge.sourceDate}</time> : null}</span>
+    </Surface>
   </article>;
 }
 
@@ -180,20 +196,22 @@ export default function TrophyRoom({ data, Header, saveSlot }) {
   const earned = data.earnedCount || 0;
   const season = data.selectedSeason;
   const filtered = useMemo(() => filter === 'all' ? badges : badges.filter(badge => badge.vertical === filter), [badges, filter]);
-  const unlocked = badges.filter(badge => badge.earned && badge.awardId);
   const equipped = showcase.find(entry => entry.slot === 1);
   const equippedBadge = equipped?.badge || badges.find(item => item.code === equipped?.badgeCode);
 
-  async function equipBadge(awardId) {
+  async function selectBadge(awardId) {
     if (saving) return;
+    const badge = badges.find(item => item.earned && item.awardId === awardId);
+    if (!badge) return;
+    const removing = equipped?.awardId === awardId;
     setSaving(true);
     setFeedback('');
     try {
-      const result = await saveSlot(1, awardId ? Number(awardId) : null);
+      const result = await saveSlot(1, removing ? null : awardId);
       setShowcase(result.showcase || []);
-      setFeedback(awardId ? 'Badge selected.' : 'Badge cleared.');
+      setFeedback(removing ? `${badge.name} removed from your profile.` : `${badge.name} equipped on your profile.`);
     } catch (error) {
-      setFeedback(error?.message || 'Could not update badge.');
+      setFeedback(error?.message || 'Could not update badge. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -203,32 +221,16 @@ export default function TrophyRoom({ data, Header, saveSlot }) {
     <Header shell={data.shell}/>
     <main className="trophy-room-main">
       <header className="trophy-simple-header">
-        <div><span className="trophy-eyebrow">CREW ACHIEVEMENTS</span><h1>Your badges</h1><p>Collect achievements and choose one to wear on your profile.</p></div>
+        <div><span className="trophy-eyebrow">CREW ACHIEVEMENTS</span><h1>Your badges</h1><p>Collect achievements. Select an unlocked badge to wear it.</p></div>
         <div className="trophy-season-row">
           {(data.seasons || []).map(item => <a key={item.id} href={'/trophies?season=' + item.id} className={'trophy-season-chip' + (season?.id === item.id ? ' is-active' : '')} aria-current={season?.id === item.id ? 'page' : undefined}>S{String(item.number).padStart(2,'0')}</a>)}
         </div>
       </header>
-      <section className="trophy-single-equip" aria-labelledby="trophy-equip-title">
-        <div className="trophy-single-equip-preview">
-          {equippedBadge ? <BadgeMedallion badge={equippedBadge} size="showcase" seasonNumber={equipped?.seasonNumber ?? season?.number}/> : <span className="trophy-empty-mark" aria-hidden="true">✧</span>}
-        </div>
-        <div className="trophy-single-equip-controls">
-          <span className="trophy-eyebrow">PROFILE BADGE</span>
-          <h2 id="trophy-equip-title">{equippedBadge ? equippedBadge.name : 'Choose your badge'}</h2>
-          <p>One equipped badge appears with your profile picture.</p>
-          <label htmlFor="trophy-equip-select">Equipped badge</label>
-          <select id="trophy-equip-select" value={equipped?.awardId || ''} disabled={saving} onChange={event => equipBadge(event.target.value)}>
-            <option value="">No badge</option>
-            {equipped && !unlocked.some(item => item.awardId === equipped.awardId) ? <option value={equipped.awardId}>{equippedBadge?.name || 'Previously earned badge'}</option> : null}
-            {unlocked.map(item => <option key={item.awardId} value={item.awardId}>{item.name}</option>)}
-          </select>
-          <p className="trophy-editor-feedback" role="status" aria-live="polite">{feedback}</p>
-        </div>
-      </section>
       <section className="trophy-collection" aria-labelledby="trophy-collection-title">
-        <header className="trophy-section-header"><div><span className="trophy-eyebrow">ACHIEVEMENT COLLECTION</span><h2 id="trophy-collection-title">All badges <small>{earned} / {badges.length} unlocked</small></h2></div></header>
+        <header className="trophy-section-header"><div><span className="trophy-eyebrow">ACHIEVEMENT COLLECTION</span><h2 id="trophy-collection-title">All badges <small>{earned} / {badges.length} unlocked</small></h2><p className="trophy-equip-guidance">{equippedBadge ? `Wearing: ${equippedBadge.name}. Select another unlocked badge to switch, or select the equipped badge again to remove it.` : 'Select an unlocked badge to wear it on your profile. Select it again to remove it.'}</p></div></header>
+        <p className="trophy-editor-feedback trophy-collection-feedback" role="status" aria-live="polite">{feedback}</p>
         <div className="trophy-filters" aria-label="Filter badges">{FILTERS.map(([key,label]) => <button type="button" key={key} className={'trophy-filter' + (key === filter ? ' is-active' : '')} aria-pressed={key === filter} onClick={() => setFilter(key)}>{label}<span>{key === 'all' ? badges.length : badges.filter(b => b.vertical === key).length}</span></button>)}</div>
-        <div className="trophy-badge-grid">{filtered.map(badge => <BadgeCard key={badge.code} badge={badge} seasonNumber={season?.number}/>)}</div>
+        <div className="trophy-badge-grid">{filtered.map(badge => <BadgeCard key={badge.code} badge={badge} seasonNumber={season?.number} isEquipped={Boolean(equipped?.awardId === badge.awardId)} saving={saving} onSelect={selectBadge}/>)}</div>
         <p className="trophy-collection-footnote">Season championship badges are finalized at season end. Previously earned badges remain in your season history.</p>
       </section>
     </main>
