@@ -123,7 +123,7 @@ export function EquippedProfileBadge({ badge, avatar }) {
 }
 
 function BadgeCard({ badge, seasonNumber }) {
-  const hidden = !badge.earned && (badge.vertical === 'secret' || ['epic', 'legendary'].includes(badge.rarity));
+  const hidden = false;
   return <article className={'trophy-badge-card trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (badge.earned ? ' is-earned' : ' is-locked') + (hidden ? ' is-mysterious' : '')}>
     <div className="trophy-badge-top"><span>{badge.vertical === 'game_mastery' ? 'GAME MASTERY' : badge.vertical === 'leaderboard' ? 'RIVALRY' : badge.vertical.toUpperCase()}</span><span className="trophy-rarity-label">{badge.rarity.toUpperCase()}</span></div>
     <BadgeMedallion badge={badge} concealed={hidden} seasonNumber={seasonNumber}/>
