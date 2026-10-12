@@ -20,7 +20,7 @@ if git("status", "--porcelain"):
     raise SystemExit("STOP: worktree is not clean")
 
 paths = ["bridge/core.py", "bridge/server.py", "runner/worker.py",
-         "compose.yaml", ".gitignore", ".dockerignore"]
+         "runner/Dockerfile", "compose.yaml", ".gitignore", ".dockerignore"]
 src = {p: (ROOT / p).read_text(encoding="utf-8") for p in paths}
 originals = dict(src)
 
@@ -125,7 +125,8 @@ for name in tools:
 p = "runner/worker.py"
 replace(p, "ALLOWED = {'pytest', 'react_build'}",
         "ALLOWED = {'pytest', 'react_build', 'bridge_syntax'}")
-replace(p, "    snapshot = QUEUE / 'snapshots' / job_id",
+replace(p, "        raise ValueError('Invalid job')\n    snapshot = QUEUE / 'snapshots' / job_id",
+        "        raise ValueError('Invalid job')\n"
         "    repository = ticket.get('repository', 'Prithvi7007/crew_games')\n"
         "    if repository not in ('Prithvi7007/crew_games', 'Prithvi7007/crew-dev-bridge'):\n"
         "        raise ValueError('Unsupported repository')\n"
@@ -143,6 +144,13 @@ replace(p, "        if kind == 'pytest':\n"
 replace(p, "return {'job_id': job_id, 'branch': ticket['branch'], 'fingerprint': ticket['fingerprint'],",
         "return {'job_id': job_id, 'branch': ticket['branch'], 'fingerprint': ticket['fingerprint'],\n"
         "                'repository': repository,")
+
+replace("runner/Dockerfile",
+        "python3-venv python3-pip &&",
+        "python3-venv python3-pip git &&")
+replace("runner/Dockerfile",
+        "/tmp/crew_requirements.txt pytest\n",
+        '/tmp/crew_requirements.txt pytest "httpx>=0.27,<1" "mcp>=1.15,<2"\n')
 
 replace("compose.yaml", "      CREW_WORKSPACE: /workspace\n",
         "      CREW_WORKSPACE: /workspace\n      CREW_BRIDGE_WORKSPACE: /bridge-source\n")
