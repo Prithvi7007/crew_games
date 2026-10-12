@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BadgeMedallion, badgeFromAwardCode } from './TrophyRoom';
+import { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
 
 const TIERS = [
   ['Common', '#b7c3d6'], ['Rare', '#55b9ff'], ['Epic', '#b98aff'], ['Legendary', '#ffc866'],
@@ -13,10 +13,10 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
   const returnFocusRef = useRef(null);
   const earned = tour?.badges || [];
   const featured = earned.slice(0, 8);
-  const headings = ['The Trophy Room is unlocked', 'Every victory has a story', 'Look what you have earned', 'Wear your victory'];
+  const headings = ['The Trophy Room is unlocked', 'Anatomy of a CREW badge', 'Look what you have earned', 'Wear your victory'];
   const copy = [
     'Your Trophy Room vault is open. Every CREW victory now has a place to shine.',
-    'Discover 21 achievements across Mystery, Trivia, Wordle, Tick-Tock and more. The rarer the badge, the bigger the bragging rights.',
+    'Five deliberate layers make every badge yours: rarity, game identity, achievement, season and the avatar at its heart.',
     earned.length ? 'These are real achievements from your saved games. You earned every one of them.' : 'Your collection is waiting. Play your favorite CREW games to earn your first trophy.',
     'Choose an unlocked badge in the Trophy Room to wear it around your profile avatar. Switch it anytime.',
   ];
@@ -79,14 +79,53 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
         <div className="crew-tour-vault-door is-right"/>
         <span className="crew-tour-vault-status">VAULT ACCESS GRANTED</span>
       </div> : null}
-      {step === 1 ? <div className="crew-tour-tiers" aria-label="Badge rarity levels">{TIERS.map(([name, color]) => <div className="crew-tour-tier" style={{'--tier-color': color}} key={name}>{name}</div>)}</div> : null}
+      {step === 1 ? <div className="crew-tour-anatomy" aria-label="CREW badge design explained">
+        <div className="crew-tour-anatomy-column is-left">
+          <div className="crew-tour-anatomy-note">
+            <span>01 / RARITY FRAME</span>
+            <p>The outer metal signals Common, Rare, Epic or Legendary.</p>
+          </div>
+          <div className="crew-tour-anatomy-note">
+            <span>02 / GAME SIGNATURE</span>
+            <p>The colored inner ring identifies which CREW game shaped the win.</p>
+          </div>
+        </div>
+        <figure className="crew-tour-anatomy-medal">
+          <div className="crew-tour-anatomy-avatar" aria-hidden="true">
+            <EquippedProfileBadge badge={{ ...badgeFromAwardCode('case_closed'), seasonNumber: tour.seasonNumber || 1, preview: true }} avatar={avatar || '⭐'}/>
+          </div>
+          <figcaption>Illustrative example · not an earned award</figcaption>
+        </figure>
+        <div className="crew-tour-anatomy-column is-right">
+          <div className="crew-tour-anatomy-note">
+            <span>03 / ACHIEVEMENT MARK</span>
+            <p>The upper-right symbol celebrates the exact milestone earned.</p>
+          </div>
+          <div className="crew-tour-anatomy-note">
+            <span>04 / SEASON STAMP</span>
+            <p>The lower-right S-number records the season of the achievement.</p>
+          </div>
+        </div>
+        <div className="crew-tour-anatomy-center-note">
+          <span>05 / YOUR AVATAR</span>
+          <p>The player stays at the center. Every achievement frames your identity, never replaces it.</p>
+        </div>
+        <div className="crew-tour-anatomy-rarities" aria-label="Rarity frame colors">
+          {TIERS.map(([name, color]) => <span key={name} style={{'--tier-color': color}}><i aria-hidden="true"/>{name}</span>)}
+        </div>
+      </div> : null}
       {step === 2 ? <div>
         <strong className="crew-tour-count" aria-label={tour.earnedCount + ' earned badges'}>{tour.earnedCount} <small>/ 21</small></strong>
         <span className="crew-tour-kicker">SEASON {tour.seasonNumber || '—'} ACHIEVEMENTS</span>
         {featured.length ? <div className="crew-tour-badges" aria-label="Your earned badges">{featured.map((badge, index) => <div className="crew-tour-badge" style={{'--badge-index': index}} key={badge.code}><BadgeMedallion badge={badge}/><strong>{badge.name}</strong></div>)}</div> : <div className="crew-tour-art"><BadgeMedallion badge={badgeFromAwardCode("case_closed")} concealed/></div>}
         {earned.length > featured.length ? <p className="crew-tour-copy">And {earned.length - featured.length} more waiting in your collection.</p> : null}
       </div> : null}
-      {step === 3 ? <div className="crew-tour-profile"><span className="crew-tour-avatar" aria-label="Your current avatar">{avatar || '⭐'}</span><span aria-hidden="true">→</span>{earned[0] ? <BadgeMedallion badge={earned[0]}/> : <BadgeMedallion badge={badgeFromAwardCode("case_closed")} concealed/>}</div> : null}
+      {step === 3 ? <div className="crew-tour-profile">
+        <div className="crew-tour-wearing" aria-hidden="true">
+          <EquippedProfileBadge badge={{ ...(earned[0] || badgeFromAwardCode('case_closed')), seasonNumber: tour.seasonNumber || 1, preview: !earned.length }} avatar={avatar || '⭐'}/>
+        </div>
+        <p>{earned.length ? 'Your earned badge, ready to wear.' : 'Preview of how a future achievement will frame your avatar.'}</p>
+      </div> : null}
       </div>
       <div className="crew-tour-progress" aria-label={'Step ' + (step + 1) + ' of 4'}>{headings.map((_, index) => <span key={index} className={index === step ? 'is-active' : ''}/>)}</div>
       {error ? <p className="crew-tour-error" role="alert">{error} <button type="button" className="crew-tour-secondary" onClick={onClose}>Continue without saving</button></p> : null}

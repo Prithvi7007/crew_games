@@ -8,6 +8,17 @@ const FILTERS = [
   ['collection', 'Collection'],
 ];
 
+// A horizontal row per game and achievement family, in deliberate collection order.
+const BADGE_SECTIONS = [
+  { key: 'mystery', title: 'Mystery Monday', subtitle: 'Game mastery', vertical: 'game_mastery', gameKey: 'mystery' },
+  { key: 'trivia', title: 'Trivia Tuesday', subtitle: 'Game mastery', vertical: 'game_mastery', gameKey: 'trivia' },
+  { key: 'word', title: 'Wordle Wednesday', subtitle: 'Game mastery', vertical: 'game_mastery', gameKey: 'word' },
+  { key: 'tick_tock', title: 'Tick-Tock Thursday', subtitle: 'Game mastery', vertical: 'game_mastery', gameKey: 'tick_tock' },
+  { key: 'leaderboard', title: 'Rivalry & Rankings', subtitle: 'Competitive milestones', vertical: 'leaderboard' },
+  { key: 'collection', title: 'Collection Milestones', subtitle: 'Badge collecting', vertical: 'collection' },
+  { key: 'secret', title: 'Secret Achievements', subtitle: 'Hidden challenges', vertical: 'secret' },
+];
+
 const DETAILS = {
   case_closed: 'Solve Mystery Monday within 3 clues.',
   sharp_instincts: 'Solve the mystery within 2 clues.',
@@ -201,6 +212,10 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
   const earned = data.earnedCount || 0;
   const season = data.selectedSeason;
   const filtered = useMemo(() => filter === 'all' ? badges : badges.filter(badge => badge.vertical === filter), [badges, filter]);
+  const badgeSections = useMemo(() => BADGE_SECTIONS.map(group => ({
+    ...group,
+    badges: filtered.filter(badge => badge.vertical === group.vertical && (!group.gameKey || badge.gameKey === group.gameKey)),
+  })).filter(group => group.badges.length > 0), [filtered]);
   const equipped = showcase.find(entry => entry.slot === 1);
   const actualBadge = equipped?.badge || badges.find(item => item.code === equipped?.badgeCode);
   const previewBadge = previewMode ? badges.find(item => item.code === previewCode) : null;
@@ -256,7 +271,17 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
         <header className="trophy-section-header"><div><span className="trophy-eyebrow">ACHIEVEMENT COLLECTION</span><h1 id="trophy-collection-title">All badges <small>{previewMode ? `${badges.length} available to preview · ${earned} earned` : `${earned} / ${badges.length} unlocked`}</small></h1><p className="trophy-equip-guidance">{previewMode ? 'Admin preview: Try on any badge without earning it. This does not affect achievements or rankings.' : equippedBadge ? `Wearing: ${equippedBadge.name}. Select another unlocked badge to switch, or select the equipped badge again to remove it.` : 'Select an unlocked badge to wear it on your profile. Select it again to remove it.'}</p>{previewMode && equippedBadge ? <p className="trophy-preview-current">Previewing {equippedBadge.name} · <a href="/profile">View on profile →</a></p> : null}</div></header>
         <p className="trophy-editor-feedback trophy-collection-feedback" role="status" aria-live="polite">{feedback}</p>
         <div className="trophy-filters" aria-label="Filter badges">{FILTERS.map(([key,label]) => <button type="button" key={key} className={'trophy-filter' + (key === filter ? ' is-active' : '')} aria-pressed={key === filter} onClick={() => setFilter(key)}>{label}<span>{key === 'all' ? badges.length : badges.filter(b => b.vertical === key).length}</span></button>)}</div>
-        <div className="trophy-badge-grid">{filtered.map(badge => <BadgeCard key={badge.code} badge={badge} seasonNumber={season?.number} isEquipped={previewMode ? previewCode === badge.code : Boolean(equipped?.awardId === badge.awardId)} saving={saving} onSelect={selectBadge} previewMode={previewMode}/>)}</div>
+        <div className="trophy-badge-sections">
+          {badgeSections.map(group => <section className="trophy-badge-section" key={group.key} aria-labelledby={`trophy-group-${group.key}`}>
+            <header className="trophy-group-heading">
+              <div><span className="trophy-group-kicker">{group.subtitle}</span><h2 id={`trophy-group-${group.key}`}>{group.title}</h2></div>
+              <div className="trophy-group-progress"><strong>{group.badges.filter(badge => badge.earned).length} / {group.badges.length} earned</strong>{group.badges.length > 3 ? <small>Swipe to explore →</small> : null}</div>
+            </header>
+            <div className="trophy-badge-grid trophy-badge-rail" role="region" aria-label={`${group.title} achievements`} tabIndex={0}>
+              {group.badges.map(badge => <BadgeCard key={badge.code} badge={badge} seasonNumber={season?.number} isEquipped={previewMode ? previewCode === badge.code : Boolean(equipped?.awardId === badge.awardId)} saving={saving} onSelect={selectBadge} previewMode={previewMode}/>)}
+            </div>
+          </section>)}
+        </div>
         <p className="trophy-collection-footnote">Season championship badges are finalized at season end. Previously earned badges remain in your season history.</p>
       </section>
     </main>

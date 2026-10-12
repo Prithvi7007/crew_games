@@ -217,3 +217,203 @@
     animation:none!important;transition:none!important;
   }
 }
+
+
+/* Immersive, unboxed welcome: CREW remains visible as a soft, blurred backdrop. */
+.crew-tour-backdrop{
+  display:grid;place-items:center;padding:0;min-height:100dvh;
+  background:rgba(3,9,20,.50);
+  backdrop-filter:blur(22px) saturate(.72);
+  -webkit-backdrop-filter:blur(22px) saturate(.72);
+}
+.crew-tour-backdrop::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 47% 40% at 50% 35%,rgba(68,155,221,.14),transparent 83%),
+    linear-gradient(180deg,rgba(3,8,19,.2),rgba(3,8,19,.31));
+}
+.crew-tour-dialog{
+  width:100%;max-width:none;height:100dvh;max-height:100dvh;
+  min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:0;border-radius:0;background:transparent;box-shadow:none;
+  padding:64px clamp(16px,4vw,50px) 30px;
+  scrollbar-width:thin;scrollbar-color:rgba(157,198,232,.35) transparent;
+}
+.crew-tour-dialog::before{display:none}
+.crew-tour-stage{width:min(100%,920px);flex:0 0 auto}
+.crew-tour-dialog h2{
+  font-size:clamp(2.15rem,5.4vw,3.75rem);
+  letter-spacing:-.06em;text-wrap:balance;
+  text-shadow:0 12px 48px rgba(0,0,0,.45)
+}
+.crew-tour-kicker{color:#8ae2ff}
+.crew-tour-copy{max-width:595px;margin-bottom:20px;color:#cbd8e9}
+.crew-tour-close{
+  position:fixed;z-index:11;top:max(12px,env(safe-area-inset-top,0px));
+  right:max(16px,env(safe-area-inset-right,0px));
+  display:grid;place-items:center;border:1px solid rgba(192,221,255,.23);
+  background:rgba(16,35,55,.22);backdrop-filter:blur(8px);
+  color:#f4f8ff;box-shadow:none
+}
+.crew-tour-close:hover{border-color:#81d7f9;background:rgba(38,83,120,.5)}
+.crew-tour-close:focus-visible,.crew-tour-actions button:focus-visible,.crew-tour-error button:focus-visible{
+  outline:3px solid #83dbff;outline-offset:3px
+}
+.crew-tour-progress{margin:14px 0 18px}
+.crew-tour-progress span{width:32px;height:3px;background:rgba(182,215,245,.3)}
+.crew-tour-actions{
+  position:relative;z-index:4;
+  gap:12px;max-width:780px;width:100%;padding-bottom:env(safe-area-inset-bottom,0px)
+}
+.crew-tour-actions button{border-radius:999px;min-height:46px}
+.crew-tour-actions .crew-tour-primary{
+  padding:13px 28px;border-color:#a5e9ff;
+  background:linear-gradient(115deg,#7ce5ff,#a6dbff);
+  box-shadow:0 0 28px rgba(91,203,248,.19);color:#071423
+}
+.crew-tour-actions .crew-tour-secondary{
+  border-color:rgba(181,216,242,.28);
+  background:rgba(14,29,46,.18);backdrop-filter:blur(8px);
+  color:#e2edff
+}
+/* The vault is a free-floating composition with no rounded rectangle or panel. */
+.crew-tour-vault{
+  width:min(100%,700px);height:275px;margin:2px auto 19px;
+  border:0;border-radius:0;background:transparent;box-shadow:none;
+}
+.crew-tour-vault::before{
+  background:
+    radial-gradient(ellipse at 50% 73%,rgba(247,203,109,.22),transparent 36%),
+    radial-gradient(ellipse at 50% 42%,rgba(73,156,235,.13),transparent 62%);
+}
+.crew-tour-vault-atmosphere{
+  background:radial-gradient(ellipse at 50% 55%,rgba(255,208,122,.36),rgba(73,170,252,.12) 36%,transparent 72%)
+}
+.crew-tour-vault-door{
+  background:
+    repeating-linear-gradient(90deg,transparent 0 26px,rgba(166,200,244,.06) 27px,transparent 28px),
+    linear-gradient(120deg,#243e59,#13273d 55%,#263f58);
+}
+.crew-tour-vault-status{bottom:3px;text-shadow:0 0 20px rgba(255,184,79,.62)}
+.crew-tour-count{color:#9bedff;text-shadow:0 8px 32px rgba(71,204,255,.19)}
+.crew-tour-badges{max-height:200px}
+.crew-tour-badge{border:0;background:rgba(19,39,59,.20);backdrop-filter:blur(4px)}
+/* The actual badge anatomy replaces the old rarity-only boxes. */
+.crew-tour-anatomy{
+  width:min(100%,900px);display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(205px,240px) minmax(0,1fr);
+  column-gap:clamp(16px,3.1vw,42px);row-gap:13px;
+  align-items:center;margin:18px auto 6px;
+}
+.crew-tour-anatomy-column{display:grid;gap:38px;min-width:0}
+.crew-tour-anatomy-column.is-left{text-align:right}
+.crew-tour-anatomy-column.is-right{text-align:left}
+.crew-tour-anatomy-note{position:relative}
+.crew-tour-anatomy-note::after{
+  content:"";position:absolute;top:11px;height:1px;width:clamp(12px,3vw,32px);
+  background:linear-gradient(90deg,rgba(152,216,255,.1),rgba(152,216,255,.67));
+}
+.crew-tour-anatomy-column.is-left .crew-tour-anatomy-note::after{right:calc(-1 * clamp(14px,3vw,36px))}
+.crew-tour-anatomy-column.is-right .crew-tour-anatomy-note::after{
+  left:calc(-1 * clamp(14px,3vw,36px));transform:rotate(180deg)
+}
+.crew-tour-anatomy-note span,.crew-tour-anatomy-center-note span{
+  color:#8fddff;font:850 .67rem/1.35 Inter,sans-serif;
+  letter-spacing:.11em;text-transform:uppercase
+}
+.crew-tour-anatomy-note p,.crew-tour-anatomy-center-note p{
+  margin:6px 0 0;color:#d2e1f2;font:500 .79rem/1.48 Inter,sans-serif
+}
+.crew-tour-anatomy-medal{margin:0;min-width:0;display:grid;place-items:center;gap:11px}
+.crew-tour-anatomy-avatar{
+  position:relative;display:grid;place-items:center;
+  width:224px;height:224px;max-width:100%;
+}
+.crew-tour-anatomy-avatar::before{
+  content:"";position:absolute;inset:13%;border-radius:50%;
+  background:radial-gradient(circle,rgba(123,191,255,.2),transparent 74%);
+  filter:blur(19px)
+}
+.crew-tour-anatomy-avatar .crew-equipped-badge{
+  width:205px;height:205px;flex:0 0 205px;
+  filter:drop-shadow(0 12px 24px rgba(0,0,0,.5))
+}
+.crew-tour-anatomy-avatar .crew-equipped-avatar{font-size:83px}
+.crew-tour-anatomy-avatar .crew-equipped-achievement{border-width:3px}
+.crew-tour-anatomy-avatar .crew-equipped-season{font-size:16px}
+.crew-tour-anatomy-medal figcaption{
+  color:#9fb9d3;font:600 .64rem/1.5 Inter,sans-serif;letter-spacing:.03em
+}
+.crew-tour-anatomy-center-note{grid-column:1/-1;text-align:center;max-width:580px;margin:0 auto}
+.crew-tour-anatomy-rarities{
+  grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(13px,3vw,32px);
+  padding-top:3px
+}
+.crew-tour-anatomy-rarities>span{
+  display:inline-flex;align-items:center;gap:7px;
+  color:#b2c3d9;font:750 .64rem/1.3 Inter,sans-serif
+}
+.crew-tour-anatomy-rarities i{
+  display:inline-block;width:9px;height:9px;border:1px solid var(--tier-color);
+  border-radius:50%;box-shadow:0 0 9px var(--tier-color)
+}
+.crew-tour-profile{display:grid;justify-items:center;gap:8px;min-height:170px}
+.crew-tour-wearing{display:grid;place-items:center}
+.crew-tour-profile .crew-equipped-badge{width:142px;height:142px;flex-basis:142px}
+.crew-tour-profile .crew-equipped-avatar{font-size:58px}
+.crew-tour-profile .crew-equipped-season{font-size:12px}
+.crew-tour-profile p{margin:0;color:#b8cde2;font:600 .73rem/1.5 Inter,sans-serif}
+@media(max-width:690px){
+  .crew-tour-anatomy{
+    width:min(100%,480px);grid-template-columns:repeat(2,minmax(0,1fr));
+    column-gap:clamp(13px,3vw,23px);row-gap:15px;margin:12px auto 3px;
+  }
+  .crew-tour-anatomy-medal{grid-column:1/-1;grid-row:1}
+  .crew-tour-anatomy-column{gap:16px;align-self:start}
+  .crew-tour-anatomy-column.is-left{grid-column:1;grid-row:2;text-align:left}
+  .crew-tour-anatomy-column.is-right{grid-column:2;grid-row:2;text-align:left}
+  .crew-tour-anatomy-note::after{display:none}
+  .crew-tour-anatomy-note p{font-size:.7rem;line-height:1.4}
+  .crew-tour-anatomy-note span{font-size:.6rem}
+  .crew-tour-anatomy-center-note{grid-column:1/-1;grid-row:3}
+  .crew-tour-anatomy-rarities{grid-row:4;gap:10px 16px}
+}
+@media(max-width:480px){
+  .crew-tour-dialog{
+    justify-content:flex-start;
+    padding:60px 18px max(24px,env(safe-area-inset-bottom,0px));
+  }
+  .crew-tour-dialog h2{font-size:clamp(1.85rem,7.4vw,2.65rem)}
+  .crew-tour-kicker{font-size:.62rem;margin-bottom:8px}
+  .crew-tour-copy{font-size:.81rem;line-height:1.48;margin-bottom:10px}
+  .crew-tour-vault{height:178px;margin:5px auto 14px}
+  .crew-tour-actions button,.crew-tour-actions a{flex:1 1 100%}
+  .crew-tour-progress{margin:15px 0}
+  .crew-tour-anatomy-avatar{width:170px;height:170px}
+  .crew-tour-anatomy-avatar .crew-equipped-badge{width:159px;height:159px;flex-basis:159px}
+  .crew-tour-anatomy-avatar .crew-equipped-avatar{font-size:67px}
+  .crew-tour-anatomy-avatar .crew-equipped-season{font-size:12px}
+  .crew-tour-anatomy-medal{gap:4px}
+  .crew-tour-anatomy-medal figcaption{font-size:.57rem}
+  .crew-tour-anatomy-center-note p{font-size:.72rem}
+}
+@media(max-height:680px) and (min-width:481px){
+  .crew-tour-dialog{justify-content:flex-start}
+}
+@media(prefers-reduced-motion:no-preference){
+  .crew-tour-anatomy-medal{animation:crew-tour-anatomy-arrive .67s .05s cubic-bezier(.16,1,.3,1) both}
+  .crew-tour-anatomy-note{animation:crew-tour-stage-arrival .45s ease-out both}
+  .crew-tour-anatomy-note:nth-child(2){animation-delay:.1s}
+  .crew-tour-anatomy-center-note,.crew-tour-anatomy-rarities{
+    animation:crew-tour-stage-arrival .5s .19s ease-out both
+  }
+  @keyframes crew-tour-anatomy-arrive{
+    from{opacity:0;transform:translateY(22px) scale(.85)}
+    to{opacity:1;transform:none}
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .crew-tour-anatomy-medal,.crew-tour-anatomy-note,.crew-tour-anatomy-center-note,
+  .crew-tour-anatomy-rarities{animation:none!important;transition:none!important}
+}
