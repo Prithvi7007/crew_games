@@ -69,7 +69,8 @@ def equipped_badge_for_viewer(user):
 def with_public_equipped_badges(board, viewer):
     """Decorate the initial standings and AJAX refresh identically.
 
-    Never publish an administrator's private session preview.
+    Private administrator previews are visible only in their own ranking row
+    and never replace the public verified badge seen by other viewers.
     """
     if not trophies_visible_to(viewer):
         return board
@@ -80,10 +81,27 @@ def with_public_equipped_badges(board, viewer):
     if me:
         ids.append(me.get("profile_id"))
     badge_map = _equipped_rows(ids)
+    viewer_id = int(viewer["profile_id"])
+    # A session-only try-on may replace only the current viewer's own medal.
+    # Rankings are assembled per request; no preview is stored on player records.
+    preview_code = session.get("trophy_preview_badge_code")
+    private_preview = (
+        equipped_badge_for_viewer(viewer)
+        if trophy_preview_enabled(viewer) and preview_code in BADGES_BY_CODE
+        else None
+    )
+
+    def visible_badge(player):
+        if player is None:
+            return None
+        if player.get("profile_id") == viewer_id and private_preview:
+            return private_preview
+        return badge_map.get(player.get("profile_id"))
+
     for player in players:
-        player["equippedBadge"] = badge_map.get(player.get("profile_id"))
+        player["equippedBadge"] = visible_badge(player)
     if me is not None:
-        me["equippedBadge"] = badge_map.get(me.get("profile_id"))
+        me["equippedBadge"] = visible_badge(me)
     for player in top:
-        player["equippedBadge"] = badge_map.get(player.get("profile_id"))
+        player["equippedBadge"] = visible_badge(player)
     return board

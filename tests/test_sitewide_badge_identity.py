@@ -94,7 +94,7 @@ def test_public_equipped_badge_is_shared_between_header_profile_and_rankings_api
     assert ranked_api["IdentityBeta"]["code"] == "sharp_shooter"
 
 
-def test_admin_preview_visible_in_own_header_not_in_rankings(app, client, monkeypatch):
+def test_admin_preview_visible_in_own_rankings_but_private_to_other_viewers(app, client, monkeypatch):
     _clock(monkeypatch, date(2026, 10, 12))
     admin = _user(app, "IdentityAdmin", "admin")
     _give_and_equip(app, admin, "word_wizard")
@@ -111,10 +111,28 @@ def test_admin_preview_visible_in_own_header_not_in_rankings(app, client, monkey
     assert _data(client.get("/profile"))["equippedBadge"]["code"] == "unicorn"
     rankings = _data(client.get("/leaderboard"))["board"]
     own = next(p for p in rankings["players"] if p["username"] == "IdentityAdmin")
-    assert own["equippedBadge"]["code"] == "word_wizard"
-    assert own["equippedBadge"].get("preview") is None
+    assert own["equippedBadge"]["code"] == "unicorn"
+    assert own["equippedBadge"]["preview"] is True
+    assert rankings["me"]["equippedBadge"]["code"] == "unicorn"
+    assert rankings["top"][0]["equippedBadge"]["code"] == "unicorn"
     api = client.get("/api/leaderboard").get_json()
-    assert next(p for p in api["players"] if p["username"] == "IdentityAdmin")["equippedBadge"]["code"] == "word_wizard"
+    api_me = next(p for p in api["players"] if p["username"] == "IdentityAdmin")
+    assert api_me["equippedBadge"]["code"] == "unicorn"
+    assert api_me["equippedBadge"]["preview"] is True
+    # Another account gets only the real earned medal, never the session try-on.
+    other = _user(app, "IdentityViewer", "owner")
+    other_client = app.test_client()
+    _signin(other_client, app, other)
+    public_view = _data(other_client.get("/leaderboard"))["board"]
+    admin_from_other = next(p for p in public_view["players"]
+                            if p["username"] == "IdentityAdmin")
+    assert admin_from_other["equippedBadge"]["code"] == "word_wizard"
+    assert admin_from_other["equippedBadge"].get("preview") is None
+    api_from_other = other_client.get("/api/leaderboard?game=mystery").get_json()
+    admin_api_from_other = next(p for p in api_from_other["players"]
+                                if p["username"] == "IdentityAdmin")
+    assert admin_api_from_other["equippedBadge"]["code"] == "word_wizard"
+    assert admin_api_from_other["equippedBadge"].get("preview") is None
     with app.app_context():
         stored = get_showcase(admin)
         assert [p["badge_code"] for p in stored] == ["word_wizard"]
@@ -124,6 +142,9 @@ def test_admin_preview_visible_in_own_header_not_in_rankings(app, client, monkey
                         headers={"X-CSRFToken": token})
     assert clear.status_code == 200
     assert _data(client.get("/home"))["shell"]["userEquippedBadge"]["code"] == "word_wizard"
+    cleared_rankings = _data(client.get("/leaderboard"))["board"]
+    assert cleared_rankings["me"]["equippedBadge"]["code"] == "word_wizard"
+    assert cleared_rankings["me"]["equippedBadge"].get("preview") is None
     client.post("/logout", headers={"X-CSRFToken": token})
     _signin(client, app, admin)
     assert _data(client.get("/home"))["shell"]["userEquippedBadge"]["code"] == "word_wizard"
@@ -170,3 +191,54 @@ def test_compact_avatar_and_two_motion_experiences_have_accessible_fallbacks():
     assert "crew-tour-arrival" in tour_style
     assert "crew-tour-curtain" in tour_style
     assert "prefers-reduced-motion:reduce" in tour_style
+
+
+def test_owner_private_preview_visible_when_unranked_and_after_filter_refresh(
+    app, client, monkeypatch,
+):
+    _clock(monkeypatch, date(2026, 10, 12))
+    owner = _user(app, "IdentityUnrankedOwner", "owner")
+    token = _signin(client, app, owner)
+    response = client.post("/api/trophies/preview-badge",
+                           json={"badgeCode": "season_champion"},
+                           headers={"X-CSRFToken": token})
+    assert response.status_code == 200
+    # An account without scored games is in "me" but not ranked players.
+    first = _data(client.get("/leaderboard"))["board"]
+    assert all(p["profile_id"] != owner for p in first["players"])
+    assert first["me"]["profile_id"] == owner
+    assert first["me"]["rank"] is None
+    assert first["me"]["equippedBadge"]["code"] == "season_champion"
+    assert first["me"]["equippedBadge"]["preview"] is True
+    for filter_path in (
+        "/api/leaderboard?week=all&game=all",
+        "/api/leaderboard?week=1&game=trivia",
+    ):
+        fresh = client.get(filter_path).get_json()
+        assert all(p["profile_id"] != owner for p in fresh["players"])
+        assert fresh["me"]["equippedBadge"]["code"] == "season_champion"
+        assert fresh["me"]["equippedBadge"]["preview"] is True
+        assert fresh["me"]["rank"] is None
+    # Clearing the preview doesn't create earned/showcased awards.
+    clear = client.post("/api/trophies/preview-badge",
+                        json={"badgeCode": None}, headers={"X-CSRFToken": token})
+    assert clear.status_code == 200
+    refreshed = client.get("/api/leaderboard").get_json()
+    assert refreshed["me"]["equippedBadge"] is None
+    with app.app_context():
+        assert get_showcase(owner) == []
+
+
+def test_unranked_badge_row_is_a_view_only_supplement():
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "frontend/src/player/main.jsx").read_text()
+    styles = (root / "frontend/src/player/styles/rankings.css").read_text()
+    assert "const unrankedMe=board.me?.equippedBadge" in source
+    assert "!rankedPlayers.some(player=>player.profile_id===board.me.profile_id)" in source
+    assert "const visiblePlayers=unrankedMe ? [...rankedPlayers,unrankedMe]" in source
+    assert "visiblePlayers.map(player=>" in source
+    assert "hidden={visiblePlayers.length>0}" in source
+    assert "Unranked in this filter" in source
+    assert "PRIVATE PREVIEW" in source
+    assert ".rankings-leader-row.is-unranked" in styles
