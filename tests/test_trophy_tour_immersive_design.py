@@ -21,24 +21,32 @@ def test_unboxed_blurred_overlay_does_not_use_card_surface():
     assert "border:0;border-radius:0;background:transparent;box-shadow:none;" in css
 
 
-def test_design_step_explains_every_badge_layer_not_only_rarity():
+def test_anatomy_reveals_standalone_medal_layers_sequentially():
     source = TOUR.read_text(encoding="utf-8")
+    css = STYLES.read_text(encoding="utf-8")
     assert "Anatomy of a CREW badge" in source
-    assert "five deliberate layers" not in source  # Copy remains conversational.
-    assert "Five deliberate layers" in source
-    assert "EquippedProfileBadge" in source
-    assert "crew-tour-anatomy" in source
-    for label in ("RARITY FRAME", "GAME SIGNATURE", "ACHIEVEMENT MARK",
-                  "SEASON STAMP", "YOUR AVATAR"):
+    assert "Watch the medal come together, one detail at a time." in source
+    assert "const ANATOMY_PHASES" in source
+    for label in ("RARITY FRAME", "GAME SIGNATURE", "ACHIEVEMENT EMBLEM",
+                  "SEASON STAMP", "COMPLETE MEDAL"):
         assert label in source
-    assert "outer metal signals Common, Rare, Epic or Legendary" in source
-    assert "colored inner ring identifies which CREW game" in source
-    assert "upper-right symbol celebrates the exact milestone" in source
-    assert "lower-right S-number records the season" in source
-    assert "The player stays at the center" in source
-    assert "Illustrative example · not an earned award" in source
-    assert "<EquippedProfileBadge badge={{ ...badgeFromAwardCode('case_closed')" in source
-    assert 'className="crew-tour-tiers"' not in source
+    assert "YOUR AVATAR" not in source
+    anatomy = source.split('{step === 1 ?', 1)[1].split('{step === 2 ?', 1)[0]
+    assert "BadgeMedallion" in anatomy
+    assert "EquippedProfileBadge" not in anatomy
+    assert "avatar=" not in anatomy
+    assert "crew-tour-medal-build" in anatomy
+    assert "data-phase={anatomyPhase}" in anatomy
+    assert "aria-live=\"polite\"" in anatomy
+    assert "Replay reveal" in anatomy
+    assert "2400" in source
+    assert "window.clearInterval(interval)" in source
+    for phase in range(5):
+        assert f'[data-phase="{phase}"]' in css
+    assert "@keyframes crew-tour-rarity-cycle" in css
+    assert ".crew-tour-medal-build .medallion-inner" in css
+    assert ".crew-tour-medal-build .crew-insignia" in css
+    assert ".crew-tour-medal-season" in css
 
 
 def test_final_step_demonstrates_equipped_avatar_without_fake_awards():
@@ -56,14 +64,14 @@ def test_responsive_unboxed_tour_preserves_focus_and_reduced_motion():
     css = STYLES.read_text(encoding="utf-8")
     source = TOUR.read_text(encoding="utf-8")
     assert "@media(max-width:690px)" in css
-    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in css
+    assert ".crew-tour-medal-guide" in css
     assert "@media(max-width:480px)" in css
     assert ".crew-tour-dialog{\n    justify-content:flex-start;" in css
-    assert ".crew-tour-anatomy-avatar .crew-equipped-badge{width:159px;height:159px;" in css
+    assert ".crew-tour-medal-build{width:min(54vw,215px)}" in css
     assert "overscroll-behavior:contain" in css
     assert ".crew-tour-close:focus-visible" in css
     assert "@media(prefers-reduced-motion:reduce)" in css
-    assert ".crew-tour-anatomy-rarities{animation:none!important;transition:none!important}" in css
+    assert ".crew-tour-medal-narration{animation:none!important;transition:none!important}" in css
     assert 'role="dialog" aria-modal="true"' in source
     assert "dialogRef.current?.focus()" in source
     assert "function handleKeys(event)" in source
