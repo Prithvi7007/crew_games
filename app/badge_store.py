@@ -99,9 +99,11 @@ def set_showcase_slot(profile_id, slot, badge_award_id=None):
 
 def get_showcase(profile_id):
     return get_db().execute(
-        """SELECT s.slot, a.id AS award_id, a.season_id, a.badge_code
+        """SELECT s.slot, a.id AS award_id, a.season_id, a.badge_code,
+                  se.season_number
            FROM badge_showcase s
-           JOIN badge_awards a ON a.id = s.badge_award_id
+           JOIN badge_awards a ON a.id = s.badge_award_id AND a.profile_id = s.profile_id
+           JOIN seasons se ON se.id = a.season_id
            WHERE s.profile_id = ? ORDER BY s.slot""",
         (int(profile_id),),
     ).fetchall()

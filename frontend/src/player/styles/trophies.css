@@ -429,3 +429,51 @@
 /* Preview-only try-on does not imply a server-awarded badge. */
 .trophy-preview-current{margin:10px 0 0;color:#a8d5ff;font:700 .78rem/1.5 Inter,sans-serif}
 .trophy-preview-current a{color:#91d9ff;text-decoration:underline;text-underline-offset:3px}
+
+/* Sitewide CREW badge identity: same artwork, proportionally scaled for 42px slots. */
+.crew-equipped-badge.is-compact{
+  width:42px;height:42px;flex:0 0 42px;
+}
+.crew-equipped-badge.is-compact .crew-equipped-avatar{
+  font-size:18px;
+}
+.crew-equipped-badge.is-compact .crew-equipped-achievement{
+  border-width:1px;right:-4%;top:-2%;
+}
+.crew-equipped-badge.is-compact .crew-equipped-season{
+  bottom:-2%;right:-5%;border-width:1px;font-size:6px;
+}
+.crew-nav-avatar.has-trophy,.crew-menu-avatar.has-trophy{
+  display:grid;place-items:center;overflow:visible;
+  border:0!important;background:transparent!important;box-shadow:none!important;
+  padding:0!important;
+}
+.crew-nav-avatar.has-trophy{min-width:42px;min-height:42px;width:42px;height:42px}
+.crew-menu-avatar.has-trophy{min-width:42px;min-height:42px;width:42px;height:42px}
+
+/* Lightweight, nonblocking confirmation when a trophy is equipped or previewed. */
+.crew-badge-apply-toast{
+  position:fixed;right:clamp(12px,3vw,30px);bottom:24px;z-index:1500;
+  display:flex;align-items:center;gap:15px;min-width:238px;max-width:min(340px,calc(100vw - 24px));
+  padding:15px 21px 15px 16px;border:1px solid rgba(115,209,245,.55);
+  border-radius:16px;background:radial-gradient(circle at 12% 50%,rgba(75,184,243,.24),transparent 63%),#0a1627;
+  box-shadow:0 16px 46px rgba(0,0,0,.42),0 0 26px rgba(75,184,243,.12);
+  color:#eef8ff;pointer-events:none;isolation:isolate;
+}
+.crew-badge-apply-medal{display:grid;place-items:center;flex:0 0 42px}
+.crew-badge-apply-toast>span:nth-child(2){display:grid;gap:4px;min-width:0}
+.crew-badge-apply-toast strong{font:850 .84rem/1.2 Inter,sans-serif}
+.crew-badge-apply-toast small{font:600 .67rem/1.4 Inter,sans-serif;color:#a8bed8}
+.crew-badge-apply-spark{position:absolute;top:7px;right:11px;color:#ffd17a;font-size:1.1rem}
+@media(max-width:760px){.crew-badge-apply-toast{bottom:96px}}
+@media(prefers-reduced-motion:no-preference){
+  .crew-badge-apply-toast{animation:crew-badge-applied .6s cubic-bezier(.16,1,.3,1) both}
+  .crew-badge-apply-medal{animation:crew-badge-medal-snap .72s cubic-bezier(.2,1.5,.35,1) both}
+  .crew-badge-apply-spark{animation:crew-badge-spark .95s ease-out both}
+  @keyframes crew-badge-applied{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+  @keyframes crew-badge-medal-snap{0%{transform:rotate(-26deg) scale(.48);filter:brightness(2)}75%{transform:rotate(4deg) scale(1.08)}100%{transform:rotate(0) scale(1);filter:brightness(1)}}
+  @keyframes crew-badge-spark{0%{opacity:0;transform:translate(-12px,10px) scale(.3)}40%{opacity:1}100%{opacity:.85;transform:translate(0,0) scale(1)}}
+}
+@media(prefers-reduced-motion:reduce){
+  .crew-badge-apply-toast,.crew-badge-apply-medal,.crew-badge-apply-spark{animation:none!important}
+}

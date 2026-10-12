@@ -61,6 +61,7 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
   return <div className="crew-tour-backdrop">
     <section className="crew-tour-dialog" role="dialog" aria-modal="true" aria-labelledby="crew-tour-title" aria-describedby="crew-tour-description" tabIndex={-1} ref={dialogRef} onKeyDown={handleKeys}>
       <button type="button" className="crew-tour-close" aria-label="Close trophy welcome tour" disabled={saving} onClick={() => close('later')}>×</button>
+      <div className="crew-tour-stage" key={step}>
       <p className="crew-tour-kicker">{tour.preview ? 'PREVIEW · ' : ''}CREW TROPHY ROOM · {step + 1} / 4</p>
       <h2 id="crew-tour-title">{headings[step]}</h2>
       <p id="crew-tour-description" className="crew-tour-copy">{copy[step]}</p>
@@ -73,6 +74,7 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
         {earned.length > featured.length ? <p className="crew-tour-copy">And {earned.length - featured.length} more waiting in your collection.</p> : null}
       </div> : null}
       {step === 3 ? <div className="crew-tour-profile"><span className="crew-tour-avatar" aria-label="Your current avatar">{avatar || '⭐'}</span><span aria-hidden="true">→</span>{earned[0] ? <BadgeMedallion badge={earned[0]}/> : <BadgeMedallion badge={badgeFromAwardCode("case_closed")} concealed/>}</div> : null}
+      </div>
       <div className="crew-tour-progress" aria-label={'Step ' + (step + 1) + ' of 4'}>{headings.map((_, index) => <span key={index} className={index === step ? 'is-active' : ''}/>)}</div>
       {error ? <p className="crew-tour-error" role="alert">{error} <button type="button" className="crew-tour-secondary" onClick={onClose}>Continue without saving</button></p> : null}
       <div className="crew-tour-actions">

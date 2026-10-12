@@ -7,6 +7,7 @@ from pathlib import Path
 
 from flask import render_template
 
+from app.badge_display import equipped_badge_for_viewer
 from app.trophy_access import trophies_visible_to
 from app.trophy_tour import tour_for_player
 
@@ -50,6 +51,7 @@ def render_player(page, title, body_class, payload, user, nav_points=None):
         "navPoints": nav_points,
         "trophiesVisible": trophies_visible_to(user),
         "trophyTour": tour_for_player(user, page),
+        "userEquippedBadge": equipped_badge_for_viewer(user),
         "active": "games" if page in {"mystery", "trivia", "word", "tick_tock"} else page,
     }
     return render_template(
