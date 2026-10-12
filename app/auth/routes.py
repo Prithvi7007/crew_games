@@ -31,6 +31,7 @@ from app.db import (
 from app.badge_store import get_showcase
 from app.badges import BADGES_BY_CODE
 from app.player_ui import render_player
+from app.trophy_access import trophies_visible_to
 from app.security import (
     audit_security_event,
     clear_rate_limits,
@@ -386,7 +387,7 @@ def profile():
     history = get_profile_history_summary(current_user_key())
     season = get_season_summary(current_user_key())
     # Showcase slot 1 is the equipped profile badge; only server-owned awards qualify.
-    equipped_row = next((row for row in get_showcase(session["user"]["profile_id"]) if row["slot"] == 1), None)
+    equipped_row = next((row for row in get_showcase(session["user"]["profile_id"]) if row["slot"] == 1), None) if trophies_visible_to(session["user"]) else None
     equipped_badge = None
     if equipped_row:
         definition = BADGES_BY_CODE[equipped_row["badge_code"]]

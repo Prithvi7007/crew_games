@@ -172,3 +172,32 @@
   background: rgba(255,189,69,.055);
   font: 650 .68rem/1.45 Inter,sans-serif;
 }
+
+/* Ranking game filters share the same identity palette as Trophy Room rings.
+   Overall keeps the neutral CREW cyan; game tabs get their own accent. */
+.rankings-game-tabs button {--rankings-tab-accent:#35dff9;}
+.rankings-game-tabs button[data-game="mystery"] {--rankings-tab-accent:#55e6ac;}
+.rankings-game-tabs button[data-game="trivia"] {--rankings-tab-accent:#ffbd45;}
+.rankings-game-tabs button[data-game="word"] {--rankings-tab-accent:#55b9ff;}
+.rankings-game-tabs button[data-game="tick_tock"] {--rankings-tab-accent:#c55cff;}
+.rankings-game-tabs button>span {
+  color:var(--rankings-tab-accent);
+}
+.rankings-game-tabs button:hover,
+.rankings-game-tabs button:focus-visible {
+  border-color:color-mix(in srgb,var(--rankings-tab-accent) 60%,transparent);
+  background:color-mix(in srgb,var(--rankings-tab-accent) 8%,#07111a);
+}
+.rankings-game-tabs button:focus-visible {
+  outline:2px solid var(--rankings-tab-accent);
+  outline-offset:2px;
+}
+.rankings-game-tabs button.active {
+  border-color:var(--rankings-tab-accent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rankings-tab-accent) 35%,transparent);
+  color:#fff;
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--rankings-tab-accent) 19%,#07111a),
+    color-mix(in srgb,var(--rankings-tab-accent) 7%,#07111a));
+}
+.rankings-game-tabs button.active>span {color:var(--rankings-tab-accent);}

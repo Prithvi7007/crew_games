@@ -7,6 +7,8 @@ from pathlib import Path
 
 from flask import render_template
 
+from app.trophy_access import trophies_visible_to
+
 
 _REACT_ASSET_DIR = Path(__file__).resolve().parent / "static" / "react"
 
@@ -45,6 +47,7 @@ def render_player(page, title, body_class, payload, user, nav_points=None):
             "role": user.get("role", "player"),
         },
         "navPoints": nav_points,
+        "trophiesVisible": trophies_visible_to(user),
         "active": "games" if page in {"mystery", "trivia", "word", "tick_tock"} else page,
     }
     return render_template(
