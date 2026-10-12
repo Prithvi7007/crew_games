@@ -1,10 +1,11 @@
 from datetime import timedelta
 
-from flask import Blueprint, jsonify, redirect, request, session, url_for
+from flask import Blueprint, current_app, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
-from app.trophy_access import trophies_visible_to
+from app.trophy_access import TROPHY_PUBLIC_REVEAL_DATE, trophies_visible_to
+from app.trophy_tour import complete_tour, earned_tour_payload
 from app.badges import BADGES, BADGES_BY_CODE
 from app.badge_store import get_badge_awards, get_showcase, set_showcase_slot
 from app.db import (
@@ -326,6 +327,8 @@ def trophies():
                 {"id": season["id"], "number": season["number"], "name": season["name"]}
                 for season in seasons
             ],
+            "tourReplay": ({**earned_tour_payload(profile_id, today), "preview": True}
+                           if current_app.config.get("TROPHY_TOUR_ENABLED", True) else None),
             "showcaseUrl": url_for("main.update_trophy_showcase"),
             "showcase": [
                 {"slot": row["slot"], "badgeCode": row["badge_code"],
@@ -343,6 +346,27 @@ def trophies():
         user,
         nav_points=get_weekly_points(current_user_key(), today)["points"],
     )
+
+
+@main_bp.post("/api/trophies/tour")
+@login_required
+def update_trophy_tour():
+    """Player-scoped one-time tour state; protected by the global CSRF guard."""
+    if (not current_app.config.get("TROPHY_TOUR_ENABLED", True)
+            or crew_today() < TROPHY_PUBLIC_REVEAL_DATE):
+        return "", 404
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or payload.get("action") not in ("later", "skipped", "finished"):
+        return jsonify({"ok": False, "message": "Invalid tour action."}), 400
+    action = payload["action"]
+    if action == "later":
+        session["trophy_tour_snoozed"] = True
+    else:
+        complete_tour(session["user"]["profile_id"], action)
+        session.pop("trophy_tour_snoozed", None)
+    response = jsonify({"ok": True})
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @main_bp.post("/api/trophies/showcase")

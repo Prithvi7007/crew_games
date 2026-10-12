@@ -1,0 +1,33 @@
+/* October 19 CREW Trophy Room welcome tour */
+.crew-tour-backdrop{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;padding:20px;background:rgba(3,8,19,.86);backdrop-filter:blur(12px);color:#f5f8ff}
+.crew-tour-dialog{position:relative;width:min(620px,100%);max-height:min(90vh,850px);overflow:auto;border:1px solid rgba(117,176,233,.36);border-radius:24px;background:radial-gradient(ellipse at 50% 0,rgba(58,144,227,.2),transparent 55%),linear-gradient(155deg,#15243b,#080e1b 78%);box-shadow:0 28px 110px rgba(0,0,0,.65),inset 0 1px rgba(255,255,255,.1);padding:clamp(24px,5vw,42px);text-align:center;outline:none}
+.crew-tour-close{position:absolute;top:12px;right:14px;min-width:44px;min-height:44px;border:1px solid rgba(180,204,234,.2);border-radius:50%;background:#16283f;color:#e8f5ff;cursor:pointer;font-size:1.3rem}
+.crew-tour-kicker{margin:0 0 12px;color:#75dffc;font:800 .7rem/1.4 Inter,sans-serif;letter-spacing:.22em;text-transform:uppercase}
+.crew-tour-dialog h2{margin:0 0 14px;color:#fff;font:850 clamp(1.9rem,5vw,3.1rem)/1.07 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.055em}
+.crew-tour-copy{max-width:440px;margin:0 auto 22px;color:#bdcbe0;font:500 .96rem/1.65 Inter,sans-serif}
+.crew-tour-art{display:flex;align-items:center;justify-content:center;gap:10px;min-height:170px;margin:14px auto 24px}
+.crew-tour-art .trophy-medallion{max-width:118px}
+.crew-tour-hero-symbol{display:grid;place-items:center;width:144px;height:144px;border:2px solid #d9b667;border-radius:50%;background:radial-gradient(circle,#254866,#0d1829 70%);font-size:4rem;box-shadow:0 0 50px rgba(85,185,255,.25)}
+.crew-tour-tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 25px}
+.crew-tour-tier{padding:14px 5px;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:#101f33;font:800 .68rem/1.4 Inter,sans-serif;letter-spacing:.05em}
+.crew-tour-tier::before{content:'';display:block;width:26px;height:26px;margin:0 auto 10px;border:5px solid var(--tier-color);border-radius:50%}
+.crew-tour-count{display:block;color:#75dffc;font:850 4rem/1.1 var(--crew-font-display,Manrope,sans-serif)}
+.crew-tour-badges{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;max-height:250px;overflow:auto;margin:16px 0 20px}
+.crew-tour-badge{width:118px;padding:8px;border:1px solid rgba(175,200,234,.18);border-radius:12px;background:rgba(20,35,55,.7);font:700 .68rem/1.4 Inter,sans-serif}
+.crew-tour-badge .trophy-medallion{width:88px;margin:0 auto 8px}
+.crew-tour-badge strong{display:block;overflow-wrap:anywhere}
+.crew-tour-profile{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;min-height:170px;margin:12px auto 20px}
+.crew-tour-avatar{display:grid;place-items:center;width:110px;height:110px;border:6px solid #e3b86c;border-radius:50%;font-size:3.5rem;background:#19334c;box-shadow:0 0 28px rgba(85,185,255,.24)}
+.crew-tour-progress{display:flex;justify-content:center;gap:9px;margin:20px 0}
+.crew-tour-progress span{width:25px;height:4px;border-radius:4px;background:#34445b}
+.crew-tour-progress span.is-active{background:#6bdaf5}
+.crew-tour-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px}
+.crew-tour-actions button,.crew-tour-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 18px;border-radius:12px;font:800 .82rem/1.3 Inter,sans-serif;text-decoration:none;cursor:pointer}
+.crew-tour-primary{border:1px solid #80e4f7;background:#5ed7ed;color:#071323}
+.crew-tour-secondary{border:1px solid #52657f;background:#17263c;color:#f0f6ff}
+.crew-tour-actions button:disabled{opacity:.5;cursor:wait}
+.crew-tour-error{margin:10px 0;color:#ffb4b4;font-size:.82rem}
+.crew-tour-replay{min-height:44px;margin-top:12px;padding:8px 14px;border:1px solid #4e6d87;border-radius:9px;background:#14253a;color:#c9efff;cursor:pointer;font-weight:750}
+@media(max-width:480px){.crew-tour-dialog{padding:30px 18px 22px}.crew-tour-tiers{grid-template-columns:repeat(2,1fr)}.crew-tour-badge{width:95px}.crew-tour-badge .trophy-medallion{width:74px}.crew-tour-actions button,.crew-tour-actions a{flex:1 1 100%}}
+@media(prefers-reduced-motion:no-preference){.crew-tour-dialog{animation:crew-tour-appear .3s ease-out both}.crew-tour-badge{animation:crew-tour-appear .38s both;animation-delay:calc(var(--badge-index,0)*75ms)}@keyframes crew-tour-appear{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}}
+@media(prefers-reduced-motion:reduce){.crew-tour-dialog,.crew-tour-badge{animation:none!important;transition:none!important}}

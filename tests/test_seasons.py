@@ -54,8 +54,8 @@ def _sign_in(client, app, profile_id):
 
 
 def test_seasons_migration_is_active_and_launch_season_is_seeded(app):
-    assert HEAD_REVISION == "v15_badges"
-    assert current_revision(app.config["DATABASE_URL"]) == "v15_badges"
+    assert HEAD_REVISION == "v16_trophy_tour"
+    assert current_revision(app.config["DATABASE_URL"]) == "v16_trophy_tour"
 
     with app.app_context():
         season = get_season_for_date(date(2026, 10, 7))

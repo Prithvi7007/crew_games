@@ -187,7 +187,7 @@ function BadgeCard({ badge, seasonNumber, isEquipped, saving, onSelect }) {
   </article>;
 }
 
-export default function TrophyRoom({ data, Header, saveSlot }) {
+export default function TrophyRoom({ data, Header, saveSlot, onReplayTour }) {
   const [showcase, setShowcase] = useState(data.showcase || []);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -221,7 +221,7 @@ export default function TrophyRoom({ data, Header, saveSlot }) {
     <Header shell={data.shell}/>
     <main className="trophy-room-main">
       <header className="trophy-simple-header">
-        <div><span className="trophy-eyebrow">CREW ACHIEVEMENTS</span><h1>Your badges</h1><p>Collect achievements. Select an unlocked badge to wear it.</p></div>
+        <div><span className="trophy-eyebrow">CREW ACHIEVEMENTS</span><h1>Your badges</h1><p>Collect achievements. Select an unlocked badge to wear it.</p>{data.tourReplay && onReplayTour ? <button type="button" className="crew-tour-replay" onClick={onReplayTour}>Replay welcome tour ↗</button> : null}</div>
         <div className="trophy-season-row">
           {(data.seasons || []).map(item => <a key={item.id} href={'/trophies?season=' + item.id} className={'trophy-season-chip' + (season?.id === item.id ? ' is-active' : '')} aria-current={season?.id === item.id ? 'page' : undefined}>S{String(item.number).padStart(2,'0')}</a>)}
         </div>

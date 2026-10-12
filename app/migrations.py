@@ -8,7 +8,7 @@ from alembic.config import Config as AlembicConfig
 from sqlalchemy import create_engine, inspect, text
 
 BASELINE_REVISION = "v11_baseline"
-HEAD_REVISION = "v15_badges"
+HEAD_REVISION = "v16_trophy_tour"
 ROOT = Path(__file__).resolve().parents[1]
 
 
