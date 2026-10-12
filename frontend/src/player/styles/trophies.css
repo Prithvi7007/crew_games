@@ -299,3 +299,18 @@
 .crew-equipped-achievement svg .crew-insignia-shadow {stroke:#020b17;stroke-width:9;fill:none;}
 .crew-equipped-achievement svg .crew-insignia-jewel {fill:var(--rarity-ring);}
 .crew-equipped-achievement svg .medallion-motif {stroke:currentColor;stroke-width:6;fill:none;}
+
+/* Compact badge management: one equipped profile badge, no three-slot showcase. */
+.trophy-room-main .trophy-simple-header {display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:0 0 24px;}
+.trophy-simple-header h1 {font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.1;margin:9px 0;}
+.trophy-simple-header p {color:#9daabd;margin:8px 0 0;}
+.trophy-single-equip {display:flex;align-items:center;gap:24px;padding:22px;border:1px solid #253449;border-radius:20px;background:linear-gradient(120deg,#101b2e,#080f1b);margin-bottom:32px;}
+.trophy-single-equip-preview {flex:0 0 110px;min-height:110px;display:grid;place-items:center;}
+.trophy-single-equip-preview .trophy-empty-mark {font-size:3rem;color:#8294aa;}
+.trophy-single-equip-controls {flex:1;min-width:0;}
+.trophy-single-equip-controls h2 {font-size:1.4rem;margin:7px 0;}
+.trophy-single-equip-controls p {color:#a4afc0;margin:5px 0 14px;}
+.trophy-single-equip-controls label {display:block;font-size:.78rem;font-weight:700;color:#b4c4d7;margin-bottom:7px;}
+.trophy-single-equip-controls select {display:block;width:100%;max-width:420px;background:#071522;color:#fff;border:1px solid #41536a;border-radius:10px;padding:12px;min-height:44px;}
+.trophy-single-equip-controls .trophy-editor-feedback {min-height:1em;margin:8px 0 0;}
+@media(max-width:600px){.trophy-single-equip{gap:12px;padding:16px;align-items:center}.trophy-single-equip-preview{flex-basis:84px;min-height:84px}.trophy-single-equip-controls h2{font-size:1.15rem}}
