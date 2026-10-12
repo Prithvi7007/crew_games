@@ -32,64 +32,35 @@ const DETAILS = {
   crew_legend: 'Collect 15 different non-collection badges this season.',
 };
 
-const MOTIFS = {
-  case_closed: 'M25 40h46M34 24h28v33H34zM41 33h14M41 42h9',
-  sharp_instincts: 'M22 50l15-17 13 12 21-26M59 19h12v12',
-  mind_reader: 'M19 42q31-40 62 0-31 40-62 0zM50 29a13 13 0 1 0 0 26 13 13 0 1 0 0-26',
-  sharp_shooter: 'M50 17v66M17 50h66M50 29a21 21 0 1 0 0 42 21 21 0 1 0 0-42',
-  brainiac: 'M37 64c-23-10-14-30-3-31 0-18 18-18 24-10 17-4 25 13 16 23 3 16-12 24-22 16M45 26v45M34 43h11M57 41h17',
-  flawless_victory: 'M28 26l12 13 30-22M26 52l12 13 30-22M30 77h40',
-  word_wizard: 'M24 24h22v22H24zM54 24h22v22H54zM24 54h22v22H24zM54 54h22v22H54z',
-  word_ninja: 'M24 64l15-39 11 30 14-30 12 39M30 74h42M43 38h16',
-  one_shot_wonder: 'M50 17l11 23 25 4-18 18 4 25-22-12-22 12 4-25-18-18 25-4z',
-  close_call: 'M50 19v13M50 68v13M19 50h13M68 50h13M50 32a18 18 0 1 0 0 36 18 18 0 1 0 0-36M50 50l10-10',
-  precision_pro: 'M50 17v15M50 68v15M17 50h15M68 50h15M50 30a20 20 0 1 0 0 40 20 20 0 1 0 0-40M50 50l6-14',
-  human_stopwatch: 'M40 18h20M50 18v11M70 29l8-8M50 32a23 23 0 1 0 0 46 23 23 0 1 0 0-46M50 55l10-16M43 10h14',
-  season_champion: 'M26 24h48v17c0 17-12 29-24 33-12-4-24-16-24-33zM26 31H15v5c0 11 9 18 18 19M74 31h11v5c0 11-9 18-18 19M50 38l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2z',
-  season_trivia_master: 'M25 20h50v60H25zM35 33h30M35 46h22M35 59h30M36 70h15',
-  season_wordle_master: 'M22 22h25v25H22zM53 22h25v25H53zM22 53h25v25H22zM53 53h25v25H53zM26 66l7 7 11-15',
-  season_mystery_master: 'M32 31l8-13h20l8 13M24 34h52v30l-26 15-26-15zM39 51h22M50 40v22',
-  season_tick_tock_master: 'M38 17h24M50 17v12M50 30a24 24 0 1 0 0 48 24 24 0 1 0 0-48M50 53l15-12M64 25l8-8',
-  high_roller: 'M26 62l-7-26 18 9 13-25 13 25 18-9-7 26zM27 69h46M34 78h32',
-  unicorn: 'M27 70l16-26-1-18 19 11 18 12-17 2-6 20-15 6zM43 26L57 9M65 60l5 6M32 40l-9-10',
-  badge_hunter: 'M50 14l26 15v42L50 86 24 71V29zM35 40h30M35 50h30M35 60h20',
-  crew_legend: 'M50 12l12 24 27 4-19 19 5 27-25-13-25 13 5-27-19-19 27-4zM50 37v26M37 50h26',
-};
-
-
-// Custom engraved accent work complements each unique central insignia.
-// These details are shared by the Trophy Room, showcase and equipped avatar.
-const INSIGNIA_DETAILS = Object.freeze({
-  case_closed:'M31 70h38M39 75h22M63 29l7-7M66 35h9',
-  sharp_instincts:'M50 20v9M50 71v9M20 50h9M71 50h9M50 17l5 9-5 6-5-6z',
-  mind_reader:'M29 24l-5-6M71 24l5-6M50 17v7M32 65l-5 7M68 65l5 7',
-  sharp_shooter:'M50 22v9M50 69v9M22 50h9M69 50h9M46 46h8v8h-8z',
-  brainiac:'M31 30l-7-5M67 24l7-6M28 60l-8 7M65 70l7 7M51 30v36',
-  flawless_victory:'M22 23l-7-7M78 23l7-7M50 16v-8M20 72l-7 7M80 72l7 7',
-  word_wizard:'M30 30h10M60 30h10M30 60h10M60 60h10M49 19v62',
-  word_ninja:'M25 25l-8-8M75 25l8-8M50 14v8M27 82l-7 6M73 82l7 6',
-  one_shot_wonder:'M50 9v8M50 83v8M9 50h8M83 50h8M22 22l7 7M78 22l-7 7',
-  close_call:'M30 25l-6-6M70 25l6-6M30 75l-6 6M70 75l6 6',
-  precision_pro:'M25 25l-6-6M75 25l6-6M25 75l-6 6M75 75l6 6M50 36v-5',
-  human_stopwatch:'M25 42l-7-4M75 42l7-4M25 67l-7 4M75 67l7 4M50 39v-5',
-  season_champion:'M31 78h38M37 84h26M18 19l5-6M82 19l-5-6M50 10v7',
-  season_trivia_master:'M18 28l-7-7M82 28l7-7M50 10v8M19 77l-7 7M81 77l7 7',
-  season_wordle_master:'M50 12v7M12 50h7M81 50h7M50 81v7M29 13l-6-6M71 13l6-6',
-  season_mystery_master:'M50 10v8M18 25l-7-5M82 25l7-5M18 75l-7 5M82 75l7 5',
-  season_tick_tock_master:'M23 25l-7-7M77 25l7-7M23 75l-7 7M77 75l7 7',
-  high_roller:'M50 9v8M19 22l7 7M81 22l-7 7M19 79l7-7M81 79l-7-7',
-  unicorn:'M17 52l-8-3M25 24l-5-7M73 20l7-8M83 64l8 4M50 84v8',
-  badge_hunter:'M50 8v8M15 30l7 4M85 30l-7 4M15 70l7-4M85 70l-7-4',
-  crew_legend:'M50 5v7M12 23l9 6M88 23l-9 6M12 77l9-6M88 77l-9-6',
+const MOTIFS = Object.freeze({
+  case_closed: 'M31 40h38v29H31zM40 40v-9h20v9M43 53h14M43 60h14',
+  sharp_instincts: 'M26 66l17-18 11 9 20-26M61 31h13v13',
+  mind_reader: 'M23 50Q50 20 77 50Q50 80 23 50zM50 38a12 12 0 1 0 0 24 12 12 0 1 0 0-24',
+  sharp_shooter: 'M50 25v50M25 50h50M50 31a19 19 0 1 0 0 38 19 19 0 1 0 0-38',
+  brainiac: 'M50 31c-10-13-27-3-23 11-9 8-4 22 6 21 0 11 17 13 17 2M50 31c10-13 27-3 23 11 9 8 4 22-6 21 0 11-17 13-17 2M50 31v39',
+  flawless_victory: 'M27 39l10 10 15-17M27 60l10 10 34-37',
+  word_wizard: 'M29 71L65 35M60 28l3 7 8 2-8 3-3 8-3-8-8-3 8-2zM30 37l2-7M41 28l1-7',
+  word_ninja: 'M28 47q22-25 44 0v19H28zM36 54h9M55 54h9M50 22v9',
+  one_shot_wonder: 'M50 25l8 16 18 3-13 12 3 18-16-8-16 8 3-18-13-12 18-3z',
+  close_call: 'M50 29a22 22 0 1 0 0 44 22 22 0 1 0 0-44M50 38v13l9 6M43 22h14',
+  precision_pro: 'M50 31a21 21 0 1 0 0 42 21 21 0 1 0 0-42M50 39a13 13 0 1 0 0 26 13 13 0 1 0 0-26M50 47v10M45 52h10',
+  human_stopwatch: 'M42 23h16M50 23v9M50 33a21 21 0 1 0 0 42 21 21 0 1 0 0-42M50 42v13l-8 8M65 27l7-7',
+  season_champion: 'M34 29h32v30H34zM42 59v10h16V59M38 73h24',
+  season_trivia_master: 'M32 32h36M32 43h24M32 54h36M32 65h20',
+  season_wordle_master: 'M30 29h19v19H30zM53 29h19v19H53zM30 52h19v19H30zM53 52h19v19H53zM57 63l4 4 7-9',
+  season_mystery_master: 'M45 30a17 17 0 1 0 0 34 17 17 0 1 0 0-34M58 59l16 16M40 44h10',
+  season_tick_tock_master: 'M33 28h34M33 72h34M39 28v9l11 13-11 13v9M61 28v9L50 50l11 13v9',
+  high_roller: 'M25 38l11 10 14-21 14 21 11-10-6 30H31zM33 73h34',
+  unicorn: 'M31 73l10-19-3-20 12 9 10-18 2 20 13 9-17 5-6 14zM49 43l-2 12',
+  badge_hunter: 'M50 26l22 9v19c0 12-10 22-22 27-12-5-22-15-22-27V35zM50 41l4 8 9 1-7 6 2 9-8-4-8 4 2-9-7-6 9-1z',
+  crew_legend: 'M33 29h34v34L50 76 33 63zM43 42h14M50 36v26',
 });
+
+// One bold, outline-only insignia family. Shared by collection, reward and avatar.
+// Minimal paths keep every achievement legible at small sizes.
 function Insignia({ badge, compact = false }) {
-  const code = badge.code;
   return <g className={'crew-insignia' + (compact ? ' is-compact' : '')}>
-    <circle className="crew-insignia-halo" cx="50" cy="50" r="27"/>
-    <path className="crew-insignia-engraving" d={INSIGNIA_DETAILS[code] || INSIGNIA_DETAILS.badge_hunter}/>
-    <path className="crew-insignia-shadow" d={MOTIFS[code] || MOTIFS.badge_hunter}/>
-    <path className="medallion-motif" d={MOTIFS[code] || MOTIFS.badge_hunter}/>
-    <circle className="crew-insignia-jewel" cx="50" cy="13" r="1.6"/>
+    <path className="medallion-motif" d={MOTIFS[badge.code] || MOTIFS.badge_hunter}/>
   </g>;
 }
 
@@ -146,7 +117,7 @@ function GameIdentityRing({ badge, radius = 37, className = 'medallion-inner' })
       const start = offset;
       offset += fraction;
       return <circle key={key} cx="50" cy="50" r={radius} fill="none"
-        stroke={GAME_COLORS[key]} strokeWidth="3.3"
+        stroke={GAME_COLORS[key]} strokeWidth="6"
         strokeDasharray={`${fraction * circumference} ${circumference}`}
         strokeDashoffset={-start * circumference}/>;
     })}
@@ -156,23 +127,26 @@ function GameIdentityRing({ badge, radius = 37, className = 'medallion-inner' })
 function toneFor(badge) {
   return badge.gameKey || (badge.vertical === 'secret' ? 'legendary' : 'spectrum');
 }
+// Insignias use the game identity (not rarity); rivalry masters use their focus game.
+function insigniaColor(badge) {
+  const focus = badge.gameKey || RIVALRY_GAME[badge.code];
+  if (focus && GAME_COLORS[focus]) return GAME_COLORS[focus];
+  return badge.code === 'season_champion' ? '#ffbd45' : '#eef4ff';
+}
 
 export function BadgeMedallion({ badge, size = 'normal', concealed = false, seasonNumber = null }) {
-  return <span className={'trophy-medallion trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + ' trophy-medallion-' + size + (concealed ? ' is-concealed' : '')} aria-hidden="true">
-    <span className="trophy-aura-field"/><svg viewBox="0 0 100 100" focusable="false" fill="none">
+  return <span style={{ '--insignia-color': insigniaColor(badge) }} className={'trophy-medallion trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + ' trophy-medallion-' + size + (concealed ? ' is-concealed' : '')} aria-hidden="true">
+    <svg viewBox="0 0 100 100" focusable="false" fill="none">
       <circle className="medallion-outer" cx="50" cy="50" r="44"/>
       <GameIdentityRing badge={badge}/>
       <circle className="medallion-insignia-disc" cx="50" cy="50" r="29"/>{concealed ? <path className="medallion-motif" d="M38 44v-9a12 12 0 0 1 24 0v9M32 44h36v31H32zM50 56v9"/> : <Insignia badge={badge}/>}
-      <circle cx="50" cy="4" r="2" fill="currentColor"/>
     </svg>
-    <span className="trophy-medallion-shine"/><span className="trophy-aura-flare trophy-aura-flare-left"/><span className="trophy-aura-flare trophy-aura-flare-right"/>
-
   </span>;
 }
 
 export function EquippedProfileBadge({ badge, avatar }) {
   if (!badge) return <div className="v20-profile-avatar" aria-hidden="true">{avatar}</div>;
-  return <div className={'crew-equipped-badge trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity} role="img" aria-label={badge.name + ' equipped, season ' + (badge.seasonNumber ?? 'unknown')}>
+  return <div style={{ '--insignia-color': insigniaColor(badge) }} className={'crew-equipped-badge trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity} role="img" aria-label={badge.name + ' equipped, season ' + (badge.seasonNumber ?? 'unknown')}>
     <span className="crew-equipped-avatar" aria-hidden="true">{avatar}</span>
     <svg className="crew-equipped-rings" viewBox="0 0 100 100" focusable="false" aria-hidden="true" fill="none">
       <circle className="crew-equipped-outer" cx="50" cy="50" r="46"/>

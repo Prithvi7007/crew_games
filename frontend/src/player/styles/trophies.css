@@ -314,3 +314,52 @@
 .trophy-single-equip-controls select {display:block;width:100%;max-width:420px;background:#071522;color:#fff;border:1px solid #41536a;border-radius:10px;padding:12px;min-height:44px;}
 .trophy-single-equip-controls .trophy-editor-feedback {min-height:1em;margin:8px 0 0;}
 @media(max-width:600px){.trophy-single-equip{gap:12px;padding:16px;align-items:center}.trophy-single-equip-preview{flex-basis:84px;min-height:84px}.trophy-single-equip-controls h2{font-size:1.15rem}}
+
+/* Clean collectible emblems: rarity outside, game identity inside, bold achievement at center.
+   Shared vector silhouette remains legible at small avatar/screen sizes. */
+.trophy-medallion {
+  --rarity-ring:#c5d1df;
+  filter:none;
+}
+.trophy-medallion.trophy-rarity-rare { --rarity-ring:#55b9ff; }
+.trophy-medallion.trophy-rarity-epic { --rarity-ring:#c575f2; }
+.trophy-medallion.trophy-rarity-legendary { --rarity-ring:#ffbd45; }
+.trophy-badge-card.is-locked .trophy-medallion {
+  filter:none;
+  opacity:1;
+}
+.trophy-medallion svg { filter:none; }
+.trophy-medallion .medallion-outer,
+.trophy-medallion.trophy-rarity-legendary .medallion-outer {
+  stroke:var(--rarity-ring);
+  stroke-width:5.5;
+  filter:none;
+}
+.trophy-medallion .medallion-inner { filter:none; }
+.trophy-medallion .medallion-insignia-disc {
+  fill:#0c1727;
+  stroke:none;
+}
+.trophy-medallion .crew-insignia .medallion-motif {
+  fill:none;
+  stroke:var(--insignia-color,var(--badge-accent));
+  stroke-width:4.6;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  filter:none;
+}
+.crew-equipped-achievement svg {width:100%;height:100%;}
+.crew-equipped-achievement svg .medallion-motif {
+  fill:none;
+  stroke:var(--insignia-color,currentColor);
+  stroke-width:7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  filter:none;
+}
+.crew-equipped-achievement { width:34%; }
+.crew-equipped-game-ring { filter:none; }
+.crew-equipped-outer { filter:none; }
+@media (prefers-reduced-motion:reduce) {
+  .trophy-medallion svg { transition:none; }
+}
