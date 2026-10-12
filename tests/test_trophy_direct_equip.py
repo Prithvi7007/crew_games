@@ -14,14 +14,14 @@ def test_unlocked_badges_are_direct_clickable_controls():
     source = JSX.read_text(encoding="utf-8")
     styles = CSS.read_text(encoding="utf-8")
 
-    assert 'const canEquip = Boolean(badge.earned && badge.awardId);' in source
+    assert 'const canEquip = previewMode || Boolean(badge.earned && badge.awardId);' in source
     assert "const Surface = canEquip ? 'button' : 'div';" in source
     assert "'aria-pressed': isEquipped" in source
     assert "disabled: saving" in source
-    assert "onClick: () => onSelect(badge.awardId)" in source
+    assert "onClick: () => onSelect(badge)" in source
     assert "onSelect={selectBadge}" in source
     assert "badge.earned && item.awardId === awardId" not in source  # no stale ownership check
-    assert "item.earned && item.awardId === awardId" in source
+    assert "!previewMode && (!badge.earned || !badge.awardId)" in source
     assert 'className="trophy-badge-surface"' in source
     assert ".trophy-badge-card button.trophy-badge-surface:focus-visible" in styles
     assert ".trophy-badge-card.is-equipped" in styles
@@ -37,11 +37,11 @@ def test_dropdown_panel_is_removed_and_save_flow_preserved():
     assert 'className="trophy-single-equip"' not in source
     assert 'id="trophy-equip-select"' not in source
     assert "trophy-single-equip" not in styles
-    assert "const removing = equipped?.awardId === awardId" in source
-    assert "saveSlot(1, removing ? null : awardId)" in source
+    assert "previewCode === badge.code : equipped?.awardId === badge.awardId" in source
+    assert "saveSlot(1, removing ? null : badge.awardId)" in source
     assert "setShowcase(result.showcase || [])" in source
     assert 'role="status" aria-live="polite"' in source
-    assert "if (saving) return" in source
+    assert "if (saving || !badge) return" in source
 
 
 def test_single_profile_slot_can_switch_and_unequip_via_api(app, client, monkeypatch):

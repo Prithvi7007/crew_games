@@ -6,7 +6,7 @@ from app.badges import BADGES
 from app.badge_store import get_badge_awards
 from app.db import _db_timestamp, get_db, get_season_for_date, list_seasons
 from app.schedule import crew_today
-from app.trophy_access import TROPHY_PUBLIC_REVEAL_DATE
+from app.trophy_access import trophies_visible_to
 
 TOUR_KEY = "trophy_launch_2026"
 TOUR_PAGES = frozenset(("home", "games", "leaderboard", "profile", "trophies"))
@@ -49,7 +49,9 @@ def tour_for_player(user, page):
     if page not in TOUR_PAGES or not current_app.config.get("TROPHY_TOUR_ENABLED", True):
         return None
     preview = _preview_allowed(user, page)
-    if not preview and crew_today() < TROPHY_PUBLIC_REVEAL_DATE:
+    # Early automatic welcome is limited to admin/owner. Public launch remains Oct 19.
+    # Use the same server-side visibility gate as the Trophy Room itself.
+    if not preview and not trophies_visible_to(user):
         return None
     if not preview and session.get("trophy_tour_snoozed"):
         return None

@@ -20,6 +20,7 @@ from app.db import (
     get_profile_by_username,
     get_profile_history_summary,
     get_season_summary,
+    get_season_by_id,
     get_setting,
     profile_user_key,
     touch_profile_login,
@@ -31,7 +32,7 @@ from app.db import (
 from app.badge_store import get_showcase
 from app.badges import BADGES_BY_CODE
 from app.player_ui import render_player
-from app.trophy_access import trophies_visible_to
+from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.security import (
     audit_security_event,
     clear_rate_limits,
@@ -391,14 +392,24 @@ def profile():
     equipped_badge = None
     if equipped_row:
         definition = BADGES_BY_CODE[equipped_row["badge_code"]]
-        award_season = get_db().execute(
-            "SELECT number FROM seasons WHERE id = ?", (equipped_row["season_id"],)
-        ).fetchone()
+        award_season = get_season_by_id(equipped_row["season_id"])
         equipped_badge = {
             "code": definition.code, "name": definition.name,
             "rarity": definition.rarity, "gameKey": definition.game_key,
             "vertical": definition.vertical,
             "seasonNumber": int(award_season["number"]) if award_season else None,
+        }
+    # Preview is session-only and takes visual precedence over earned badges.
+    # It does not create or change an actual badge award/showcase.
+    preview_code = session.get("trophy_preview_badge_code") if trophy_preview_enabled(session["user"]) else None
+    if preview_code in BADGES_BY_CODE:
+        definition = BADGES_BY_CODE[preview_code]
+        equipped_badge = {
+            "code": definition.code, "name": definition.name,
+            "rarity": definition.rarity, "gameKey": definition.game_key,
+            "vertical": definition.vertical,
+            "seasonNumber": int(season["number"]) if season else None,
+            "preview": True,
         }
     return render_player(
         "profile",
