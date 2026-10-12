@@ -13,6 +13,7 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
   const [step, setStep] = useState(0);
   const [anatomyPhase, setAnatomyPhase] = useState(0);
   const [anatomyReplay, setAnatomyReplay] = useState(0);
+  const [wearReplay, setWearReplay] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const dialogRef = useRef(null);
@@ -24,7 +25,7 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
     'Every win deserves a badge.',
     'Built one detail at a time.',
     earned.length ? 'Badges you have earned so far.' : 'Play CREW games to earn your first badge.',
-    'Equip a badge on your profile. Switch anytime.',
+    'See your profile transform.',
   ];
 
   useEffect(() => {
@@ -121,11 +122,18 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
         {featured.length ? <div className="crew-tour-badges" aria-label="Your earned badges">{featured.map((badge, index) => <div className="crew-tour-badge" style={{'--badge-index': index}} key={badge.code}><BadgeMedallion badge={badge}/><strong>{badge.name}</strong></div>)}</div> : <div className="crew-tour-art"><BadgeMedallion badge={badgeFromAwardCode("case_closed")} concealed/></div>}
         {earned.length > featured.length ? <p className="crew-tour-copy">And {earned.length - featured.length} more waiting in your collection.</p> : null}
       </div> : null}
-      {step === 3 ? <div className="crew-tour-profile">
-        <div className="crew-tour-wearing" aria-hidden="true">
-          <EquippedProfileBadge badge={{ ...(earned[0] || badgeFromAwardCode('case_closed')), seasonNumber: tour.seasonNumber || 1, preview: !earned.length }} avatar={avatar || '⭐'}/>
+      {step === 3 ? <div className="crew-tour-wear-reveal">
+        <div className="crew-tour-wear-scene" key={wearReplay} aria-label="Your profile changes from a plain avatar to an avatar wearing a badge">
+          <div className="crew-tour-wear-before" aria-hidden="true">
+            <span className="crew-tour-wear-plain">{avatar || '⭐'}</span>
+          </div>
+          <div className="crew-tour-wear-after" aria-hidden="true">
+            <EquippedProfileBadge badge={{ ...(earned[0] || badgeFromAwardCode('case_closed')), seasonNumber: tour.seasonNumber || 1, preview: !earned.length }} avatar={avatar || '⭐'}/>
+          </div>
+          <span className="crew-tour-wear-light" aria-hidden="true"/>
         </div>
-        <p>{earned.length ? 'Your earned badge.' : 'A preview of your future badge.'}</p>
+        <p className="crew-tour-wear-caption">{earned.length ? 'Your badge, your profile.' : 'Preview: your future badge.'}</p>
+        <button type="button" className="crew-tour-medal-replay" onClick={() => setWearReplay(value => value + 1)}>↻ Replay badge</button>
       </div> : null}
       </div>
       <div className="crew-tour-progress" aria-label={'Step ' + (step + 1) + ' of 4'}>{headings.map((_, index) => <span key={index} className={index === step ? 'is-active' : ''}/>)}</div>

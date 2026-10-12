@@ -51,10 +51,10 @@ def test_anatomy_reveals_standalone_medal_layers_sequentially():
 
 def test_final_step_demonstrates_equipped_avatar_without_fake_awards():
     source = TOUR.read_text(encoding="utf-8")
-    assert 'className="crew-tour-wearing"' in source
+    assert 'className="crew-tour-wear-scene" key={wearReplay}' in source
     assert "preview: !earned.length" in source
-    assert "Your earned badge." in source
-    assert "A preview of your future badge." in source
+    assert "Your badge, your profile." in source
+    assert "Preview: your future badge." in source
     assert "tour.earnedCount" in source
     assert "earned.length ? 'Badges you have earned so far." in source
     assert "if (tour.preview) { onClose(); return; }" in source
@@ -76,3 +76,25 @@ def test_responsive_unboxed_tour_preserves_focus_and_reduced_motion():
     assert "dialogRef.current?.focus()" in source
     assert "function handleKeys(event)" in source
     assert "document.body.style.overflow = 'hidden'" in source
+
+def test_wear_badge_before_after_animation_has_replay_and_accessible_fallback():
+    component = TOUR.read_text(encoding="utf-8")
+    css = STYLES.read_text(encoding="utf-8")
+    stage = component.split('{step === 3 ?', 1)[1].split('} : null}', 1)[0]
+    assert 'crew-tour-wear-before' in stage
+    assert 'crew-tour-wear-plain' in stage
+    assert 'crew-tour-wear-after' in stage
+    assert 'EquippedProfileBadge' in stage
+    assert 'avatar={avatar ||' in stage
+    assert 'key={wearReplay}' in stage
+    assert 'setWearReplay(value => value + 1)' in stage
+    assert 'Your profile changes from a plain avatar' in stage
+    assert "preview: !earned.length" in stage
+    for part in ('@keyframes crew-wear-before', '@keyframes crew-wear-after',
+                 '@keyframes crew-wear-ring', '@keyframes crew-wear-game-ring',
+                 '@keyframes crew-wear-mark', '@keyframes crew-wear-season',
+                 '@keyframes crew-wear-flash'):
+        assert part in css
+    assert '.crew-tour-wear-before{display:none}' in css
+    assert '.crew-tour-wear-after{opacity:1}' in css
+    assert '@media(max-width:480px)' in css
