@@ -4,6 +4,14 @@ import json
 import re
 from datetime import date
 
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def collection_contract_after_public_reveal(monkeypatch):
+    """These existing collection contracts apply once public access reopens."""
+    monkeypatch.setattr("app.trophy_access.crew_today", lambda: date(2026, 10, 19))
+
 from werkzeug.security import generate_password_hash
 
 from app.badge_store import award_badges, get_badge_awards, set_showcase_slot

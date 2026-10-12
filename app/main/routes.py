@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
+from app.trophy_access import trophies_visible_to
 from app.badges import BADGES, BADGES_BY_CODE
 from app.badge_store import get_badge_awards, get_showcase, set_showcase_slot
 from app.db import (
@@ -287,6 +288,8 @@ def leaderboard_api():
 @login_required
 def trophies():
     """Season-scoped, read-only collection; badge granting is server-owned."""
+    if not trophies_visible_to(session["user"]):
+        return "", 404
     today = crew_today()
     user = session["user"]
     profile_id = int(user["profile_id"])
@@ -346,6 +349,8 @@ def trophies():
 @login_required
 def update_trophy_showcase():
     """Change exactly one showcase slot, validating ownership on the server."""
+    if not trophies_visible_to(session["user"]):
+        return "", 404
     payload = request.get_json(silent=True)
     if not isinstance(payload, dict):
         return jsonify({"ok": False, "message": "Invalid showcase request."}), 400
