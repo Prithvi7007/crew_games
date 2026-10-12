@@ -45,7 +45,7 @@
 .trophy-rarity-label {color:var(--badge-accent);white-space:nowrap;}
 .trophy-badge-copy {margin-top:4px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:start;}
 .trophy-badge-copy strong {color:#f4f7fc;font:850 1.04rem/1.18 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.027em;}
-.trophy-badge-copy p {margin:9px 0 0;color:#9baaBE;font:500 .73rem/1.46 Inter,sans-serif;}
+.trophy-badge-copy p,.trophy-badge-copy .trophy-badge-description {margin:9px 0 0;color:#9baaBE;font:500 .73rem/1.46 Inter,sans-serif;}
 .trophy-badge-bottom {width:100%;min-height:29px;margin-top:14px;padding-top:10px;border-top:1px solid rgba(200,216,238,.095);display:flex;align-items:center;justify-content:space-between;gap:8px;color:#8494aa;font:800 .6rem/1.3 Inter,sans-serif;letter-spacing:.095em;}
 .trophy-badge-card.is-earned .trophy-badge-bottom>span {color:var(--badge-accent);}
 .trophy-badge-bottom time {font-size:.62rem;letter-spacing:0;color:#8c9cb1;}
@@ -93,7 +93,7 @@
   .trophy-badge-card {min-height:302px;padding:12px 10px;}
   .trophy-medallion {width:111px;margin:14px auto 12px;}
   .trophy-badge-copy strong {font-size:.96rem;}
-  .trophy-badge-copy p {font-size:.7rem;}
+  .trophy-badge-copy p,.trophy-badge-copy .trophy-badge-description {font-size:.7rem;}
 }
 @media (max-width:360px) {
   .trophy-badge-grid {grid-template-columns:1fr;}
@@ -300,21 +300,6 @@
 .crew-equipped-achievement svg .crew-insignia-jewel {fill:var(--rarity-ring);}
 .crew-equipped-achievement svg .medallion-motif {stroke:currentColor;stroke-width:6;fill:none;}
 
-/* Compact badge management: one equipped profile badge, no three-slot showcase. */
-.trophy-room-main .trophy-simple-header {display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:0 0 24px;}
-.trophy-simple-header h1 {font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.1;margin:9px 0;}
-.trophy-simple-header p {color:#9daabd;margin:8px 0 0;}
-.trophy-single-equip {display:flex;align-items:center;gap:24px;padding:22px;border:1px solid #253449;border-radius:20px;background:linear-gradient(120deg,#101b2e,#080f1b);margin-bottom:32px;}
-.trophy-single-equip-preview {flex:0 0 110px;min-height:110px;display:grid;place-items:center;}
-.trophy-single-equip-preview .trophy-empty-mark {font-size:3rem;color:#8294aa;}
-.trophy-single-equip-controls {flex:1;min-width:0;}
-.trophy-single-equip-controls h2 {font-size:1.4rem;margin:7px 0;}
-.trophy-single-equip-controls p {color:#a4afc0;margin:5px 0 14px;}
-.trophy-single-equip-controls label {display:block;font-size:.78rem;font-weight:700;color:#b4c4d7;margin-bottom:7px;}
-.trophy-single-equip-controls select {display:block;width:100%;max-width:420px;background:#071522;color:#fff;border:1px solid #41536a;border-radius:10px;padding:12px;min-height:44px;}
-.trophy-single-equip-controls .trophy-editor-feedback {min-height:1em;margin:8px 0 0;}
-@media(max-width:600px){.trophy-single-equip{gap:12px;padding:16px;align-items:center}.trophy-single-equip-preview{flex-basis:84px;min-height:84px}.trophy-single-equip-controls h2{font-size:1.15rem}}
-
 /* Clean collectible emblems: rarity outside, game identity inside, bold achievement at center.
    Shared vector silhouette remains legible at small avatar/screen sizes. */
 .trophy-medallion {
@@ -362,4 +347,86 @@
 .crew-equipped-outer { filter:none; }
 @media (prefers-reduced-motion:reduce) {
   .trophy-medallion svg { transition:none; }
+}
+
+/* Compact room heading remains after removing the old equipped-badge panel. */
+.trophy-room-main .trophy-simple-header {display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:0 0 24px;}
+.trophy-simple-header h1 {font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.1;margin:9px 0;}
+.trophy-simple-header p {color:#9daabd;margin:8px 0 0;}
+
+/* Trophy Room: direct equip from the unlocked collectible, without a separate selector. */
+.trophy-room-main .trophy-collection {padding-top:8px;}
+.trophy-section-header .trophy-equip-guidance {
+  max-width:720px;
+  margin:12px 0 0;
+  color:#abb9cb;
+  font:550 .82rem/1.6 Inter,sans-serif;
+}
+.trophy-collection-feedback {
+  margin:0 0 14px;
+  min-height:0;
+  color:#87dfbd;
+}
+.trophy-collection-feedback:empty {display:none;}
+.trophy-badge-card .trophy-badge-surface {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  flex:1;
+  width:100%;
+  min-width:0;
+  padding:0;
+  margin:0;
+  border:0;
+  border-radius:6px;
+  appearance:none;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  text-align:center;
+}
+.trophy-badge-card button.trophy-badge-surface {cursor:pointer;}
+.trophy-badge-card button.trophy-badge-surface:disabled {cursor:progress;}
+.trophy-badge-card button.trophy-badge-surface:focus-visible {
+  outline:2px solid var(--badge-accent);
+  outline-offset:5px;
+}
+.trophy-badge-card.is-locked:hover {
+  transform:none;
+  border-color:rgba(176,197,224,.16);
+  box-shadow:none;
+}
+.trophy-badge-card.is-equipped {
+  border-color:var(--badge-accent);
+  box-shadow:0 0 24px color-mix(in srgb,var(--badge-accent) 16%,transparent),inset 0 0 19px color-mix(in srgb,var(--badge-accent) 5%,transparent);
+}
+.trophy-badge-card.is-equipped::before {
+  border:1px solid var(--badge-accent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--badge-accent) 27%,transparent);
+}
+.trophy-badge-card.is-equipped::after {content:none;}
+.trophy-badge-card .trophy-equipped-mark {
+  position:absolute;
+  right:19px;
+  top:43px;
+  z-index:2;
+  display:grid;
+  place-items:center;
+  width:29px;
+  aspect-ratio:1;
+  border:1px solid var(--badge-accent);
+  border-radius:50%;
+  background:#0c1727;
+  color:var(--badge-accent);
+  font:900 1rem/1 Inter,sans-serif;
+  box-shadow:0 0 12px color-mix(in srgb,var(--badge-accent) 20%,transparent);
+  pointer-events:none;
+}
+.trophy-badge-card.is-equipped .trophy-badge-bottom>span {
+  color:var(--badge-accent);
+}
+@media (max-width:760px) {
+  .trophy-room-main .trophy-collection {padding-top:0;}
+  .trophy-badge-card .trophy-equipped-mark {right:13px;top:37px;width:26px;}
+  .trophy-badge-card .trophy-badge-bottom {flex-wrap:wrap;justify-content:center;}
 }
