@@ -1006,11 +1006,12 @@ def get_weekly_leaderboard(reference_day=None, limit=25):
         for row in rows
     ]
 
-def get_competitive_rankings_between(start_date, end_date, limit=10):
-    """Return ranked competitive points for an explicit inclusive date range."""
+def get_rankings_between(start_date, end_date, limit=10, competitive_only=False):
+    """Rank saved scores in an inclusive range using the public leaderboard rules."""
     start_date = max(start_date, CREW_WEEK_ONE_DATE)
+    competitive_clause = "AND gc.competitive = 1" if competitive_only else ""
     rows = get_db().execute(
-        """
+        f"""
         SELECT
             p.id, p.username, p.avatar,
             SUM(gc.score) AS points,
@@ -1018,7 +1019,7 @@ def get_competitive_rankings_between(start_date, end_date, limit=10):
         FROM profiles p
         JOIN game_completions gc
           ON gc.profile_id = p.id
-         AND gc.competitive = 1
+         {competitive_clause}
          AND gc.game_date BETWEEN ? AND ?
         GROUP BY p.id, p.username, p.avatar
         HAVING SUM(gc.score) > 0
@@ -1038,6 +1039,11 @@ def get_competitive_rankings_between(start_date, end_date, limit=10):
         }
         for index, row in enumerate(rows, 1)
     ]
+
+
+def get_competitive_rankings_between(start_date, end_date, limit=10):
+    """Return timely competitive scores for callers needing this filter."""
+    return get_rankings_between(start_date, end_date, limit=limit, competitive_only=True)
 
 
 def get_home_leaderboard(reference_day=None, current_profile_id=None):

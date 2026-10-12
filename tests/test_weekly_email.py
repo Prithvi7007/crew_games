@@ -6,6 +6,8 @@ from app.db import (
     create_profile,
     finalize_game_stats,
     get_competitive_rankings_between,
+    get_rankings_between,
+    get_leaderboard,
     profile_user_key,
     set_setting,
 )
@@ -44,6 +46,31 @@ def test_competitive_rankings_exclude_archive_scores(app):
     assert [row["username"] for row in rows] == ["Alpha"]
     assert rows[0]["points"] == 100
     assert rows[0]["rank"] == 1
+
+
+def test_weekly_email_matches_public_rankings_including_catchup(app):
+    alpha = _profile(app, "Alpha")
+    beta = _profile(app, "Beta")
+    with app.app_context():
+        finalize_game_stats(profile_user_key(alpha), "mystery", "2026-09-28", 70, True, competitive=True)
+        finalize_game_stats(profile_user_key(beta), "mystery", "2026-09-28", 90, True, competitive=False)
+        finalize_game_stats(profile_user_key(alpha), "tick_tock", "2026-10-01", 40, True, competitive=False)
+        expected = get_rankings_between(date(2026, 9, 28), date(2026, 10, 1))
+        context = build_weekly_kickoff_context(date(2026, 10, 5))
+        public = get_leaderboard(period="last_week", reference_day=date(2026, 10, 5))
+
+    assert [(x["username"], x["points"]) for x in context["previous_leaders"]] == [
+        (x["username"], x["points"]) for x in public["players"]
+    ]
+    assert [(x["username"], x["points"]) for x in expected] == [
+        ("Alpha", 110), ("Beta", 90)
+    ]
+    assert [(x["username"], x["points"]) for x in context["previous_leaders"]] == [
+        ("Alpha", 110), ("Beta", 90)
+    ]
+    assert [(x["username"], x["points"]) for x in context["season_leaders"]] == [
+        ("Alpha", 110), ("Beta", 90)
+    ]
 
 
 def test_monday_context_freezes_rankings_at_previous_thursday(app):

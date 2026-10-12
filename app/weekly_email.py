@@ -7,7 +7,7 @@ from uuid import uuid4
 import click
 from flask import current_app
 
-from app.db import get_competitive_rankings_between, get_setting, set_setting
+from app.db import get_rankings_between, get_setting, set_setting
 from app.schedule import (
     CREW_WEEK_ONE_DATE,
     GAME_DEFINITIONS,
@@ -71,10 +71,10 @@ def build_weekly_kickoff_context(reference_day=None):
     previous_leaders = []
     season_leaders = []
     if previous_week_number > 0:
-        previous_leaders = get_competitive_rankings_between(
+        previous_leaders = get_rankings_between(
             previous_week_start, previous_week_end, limit=10
         )
-        season_leaders = get_competitive_rankings_between(
+        season_leaders = get_rankings_between(
             CREW_WEEK_ONE_DATE, previous_week_end, limit=10
         )
 
