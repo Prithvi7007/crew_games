@@ -15,7 +15,7 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
   const featured = earned.slice(0, 8);
   const headings = ['The Trophy Room is unlocked', 'Every victory has a story', 'Look what you have earned', 'Wear your victory'];
   const copy = [
-    'Your CREW games have been adding up. Now your best moments have a place to shine.',
+    'Your Trophy Room vault is open. Every CREW victory now has a place to shine.',
     'Discover 21 achievements across Mystery, Trivia, Wordle, Tick-Tock and more. The rarer the badge, the bigger the bragging rights.',
     earned.length ? 'These are real achievements from your saved games. You earned every one of them.' : 'Your collection is waiting. Play your favorite CREW games to earn your first trophy.',
     'Choose an unlocked badge in the Trophy Room to wear it around your profile avatar. Switch it anytime.',
@@ -65,7 +65,20 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
       <p className="crew-tour-kicker">{tour.preview ? 'PREVIEW · ' : ''}CREW TROPHY ROOM · {step + 1} / 4</p>
       <h2 id="crew-tour-title">{headings[step]}</h2>
       <p id="crew-tour-description" className="crew-tour-copy">{copy[step]}</p>
-      {step === 0 ? <div className="crew-tour-art"><BadgeMedallion badge={badgeFromAwardCode("badge_hunter")} size="victory"/></div> : null}
+      {step === 0 ? <div className="crew-tour-vault" aria-hidden="true">
+        <div className="crew-tour-vault-atmosphere"/>
+        <div className="crew-tour-vault-halo is-outer"/>
+        <div className="crew-tour-vault-halo is-middle"/>
+        <div className="crew-tour-vault-halo is-inner"/>
+        <div className="crew-tour-vault-light"/>
+        <div className="crew-tour-vault-pedestal"/>
+        <div className="crew-tour-vault-trophy">
+          <BadgeMedallion badge={badgeFromAwardCode("badge_hunter")} size="victory"/>
+        </div>
+        <div className="crew-tour-vault-door is-left"/>
+        <div className="crew-tour-vault-door is-right"/>
+        <span className="crew-tour-vault-status">VAULT ACCESS GRANTED</span>
+      </div> : null}
       {step === 1 ? <div className="crew-tour-tiers" aria-label="Badge rarity levels">{TIERS.map(([name, color]) => <div className="crew-tour-tier" style={{'--tier-color': color}} key={name}>{name}</div>)}</div> : null}
       {step === 2 ? <div>
         <strong className="crew-tour-count" aria-label={tour.earnedCount + ' earned badges'}>{tour.earnedCount} <small>/ 21</small></strong>
