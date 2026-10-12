@@ -425,3 +425,7 @@
   .trophy-badge-card .trophy-equipped-mark {right:13px;top:37px;width:26px;}
   .trophy-badge-card .trophy-badge-bottom {flex-wrap:wrap;justify-content:center;}
 }
+
+/* Preview-only try-on does not imply a server-awarded badge. */
+.trophy-preview-current{margin:10px 0 0;color:#a8d5ff;font:700 .78rem/1.5 Inter,sans-serif}
+.trophy-preview-current a{color:#91d9ff;text-decoration:underline;text-underline-offset:3px}

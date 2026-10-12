@@ -518,3 +518,6 @@
     transition:none;
   }
 }
+
+.v20-trophy-preview-hint{max-width:530px;color:#a8d5ff!important;font:700 .73rem/1.6 Inter,sans-serif!important}
+.v20-trophy-preview-hint a{color:#91d9ff;text-decoration:underline;text-underline-offset:3px}

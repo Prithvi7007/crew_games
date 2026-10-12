@@ -4,7 +4,7 @@ from flask import Blueprint, current_app, jsonify, redirect, request, session, u
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
-from app.trophy_access import TROPHY_PUBLIC_REVEAL_DATE, trophies_visible_to
+from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.trophy_tour import complete_tour, earned_tour_payload
 from app.badges import BADGES, BADGES_BY_CODE
 from app.badge_store import get_badge_awards, get_showcase, set_showcase_slot
@@ -303,6 +303,10 @@ def trophies():
     saved = get_badge_awards(profile_id, selected["id"]) if selected else []
     awards_by_code = {row["badge_code"]: row for row in saved}
     showcase = get_showcase(profile_id)
+    preview_enabled = trophy_preview_enabled(user)
+    preview_code = session.get("trophy_preview_badge_code") if preview_enabled else None
+    if preview_code not in BADGES_BY_CODE:
+        preview_code = None
     badges = [
         {
             "code": badge.code,
@@ -322,6 +326,11 @@ def trophies():
         {
             "badges": badges,
             "earnedCount": sum(badge["earned"] for badge in badges),
+            "trophyPreview": {
+                "enabled": preview_enabled,
+                "badgeCode": preview_code,
+                "url": url_for("main.update_trophy_preview_badge") if preview_enabled else None,
+            },
             "selectedSeason": selected,
             "seasons": [
                 {"id": season["id"], "number": season["number"], "name": season["name"]}
@@ -353,7 +362,7 @@ def trophies():
 def update_trophy_tour():
     """Player-scoped one-time tour state; protected by the global CSRF guard."""
     if (not current_app.config.get("TROPHY_TOUR_ENABLED", True)
-            or crew_today() < TROPHY_PUBLIC_REVEAL_DATE):
+            or not trophies_visible_to(session["user"])):
         return "", 404
     payload = request.get_json(silent=True)
     if not isinstance(payload, dict) or payload.get("action") not in ("later", "skipped", "finished"):
@@ -365,6 +374,27 @@ def update_trophy_tour():
         complete_tour(session["user"]["profile_id"], action)
         session.pop("trophy_tour_snoozed", None)
     response = jsonify({"ok": True})
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@main_bp.post("/api/trophies/preview-badge")
+@login_required
+def update_trophy_preview_badge():
+    """Temporary, private profile try-on; never creates badge awards or a showcase."""
+    if not trophy_preview_enabled(session["user"]):
+        return "", 404
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or "badgeCode" not in payload:
+        return jsonify({"ok": False, "message": "Invalid preview request."}), 400
+    code = payload["badgeCode"]
+    if code is not None and (not isinstance(code, str) or code not in BADGES_BY_CODE):
+        return jsonify({"ok": False, "message": "Unknown preview badge."}), 400
+    if code is None:
+        session.pop("trophy_preview_badge_code", None)
+    else:
+        session["trophy_preview_badge_code"] = code
+    response = jsonify({"ok": True, "badgeCode": code})
     response.headers["Cache-Control"] = "no-store"
     return response
 
