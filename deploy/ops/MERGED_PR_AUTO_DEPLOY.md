@@ -112,7 +112,10 @@ maintenance daemon, database and backup safeguards are not modified.
 
 After the repair PR is merged by the owner **and its merged-main CI succeeds**,
 execute the following on the VPS as root, replacing the SHA with that exact
-reviewed **merge commit** (not the feature-branch commit):
+reviewed **merge commit** (not the feature-branch commit). The reviewed repair
+commit may be an ancestor of current main after later PR merges; the recovery
+verifies ancestry, the owner-merged PR, and successful CI on the original
+reviewed repair commit:
 
 ```bash
 set -euo pipefail

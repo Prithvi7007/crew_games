@@ -147,10 +147,14 @@ def recover(reviewed: str) -> None:
     # Confirm the new source is an owner-merged commit on GitHub main with
     # successful *post-merge* CI; not just a local branch or green PR build.
     crew_git("fetch", "--no-tags", "origin", "refs/heads/main")
-    if crew_git("rev-parse", "FETCH_HEAD").decode().strip() != reviewed:
-        raise RecoveryRefused("reviewed_sha_not_main_tip")
-    if watcher.main_sha() != reviewed:
+    current_main = crew_git("rev-parse", "FETCH_HEAD").decode().strip()
+    if watcher.main_sha() != current_main:
         raise RecoveryRefused("github_main_tip_changed")
+    # The reviewed repair may be an ancestor after later PRs have merged.
+    # Verify ancestry rather than requiring it to remain the tip of main.
+    crew_git("merge-base", "--is-ancestor", reviewed, current_main)
+    if crew_git("rev-parse", reviewed).decode().strip() != reviewed:
+        raise RecoveryRefused("reviewed_sha_not_in_main_history")
     watcher.merged_pr_number(reviewed)
     watcher.verify_ci(reviewed)
 
