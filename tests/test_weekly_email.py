@@ -135,3 +135,20 @@ def test_weekly_email_uses_admin_recipient_override(app):
 
     assert result["status"] == "dry_run"
     assert result["recipients"] == ["crew-list@example.com"]
+
+def test_corrected_weekly_email_has_notice_and_resend_subject(app):
+    alpha = _profile(app, "Alpha")
+    with app.app_context():
+        finalize_game_stats(profile_user_key(alpha), "mystery", "2026-09-21", 80, True, competitive=False)
+        set_setting("email.weekly_kickoff.to", "crew-list@example.com")
+        set_setting("email.weekly_kickoff.2026-09-28", '{"resend_id":"already-sent"}')
+        result = send_weekly_kickoff(
+            reference_day=date(2026, 9, 28), correction=True, dry_run=True
+        )
+
+    assert result["status"] == "dry_run"
+    assert result["subject"].startswith("CORRECTION: CREW Games Weekly")
+    assert "CORRECTION" in result["html"]
+    assert "including catch-up plays" in result["html"]
+    assert "CORRECTION:" in result["text"]
+    assert result["context"]["previous_leaders"][0]["points"] == 80

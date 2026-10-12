@@ -146,7 +146,7 @@ def _plain_text(context):
         for player in context["previous_leaders"]:
             lines.append(f"{player['rank']}. {player['username']} — {player['points']} pts")
     else:
-        lines.append("No competitive scores were recorded.")
+        lines.append("No scores were recorded.")
 
     lines.extend(["", f"SEASON STANDINGS — THROUGH WEEK {context['previous_week_number_label']}"])
     if context["season_leaders"]:
@@ -230,7 +230,7 @@ def _send_with_resend(subject, html_body, text_body, recipients, send_key):
     return result
 
 
-def send_weekly_kickoff(reference_day=None, force=False, dry_run=False):
+def send_weekly_kickoff(reference_day=None, force=False, dry_run=False, correction=False):
     if not _weekly_email_enabled():
         return {
             "status": "disabled",
@@ -242,6 +242,18 @@ def send_weekly_kickoff(reference_day=None, force=False, dry_run=False):
         return rendered
 
     context = rendered["context"]
+    if correction:
+        # Explicit correction sends are intentional resends of an already mailed week.
+        force = True
+        rendered["subject"] = "CORRECTION: " + rendered["subject"]
+        rendered["html"] = current_app.jinja_env.get_template(
+            "emails/weekly_kickoff.html"
+        ).render(**context, correction_notice=True)
+        rendered["text"] = (
+            "CORRECTION: This replaces the earlier weekly standings email. "
+            "The standings below include all saved scores, including catch-up plays.\n\n"
+            + rendered["text"]
+        )
     send_key = f"crew-weekly-kickoff-{context['current_week_start'].isoformat()}"
     setting_key = f"email.weekly_kickoff.{context['current_week_start'].isoformat()}"
 
@@ -290,6 +302,7 @@ def send_weekly_kickoff(reference_day=None, force=False, dry_run=False):
 def init_app(app):
     @app.cli.command("send-weekly-kickoff")
     @click.option("--force", is_flag=True, help="Send even if this CREW week is already marked sent.")
+    @click.option("--correction", is_flag=True, help="Resend with a clear correction notice and a fresh idempotency key.")
     @click.option("--dry-run", is_flag=True, help="Render and validate without contacting Resend.")
     @click.option(
         "--date",
@@ -298,7 +311,7 @@ def init_app(app):
         metavar="YYYY-MM-DD",
         help="Optional reference date for testing. Defaults to the current CREW date.",
     )
-    def send_weekly_kickoff_command(force, dry_run, raw_date):
+    def send_weekly_kickoff_command(force, dry_run, raw_date, correction):
         """Send the Monday recap + new-week kickoff email."""
         reference_day = None
         if raw_date:
@@ -308,7 +321,7 @@ def init_app(app):
                 raise click.ClickException("--date must use YYYY-MM-DD.") from exc
 
         try:
-            result = send_weekly_kickoff(reference_day=reference_day, force=force, dry_run=dry_run)
+            result = send_weekly_kickoff(reference_day=reference_day, force=force, dry_run=dry_run, correction=correction)
         except RuntimeError as exc:
             raise click.ClickException(str(exc)) from exc
 
