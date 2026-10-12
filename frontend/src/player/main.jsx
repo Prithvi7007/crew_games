@@ -10,7 +10,9 @@ import './styles/rankings.css';
 import './styles/profile.css';
 import './styles/trivia.css';
 import './styles/trophies.css';
+import './styles/trophy-tour.css';
 import TrophyRoom, { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
+import TrophyWelcomeTour from './TrophyWelcomeTour';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -301,7 +303,7 @@ function AppHeader({ shell }) {
     <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{link('home','Home','/home',true)}{link('games','Games','/games',true)}{link('leaderboard','Rankings','/leaderboard',true)}{trophiesVisible ? link('trophies','Trophies','/trophies',true) : null}</nav>
   </>;
 }
-function TrophyPage({data}) { return <TrophyRoom data={data} Header={AppHeader} saveSlot={(slot,awardId)=>postJson(data.showcaseUrl,{slot,awardId})}/>; }
+function TrophyPage({data,onReplayTour}) { return <TrophyRoom data={data} Header={AppHeader} saveSlot={(slot,awardId)=>postJson(data.showcaseUrl,{slot,awardId})} onReplayTour={onReplayTour}/>; }
 
 function BadgeUnlockCelebration({ codes=[] }) {
   const [dismissed, setDismissed] = useState(false);
@@ -599,5 +601,20 @@ function TriviaPage({data}) {
   return <div className="v19-trivia-shell"><AppHeader shell={data.shell}/><main className="v19-trivia-main"><header className="v19-trivia-heading"><div className="v19-trivia-heading-copy"><div className="v19-trivia-context"><a className="v19-back-link" href={data.returnUrl}>← Back</a><span className="v19-trivia-date">{data.dayLabel}</span></div><h1>Trivia Tuesday</h1><p>Ten questions. Ten points each. One clean run.</p></div><div className="v19-trivia-heading-mark" aria-hidden="true"><span>10</span><small>QUESTIONS</small></div></header><section className="react-trivia-stage" ref={stageRef} tabIndex="-1"><header className="react-trivia-topline"><div><span className="react-trivia-kicker">{state.theme||'Trivia Tuesday'}</span><strong>{points}<small>/100</small></strong></div><span>Question {current} of {state.total}</span></header><div className="react-trivia-progress" aria-hidden="true"><i style={{width:`${progress}%`}}/></div><div className="react-trivia-question-wrap"><span className="react-question-number">{String(current).padStart(2,'0')}</span><h1>{state.question?.prompt}</h1></div><div className="react-trivia-options" role="group">{state.question?.options?.map((option,index)=>{const cls=['react-trivia-option'];if(status==='answered'&&index===resolution?.correctIndex)cls.push('is-correct');if(status==='answered'&&index===selected&&!resolution?.correct)cls.push('is-wrong');if(status==='answered'&&index!==resolution?.correctIndex&&index!==selected)cls.push('is-dimmed');return <button type="button" key={index} className={cls.join(' ')} disabled={status!=='idle'} onClick={()=>choose(index)}><span className="react-option-letter">{LETTERS[index]}</span><span className="react-option-copy">{option}</span><span className="react-option-status" aria-hidden="true">{status==='answered'&&index===resolution?.correctIndex?'✓':status==='answered'&&index===selected?'×':'→'}</span></button>})}</div><footer className={`react-trivia-feedback ${message?'is-visible':''} ${resolution?.correct?'is-success':resolution?'is-error':''}`} aria-live="polite"><span>{message||(status==='submitting'?'Locking it in…':'Choose one answer.')}</span>{status==='answered'?<button type="button" onClick={advance}>{next?.completed?'See results':'Next question'} <span>→</span></button>:null}</footer></section></main></div>;
 }
 
+function PlayerWithTour({ Component, data }) {
+  const [tour, setTour] = useState(data.shell?.trophyTour || null);
+  const replay = () => { if (data.tourReplay) setTour({...data.tourReplay, preview:true}); };
+  return <>
+    <Component data={data} onReplayTour={replay}/>
+    {tour ? <TrophyWelcomeTour
+      key={tour.preview ? 'preview' : 'launch'}
+      tour={tour}
+      avatar={data.shell?.user?.avatar}
+      onClose={() => setTour(null)}
+      saveAction={action => postJson('/api/trophies/tour', {action})}
+    /> : null}
+  </>;
+}
+
 const root=document.getElementById('crew-player-root'); const data=readState();
-if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,trophies:TrophyPage,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<Component data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
+if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,trophies:TrophyPage,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<PlayerWithTour Component={Component} data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
