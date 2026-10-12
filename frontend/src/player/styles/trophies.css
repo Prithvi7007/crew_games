@@ -280,3 +280,10 @@
 .crew-equipped-achievement svg { width:75%; height:75%; }
 .crew-equipped-achievement svg path { stroke:currentColor; stroke-width:6; stroke-linecap:round; stroke-linejoin:round; }
 .crew-equipped-season { bottom:0; font:800 9px/1 Inter,sans-serif; color:#fff; }
+
+/* Collectible medal system: rarity outside, game identity inside, one frame for all. */
+.trophy-medallion .medallion-outer {stroke:var(--rarity-ring);stroke-width:3.2;fill:none;filter:drop-shadow(0 0 2px var(--rarity-glow));}
+.trophy-medallion .medallion-inner {opacity:1;filter:drop-shadow(0 0 2px currentColor);}
+.trophy-medallion .medallion-insignia-disc {fill:#101b2c;stroke:rgba(232,242,255,.16);stroke-width:.8;}
+.trophy-medallion .medallion-motif {stroke-width:2.6;filter:drop-shadow(0 1px 1px #02070e);}
+.crew-equipped-game-ring {filter:drop-shadow(0 0 2px rgba(125,180,240,.4));}
