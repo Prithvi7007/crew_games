@@ -215,3 +215,33 @@
   .crew-badge-celebration .trophy-medallion-victory,
   .crew-badge-celebration > .crew-badge-sparks {animation:none!important;}
 }
+
+
+/* Dual-ring enhancement: inner ring remains game-themed, outer ring conveys rarity.
+   Original badge motifs, labels, layout and card structure remain unchanged. */
+.trophy-medallion {--rarity-ring:#c5d1df;--rarity-glow:rgba(197,209,223,.38);}
+.trophy-medallion.trophy-rarity-rare {--rarity-ring:#35bfff;--rarity-glow:rgba(53,191,255,.52);}
+.trophy-medallion.trophy-rarity-epic {--rarity-ring:#d476ff;--rarity-glow:rgba(212,118,255,.55);}
+.trophy-medallion.trophy-rarity-legendary {--rarity-ring:#ffd05a;--rarity-glow:rgba(255,208,90,.6);}
+.trophy-medallion .medallion-outer,
+.trophy-medallion.trophy-rarity-legendary .medallion-outer {
+  stroke:var(--rarity-ring);stroke-width:3.4;
+  filter:drop-shadow(0 0 3px var(--rarity-ring));
+}
+.trophy-medallion .medallion-inner {
+  stroke:var(--badge-accent);stroke-width:2.7;opacity:1;
+  filter:drop-shadow(0 0 3px var(--badge-accent));
+}
+.trophy-medallion .trophy-aura-field {
+  box-shadow:0 0 24px var(--rarity-glow),inset 0 0 16px color-mix(in srgb,var(--badge-accent) 18%,transparent);
+}
+.trophy-achievement-emblem,.trophy-season-emblem {
+  position:absolute;z-index:3;display:grid;place-items:center;
+  border:2px solid var(--rarity-ring);border-radius:50%;
+  background:linear-gradient(150deg,#1a2942,#080f1d);
+  color:#f8fbff;box-shadow:0 0 9px var(--rarity-glow),0 2px 7px #030711;
+  font:900 12px/1 Inter,sans-serif;pointer-events:none;
+}
+.trophy-achievement-emblem {width:27%;aspect-ratio:1;top:3%;right:1%;color:var(--badge-accent);}
+.trophy-season-emblem {width:27%;aspect-ratio:1;right:0;bottom:3%;font-size:clamp(7px,1vw,10px);}
+.trophy-medallion-showcase .trophy-season-emblem,.trophy-medallion-victory .trophy-season-emblem {font-size:9px;}
