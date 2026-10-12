@@ -57,6 +57,42 @@ const MOTIFS = {
 };
 
 
+// Custom engraved accent work complements each unique central insignia.
+// These details are shared by the Trophy Room, showcase and equipped avatar.
+const INSIGNIA_DETAILS = Object.freeze({
+  case_closed:'M31 70h38M39 75h22M63 29l7-7M66 35h9',
+  sharp_instincts:'M50 20v9M50 71v9M20 50h9M71 50h9M50 17l5 9-5 6-5-6z',
+  mind_reader:'M29 24l-5-6M71 24l5-6M50 17v7M32 65l-5 7M68 65l5 7',
+  sharp_shooter:'M50 22v9M50 69v9M22 50h9M69 50h9M46 46h8v8h-8z',
+  brainiac:'M31 30l-7-5M67 24l7-6M28 60l-8 7M65 70l7 7M51 30v36',
+  flawless_victory:'M22 23l-7-7M78 23l7-7M50 16v-8M20 72l-7 7M80 72l7 7',
+  word_wizard:'M30 30h10M60 30h10M30 60h10M60 60h10M49 19v62',
+  word_ninja:'M25 25l-8-8M75 25l8-8M50 14v8M27 82l-7 6M73 82l7 6',
+  one_shot_wonder:'M50 9v8M50 83v8M9 50h8M83 50h8M22 22l7 7M78 22l-7 7',
+  close_call:'M30 25l-6-6M70 25l6-6M30 75l-6 6M70 75l6 6',
+  precision_pro:'M25 25l-6-6M75 25l6-6M25 75l-6 6M75 75l6 6M50 36v-5',
+  human_stopwatch:'M25 42l-7-4M75 42l7-4M25 67l-7 4M75 67l7 4M50 39v-5',
+  season_champion:'M31 78h38M37 84h26M18 19l5-6M82 19l-5-6M50 10v7',
+  season_trivia_master:'M18 28l-7-7M82 28l7-7M50 10v8M19 77l-7 7M81 77l7 7',
+  season_wordle_master:'M50 12v7M12 50h7M81 50h7M50 81v7M29 13l-6-6M71 13l6-6',
+  season_mystery_master:'M50 10v8M18 25l-7-5M82 25l7-5M18 75l-7 5M82 75l7 5',
+  season_tick_tock_master:'M23 25l-7-7M77 25l7-7M23 75l-7 7M77 75l7 7',
+  high_roller:'M50 9v8M19 22l7 7M81 22l-7 7M19 79l7-7M81 79l-7-7',
+  unicorn:'M17 52l-8-3M25 24l-5-7M73 20l7-8M83 64l8 4M50 84v8',
+  badge_hunter:'M50 8v8M15 30l7 4M85 30l-7 4M15 70l7-4M85 70l-7-4',
+  crew_legend:'M50 5v7M12 23l9 6M88 23l-9 6M12 77l9-6M88 77l-9-6',
+});
+function Insignia({ badge, compact = false }) {
+  const code = badge.code;
+  return <g className={'crew-insignia' + (compact ? ' is-compact' : '')}>
+    <circle className="crew-insignia-halo" cx="50" cy="50" r="27"/>
+    <path className="crew-insignia-engraving" d={INSIGNIA_DETAILS[code] || INSIGNIA_DETAILS.badge_hunter}/>
+    <path className="crew-insignia-shadow" d={MOTIFS[code] || MOTIFS.badge_hunter}/>
+    <path className="medallion-motif" d={MOTIFS[code] || MOTIFS.badge_hunter}/>
+    <circle className="crew-insignia-jewel" cx="50" cy="13" r="1.6"/>
+  </g>;
+}
+
 // Keep the victory reveal in sync with the server's fixed badge catalog.
 // Only server-awarded codes are rendered as newly earned trophies.
 export const BADGE_CATALOG = Object.freeze({
@@ -126,7 +162,7 @@ export function BadgeMedallion({ badge, size = 'normal', concealed = false, seas
     <span className="trophy-aura-field"/><svg viewBox="0 0 100 100" focusable="false" fill="none">
       <circle className="medallion-outer" cx="50" cy="50" r="44"/>
       <GameIdentityRing badge={badge}/>
-      <circle className="medallion-insignia-disc" cx="50" cy="50" r="29"/><path className="medallion-motif" d={concealed ? "M38 44v-9a12 12 0 0 1 24 0v9M32 44h36v31H32zM50 56v9" : (MOTIFS[badge.code] || MOTIFS.badge_hunter)}/>
+      <circle className="medallion-insignia-disc" cx="50" cy="50" r="29"/>{concealed ? <path className="medallion-motif" d="M38 44v-9a12 12 0 0 1 24 0v9M32 44h36v31H32zM50 56v9"/> : <Insignia badge={badge}/>}
       <circle cx="50" cy="4" r="2" fill="currentColor"/>
     </svg>
     <span className="trophy-medallion-shine"/><span className="trophy-aura-flare trophy-aura-flare-left"/><span className="trophy-aura-flare trophy-aura-flare-right"/>
@@ -144,7 +180,7 @@ export function EquippedProfileBadge({ badge, avatar }) {
     </svg>
     <span className="crew-equipped-achievement" aria-hidden="true">
       <svg viewBox="0 0 100 100" fill="none" focusable="false">
-        <path d={MOTIFS[badge.code] || MOTIFS.badge_hunter}/>
+        <Insignia badge={badge} compact/>
       </svg>
     </span>
     {badge.seasonNumber != null ? <span className="crew-equipped-season" aria-hidden="true">S{String(badge.seasonNumber).padStart(2, '0')}</span> : null}
