@@ -4,6 +4,7 @@ from flask import Blueprint, current_app, jsonify, redirect, request, session, u
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
+from app.badge_display import with_public_equipped_badges
 from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.trophy_tour import complete_tour, earned_tour_payload
 from app.badges import BADGES, BADGES_BY_CODE
@@ -228,7 +229,7 @@ def leaderboard():
         "Rankings",
         "rankings-page",
         {
-            "board": board,
+            "board": with_public_equipped_badges(board, user),
             "selectedSeason": selected_season,
             "selectedWeek": selected_week,
             "selectedGame": game,
@@ -267,22 +268,22 @@ def leaderboard_api():
             period = "this_week"
             reference_day = get_week_start(selected_season["start_date"]) + timedelta(days=(week_number - 1) * 7)
 
-        return jsonify(
+        return jsonify(with_public_equipped_badges(
             get_leaderboard(
                 period,
                 game,
                 reference_day=reference_day,
                 current_profile_id=session["user"]["profile_id"],
-            )
-        )
+            ), session["user"]
+        ))
 
-    return jsonify(
+    return jsonify(with_public_equipped_badges(
         get_leaderboard(
             "all_time",
             game,
             current_profile_id=session["user"]["profile_id"],
-        )
-    )
+        ), session["user"]
+    ))
 
 
 @main_bp.get("/trophies")
@@ -348,6 +349,7 @@ def trophies():
                      "vertical": BADGES_BY_CODE[row["badge_code"]].vertical,
                      "rarity": BADGES_BY_CODE[row["badge_code"]].rarity,
                      "gameKey": BADGES_BY_CODE[row["badge_code"]].game_key,
+                     "seasonNumber": int(row["season_number"]),
                  }}
                 for row in showcase
             ],
@@ -431,6 +433,7 @@ def update_trophy_showcase():
                  "vertical": BADGES_BY_CODE[item["badge_code"]].vertical,
                  "rarity": BADGES_BY_CODE[item["badge_code"]].rarity,
                  "gameKey": BADGES_BY_CODE[item["badge_code"]].game_key,
+                 "seasonNumber": int(item["season_number"]),
              }}
             for item in saved
         ],

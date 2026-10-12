@@ -32,6 +32,7 @@ from app.db import (
 from app.badge_store import get_showcase
 from app.badges import BADGES_BY_CODE
 from app.player_ui import render_player
+from app.badge_display import equipped_badge_for_viewer
 from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.security import (
     audit_security_event,
@@ -387,30 +388,8 @@ def profile():
     stats = ensure_user_stats(current_user_key())
     history = get_profile_history_summary(current_user_key())
     season = get_season_summary(current_user_key())
-    # Showcase slot 1 is the equipped profile badge; only server-owned awards qualify.
-    equipped_row = next((row for row in get_showcase(session["user"]["profile_id"]) if row["slot"] == 1), None) if trophies_visible_to(session["user"]) else None
-    equipped_badge = None
-    if equipped_row:
-        definition = BADGES_BY_CODE[equipped_row["badge_code"]]
-        award_season = get_season_by_id(equipped_row["season_id"])
-        equipped_badge = {
-            "code": definition.code, "name": definition.name,
-            "rarity": definition.rarity, "gameKey": definition.game_key,
-            "vertical": definition.vertical,
-            "seasonNumber": int(award_season["number"]) if award_season else None,
-        }
-    # Preview is session-only and takes visual precedence over earned badges.
-    # It does not create or change an actual badge award/showcase.
-    preview_code = session.get("trophy_preview_badge_code") if trophy_preview_enabled(session["user"]) else None
-    if preview_code in BADGES_BY_CODE:
-        definition = BADGES_BY_CODE[preview_code]
-        equipped_badge = {
-            "code": definition.code, "name": definition.name,
-            "rarity": definition.rarity, "gameKey": definition.game_key,
-            "vertical": definition.vertical,
-            "seasonNumber": int(season["number"]) if season else None,
-            "preview": True,
-        }
+    # Shared identity resolver ensures profile, header and standings use one badge.
+    equipped_badge = equipped_badge_for_viewer(session["user"])
     return render_player(
         "profile",
         "Profile",

@@ -201,3 +201,10 @@
     color-mix(in srgb,var(--rankings-tab-accent) 7%,#07111a));
 }
 .rankings-game-tabs button.active>span {color:var(--rankings-tab-accent);}
+
+/* Keep rank columns steady while displaying a player's verified equipped medal. */
+.rankings-player>span.rankings-player-medal{
+  display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;
+  min-width:42px;overflow:visible;
+}
+.rankings-player-medal .crew-equipped-badge{max-width:none}

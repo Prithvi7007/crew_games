@@ -30,3 +30,59 @@
 @media(max-width:480px){.crew-tour-dialog{padding:30px 18px 22px}.crew-tour-tiers{grid-template-columns:repeat(2,1fr)}.crew-tour-badge{width:95px}.crew-tour-badge .trophy-medallion{width:74px}.crew-tour-actions button,.crew-tour-actions a{flex:1 1 100%}}
 @media(prefers-reduced-motion:no-preference){.crew-tour-dialog{animation:crew-tour-appear .3s ease-out both}.crew-tour-badge{animation:crew-tour-appear .38s both;animation-delay:calc(var(--badge-index,0)*75ms)}@keyframes crew-tour-appear{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}}
 @media(prefers-reduced-motion:reduce){.crew-tour-dialog,.crew-tour-badge{animation:none!important;transition:none!important}}
+
+
+/* A clear arrival moment on login; progression is animated without blocking focus. */
+.crew-tour-stage{position:relative;z-index:1}
+.crew-tour-dialog{isolation:isolate}
+.crew-tour-dialog::before{
+  content:"";position:absolute;inset:0 0 auto;height:3px;
+  border-radius:24px 24px 0 0;
+  background:linear-gradient(90deg,transparent,#77deff 28%,#edc985 68%,transparent);
+  opacity:.85;pointer-events:none;
+}
+.crew-tour-art{position:relative;isolation:isolate}
+.crew-tour-art::before,.crew-tour-art::after{
+  content:"✦";position:absolute;color:#b8eeff;
+  font-size:22px;text-shadow:0 0 15px #68ddff;pointer-events:none;
+}
+.crew-tour-art::before{left:18%;top:13%}
+.crew-tour-art::after{right:19%;bottom:12%;font-size:15px;color:#ffdb85}
+@media(prefers-reduced-motion:no-preference){
+  .crew-tour-backdrop{animation:crew-tour-curtain .38s ease-out both}
+  .crew-tour-dialog{animation:crew-tour-arrival .65s cubic-bezier(.18,1,.3,1) both}
+  .crew-tour-stage{animation:crew-tour-stage-arrival .38s cubic-bezier(.2,.9,.35,1) both}
+  .crew-tour-stage .crew-tour-art .trophy-medallion{animation:crew-tour-emblem .82s cubic-bezier(.16,1.2,.32,1) both}
+  .crew-tour-art::before,.crew-tour-art::after{animation:crew-tour-star 1.2s ease-out both}
+  .crew-tour-art::after{animation-delay:.18s}
+  @keyframes crew-tour-curtain{
+    from{opacity:0;backdrop-filter:blur(0)}
+    to{opacity:1;backdrop-filter:blur(12px)}
+  }
+  @keyframes crew-tour-arrival{
+    from{opacity:0;transform:translateY(35px) scale(.92);filter:brightness(1.55)}
+    70%{filter:brightness(1.1)}
+    to{opacity:1;transform:none;filter:brightness(1)}
+  }
+  @keyframes crew-tour-stage-arrival{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:none}
+  }
+  @keyframes crew-tour-emblem{
+    0%{opacity:0;transform:rotate(-35deg) scale(.5)}
+    70%{opacity:1;transform:rotate(5deg) scale(1.07)}
+    100%{transform:rotate(0) scale(1)}
+  }
+  @keyframes crew-tour-star{
+    from{opacity:0;transform:translateY(18px) scale(.1)}
+    50%{opacity:1}
+    to{opacity:.8;transform:none}
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .crew-tour-backdrop,.crew-tour-dialog,.crew-tour-stage,
+  .crew-tour-stage .crew-tour-art .trophy-medallion,
+  .crew-tour-art::before,.crew-tour-art::after{
+    animation:none!important;transition:none!important;
+  }
+}

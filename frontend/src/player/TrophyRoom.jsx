@@ -144,9 +144,9 @@ export function BadgeMedallion({ badge, size = 'normal', concealed = false, seas
   </span>;
 }
 
-export function EquippedProfileBadge({ badge, avatar }) {
+export function EquippedProfileBadge({ badge, avatar, size = 'full' }) {
   if (!badge) return <div className="v20-profile-avatar" aria-hidden="true">{avatar}</div>;
-  return <div style={{ '--insignia-color': insigniaColor(badge) }} className={'crew-equipped-badge trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity} role="img" aria-label={badge.name + ' equipped, season ' + (badge.seasonNumber ?? 'unknown')}>
+  return <div style={{ '--insignia-color': insigniaColor(badge) }} className={'crew-equipped-badge trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (size === 'compact' ? ' is-compact' : '')} role="img" aria-label={badge.name + (badge.preview ? ' preview' : ' equipped') + ', season ' + (badge.seasonNumber ?? 'unknown')}>
     <span className="crew-equipped-avatar" aria-hidden="true">{avatar}</span>
     <svg className="crew-equipped-rings" viewBox="0 0 100 100" focusable="false" aria-hidden="true" fill="none">
       <circle className="crew-equipped-outer" cx="50" cy="50" r="46"/>
@@ -195,15 +195,29 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
   const [previewCode, setPreviewCode] = useState(data.trophyPreview?.badgeCode || null);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [reveal, setReveal] = useState(null);
   const [filter, setFilter] = useState('all');
   const badges = data.badges || [];
   const earned = data.earnedCount || 0;
   const season = data.selectedSeason;
   const filtered = useMemo(() => filter === 'all' ? badges : badges.filter(badge => badge.vertical === filter), [badges, filter]);
   const equipped = showcase.find(entry => entry.slot === 1);
-  const equippedBadge = previewMode
-    ? badges.find(item => item.code === previewCode)
-    : equipped?.badge || badges.find(item => item.code === equipped?.badgeCode);
+  const actualBadge = equipped?.badge || badges.find(item => item.code === equipped?.badgeCode);
+  const previewBadge = previewMode ? badges.find(item => item.code === previewCode) : null;
+  const equippedBadge = previewMode ? previewBadge : actualBadge;
+  const activeBadge = previewBadge || actualBadge;
+  const liveBadge = activeBadge ? {
+    ...activeBadge,
+    seasonNumber: previewBadge ? season?.number : activeBadge.seasonNumber ?? season?.number,
+    preview: Boolean(previewBadge),
+  } : null;
+  const liveShell = { ...data.shell, userEquippedBadge: liveBadge };
+
+  React.useEffect(() => {
+    if (!reveal) return undefined;
+    const timeout = window.setTimeout(() => setReveal(null), 2500);
+    return () => window.clearTimeout(timeout);
+  }, [reveal]);
 
   async function selectBadge(badge) {
     if (saving || !badge) return;
@@ -216,10 +230,12 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
         const result = await savePreview(removing ? null : badge.code);
         setPreviewCode(result.badgeCode || null);
         setFeedback(removing ? 'Preview removed from your profile.' : `Previewing ${badge.name}. Open Profile to see the badge around your avatar.`);
+        if (!removing) setReveal({ badge: { ...badge, seasonNumber: season?.number, preview: true }, preview: true });
       } else {
         const result = await saveSlot(1, removing ? null : badge.awardId);
         setShowcase(result.showcase || []);
         setFeedback(removing ? `${badge.name} removed from your profile.` : `${badge.name} equipped on your profile.`);
+        if (!removing) setReveal({ badge: { ...badge, seasonNumber: season?.number }, preview: false });
       }
     } catch (error) {
       setFeedback(error?.message || 'Could not update badge. Please try again.');
@@ -229,7 +245,12 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
   }
 
   return <div className="trophy-room-shell">
-    <Header shell={data.shell}/>
+    <Header shell={liveShell}/>
+    {reveal ? <div className="crew-badge-apply-toast" role="status" aria-live="polite">
+      <span className="crew-badge-apply-medal"><EquippedProfileBadge badge={reveal.badge} avatar={data.shell?.user?.avatar} size="compact"/></span>
+      <span><strong>{reveal.preview ? 'Preview applied' : 'Badge equipped!'}</strong><small>{reveal.badge.name} · {reveal.preview ? 'Visible only to you' : 'Your new CREW look is ready'}</small></span>
+      <span className="crew-badge-apply-spark" aria-hidden="true">✦</span>
+    </div> : null}
     <main className="trophy-room-main">
       <section className="trophy-collection" aria-labelledby="trophy-collection-title">
         <header className="trophy-section-header"><div><span className="trophy-eyebrow">ACHIEVEMENT COLLECTION</span><h1 id="trophy-collection-title">All badges <small>{previewMode ? `${badges.length} available to preview · ${earned} earned` : `${earned} / ${badges.length} unlocked`}</small></h1><p className="trophy-equip-guidance">{previewMode ? 'Admin preview: Try on any badge without earning it. This does not affect achievements or rankings.' : equippedBadge ? `Wearing: ${equippedBadge.name}. Select another unlocked badge to switch, or select the equipped badge again to remove it.` : 'Select an unlocked badge to wear it on your profile. Select it again to remove it.'}</p>{previewMode && equippedBadge ? <p className="trophy-preview-current">Previewing {equippedBadge.name} · <a href="/profile">View on profile →</a></p> : null}</div></header>

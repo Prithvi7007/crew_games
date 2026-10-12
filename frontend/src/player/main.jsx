@@ -237,7 +237,9 @@ function AccountMenu({ user, trophiesVisible = true }) {
         <strong>{user?.username}</strong>
         <span>{roleLabel}</span>
       </span>
-      <span className="avatar" aria-hidden="true">{user?.avatar}</span>
+      <span className={'avatar crew-nav-avatar' + (user?.equippedBadge ? ' has-trophy' : '')} aria-hidden="true">
+        {user?.equippedBadge ? <EquippedProfileBadge badge={user.equippedBadge} avatar={user.avatar} size="compact"/> : user?.avatar}
+      </span>
       <span className="account-chevron" aria-hidden="true">⌄</span>
     </button>
 
@@ -250,7 +252,9 @@ function AccountMenu({ user, trophiesVisible = true }) {
       onKeyDown={onPanelKey}
     >
       <div className="account-identity">
-        <span className="account-avatar" aria-hidden="true">{user?.avatar}</span>
+        <span className={'account-avatar crew-menu-avatar' + (user?.equippedBadge ? ' has-trophy' : '')} aria-hidden="true">
+          {user?.equippedBadge ? <EquippedProfileBadge badge={user.equippedBadge} avatar={user.avatar} size="compact"/> : user?.avatar}
+        </span>
         <span>
           <strong>{user?.username}</strong>
           <small>{roleLabel}</small>
@@ -298,7 +302,7 @@ function AppHeader({ shell }) {
     <header className="glass-nav app-nav">
       <a className="nav-brand v13-brand" href="/home" aria-label="CREW home"><span className="v13-brand-copy"><strong>CREW</strong><small><span>PLAY TOGETHER</span><span>GO FURTHER</span></small></span></a>
       <nav className="desktop-nav" aria-label="Primary navigation">{link('home','Home','/home')}{link('games','Games','/games')}{link('leaderboard','Rankings','/leaderboard')}{trophiesVisible ? link('trophies','Trophies','/trophies') : null}</nav>
-      <div className="crew-nav-account"><AccountMenu user={shell?.user} trophiesVisible={trophiesVisible}/>{shell?.navPoints !== null && shell?.navPoints !== undefined ? <span className="crew-points-chip" aria-label={`${shell.navPoints} points this week`}><span aria-hidden="true">★</span><strong>{shell.navPoints}</strong><small>pts</small></span> : null}</div>
+      <div className="crew-nav-account"><AccountMenu user={shell?.user ? { ...shell.user, equippedBadge: shell.userEquippedBadge } : null} trophiesVisible={trophiesVisible}/>{shell?.navPoints !== null && shell?.navPoints !== undefined ? <span className="crew-points-chip" aria-label={`${shell.navPoints} points this week`}><span aria-hidden="true">★</span><strong>{shell.navPoints}</strong><small>pts</small></span> : null}</div>
     </header>
     <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{link('home','Home','/home',true)}{link('games','Games','/games',true)}{link('leaderboard','Rankings','/leaderboard',true)}{trophiesVisible ? link('trophies','Trophies','/trophies',true) : null}</nav>
   </>;
@@ -518,7 +522,9 @@ function RankingsPage({ data }) {
               <span className="rankings-rank">{player.rank||'—'}</span>
 
               <span className="rankings-player">
-                <i aria-hidden="true">{player.avatar}</i>
+                {player.equippedBadge
+                  ? <span className="rankings-player-medal" aria-label={player.equippedBadge.name + ' equipped'}><EquippedProfileBadge badge={player.equippedBadge} avatar={player.avatar} size="compact"/></span>
+                  : <i aria-hidden="true">{player.avatar}</i>}
                 <span>
                   <strong>{player.username}</strong>
                   <small>{player.detail}</small>
