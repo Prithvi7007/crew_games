@@ -287,3 +287,15 @@
 .trophy-medallion .medallion-insignia-disc {fill:#101b2c;stroke:rgba(232,242,255,.16);stroke-width:.8;}
 .trophy-medallion .medallion-motif {stroke-width:2.6;filter:drop-shadow(0 1px 1px #02070e);}
 .crew-equipped-game-ring {filter:drop-shadow(0 0 2px rgba(125,180,240,.4));}
+
+/* Phase 2 — dimensional engraved central insignias, one coherent family. */
+.trophy-medallion .crew-insignia-halo {fill:none;stroke:var(--badge-accent);stroke-width:.55;opacity:.35;}
+.trophy-medallion .crew-insignia-engraving {fill:none;stroke:var(--rarity-ring);stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round;opacity:.7;}
+.trophy-medallion .crew-insignia-shadow {fill:none;stroke:#010815;stroke-width:5.3;stroke-linecap:round;stroke-linejoin:round;transform:translate(.7px,1.2px);}
+.trophy-medallion .crew-insignia-jewel {fill:var(--rarity-ring);filter:drop-shadow(0 0 2px var(--rarity-ring));}
+.trophy-medallion .crew-insignia .medallion-motif {stroke:var(--badge-accent);stroke-width:2.8;filter:drop-shadow(0 0 2px var(--badge-accent));}
+.crew-equipped-achievement svg .crew-insignia-halo {fill:none;stroke:currentColor;stroke-width:2;opacity:.35;}
+.crew-equipped-achievement svg .crew-insignia-engraving {fill:none;stroke:var(--rarity-ring);stroke-width:3;opacity:.75;}
+.crew-equipped-achievement svg .crew-insignia-shadow {stroke:#020b17;stroke-width:9;fill:none;}
+.crew-equipped-achievement svg .crew-insignia-jewel {fill:var(--rarity-ring);}
+.crew-equipped-achievement svg .medallion-motif {stroke:currentColor;stroke-width:6;fill:none;}
