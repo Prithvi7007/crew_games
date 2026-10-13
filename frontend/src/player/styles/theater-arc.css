@@ -52,28 +52,32 @@
       translateX(-50%)
       translateY(var(--arc-y))
       translateZ(var(--arc-z))
-      rotateY(var(--arc-angle));
+      rotateY(var(--arc-angle))
+      scale(var(--arc-scale));
     transition:transform .38s cubic-bezier(.2,.78,.2,1),filter .3s ease;
   }
 
+  /* Perspective makes the nearer outer pair look disproportionately tall.
+     Compensating scale normalizes *projected* heights, not the viewing geometry:
+     identical apparent card heights keep BOTH top and bottom silhouettes curved. */
   /* Symmetric vertical rhythm: foreground edges lift while the recessed pair
      settles slightly, tracing one shared viewing arc without changing depth. */
   /* Outer portals stand nearer to the viewer; middle portals recede.
      Angles are opposite on each side so all four face the same viewer. */
   .crew-theater-arc-panel.is-outer-left{
-    --arc-x:15%;--arc-y:-5px;--arc-z:70px;--arc-angle:23deg;
+    --arc-x:15%;--arc-y:-5px;--arc-z:70px;--arc-angle:23deg;--arc-scale:.94;
     --arc-layer:4;
   }
   .crew-theater-arc-panel.is-inner-left{
-    --arc-x:38%;--arc-y:14px;--arc-z:-42px;--arc-angle:7deg;
+    --arc-x:38%;--arc-y:14px;--arc-z:-42px;--arc-angle:7deg;--arc-scale:1.06;
     --arc-layer:2;
   }
   .crew-theater-arc-panel.is-inner-right{
-    --arc-x:62%;--arc-y:14px;--arc-z:-42px;--arc-angle:-7deg;
+    --arc-x:62%;--arc-y:14px;--arc-z:-42px;--arc-angle:-7deg;--arc-scale:1.06;
     --arc-layer:2;
   }
   .crew-theater-arc-panel.is-outer-right{
-    --arc-x:85%;--arc-y:-5px;--arc-z:70px;--arc-angle:-23deg;
+    --arc-x:85%;--arc-y:-5px;--arc-z:70px;--arc-angle:-23deg;--arc-scale:.94;
     --arc-layer:4;
   }
 
@@ -147,7 +151,8 @@
       translateX(-50%)
       translateY(calc(var(--arc-y) - 9px))
       translateZ(calc(var(--arc-z) + 45px))
-      rotateY(var(--arc-angle));
+      rotateY(var(--arc-angle))
+      scale(calc(var(--arc-scale) + .025));
     filter:brightness(1.10);
   }
   .crew-theater-arc-panel a.v22-day-card:hover{
