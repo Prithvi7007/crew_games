@@ -17,6 +17,10 @@
   }
 
   .crew-theater-arc-stage{
+    /* Size-derived offsets prevent gutters expanding on extra-wide monitors. */
+    --arc-card-width:clamp(205px,22vw,324px);
+    --arc-inner-offset:calc(var(--arc-card-width) * .5);
+    --arc-outer-offset:calc(var(--arc-card-width) * 1.43);
     position:relative;
     width:100%;
     height:clamp(382px,36vw,480px);
@@ -43,7 +47,7 @@
     left:var(--arc-x);
     top:10px;
     z-index:var(--arc-layer);
-    width:clamp(205px,22vw,324px);
+    width:var(--arc-card-width);
     height:clamp(336px,31vw,430px);
     min-width:0;
     transform-style:preserve-3d;
@@ -57,27 +61,25 @@
     transition:transform .38s cubic-bezier(.2,.78,.2,1),filter .3s ease;
   }
 
-  /* Perspective makes the nearer outer pair look disproportionately tall.
-     Compensating scale normalizes *projected* heights, not the viewing geometry:
-     identical apparent card heights keep BOTH top and bottom silhouettes curved. */
-  /* Symmetric vertical rhythm: foreground edges lift while the recessed pair
-     settles slightly, tracing one shared viewing arc without changing depth. */
-  /* Outer portals stand nearer to the viewer; middle portals recede.
-     Angles are opposite on each side so all four face the same viewer. */
+  /* Four facets along one concave cinema arc: +32, +11, -11, -32 degrees.
+     Center portals truly recede; forcing equal apparent overall card heights
+     made their neighboring edges misalign by about 40px in Chromium.
+     Mirrored angles, a shared baseline, edge-matched scales and card-width
+     based gutters keep the upper and lower seams flowing continuously. */
   .crew-theater-arc-panel.is-outer-left{
-    --arc-x:15%;--arc-y:-5px;--arc-z:70px;--arc-angle:23deg;--arc-scale:.94;
+    --arc-x:calc(50% - var(--arc-outer-offset));--arc-y:-5px;--arc-z:70px;--arc-angle:32deg;--arc-scale:.94;
     --arc-layer:4;
   }
   .crew-theater-arc-panel.is-inner-left{
-    --arc-x:38%;--arc-y:14px;--arc-z:-42px;--arc-angle:7deg;--arc-scale:1.06;
+    --arc-x:calc(50% - var(--arc-inner-offset));--arc-y:-5px;--arc-z:-42px;--arc-angle:11deg;--arc-scale:.96;
     --arc-layer:2;
   }
   .crew-theater-arc-panel.is-inner-right{
-    --arc-x:62%;--arc-y:14px;--arc-z:-42px;--arc-angle:-7deg;--arc-scale:1.06;
+    --arc-x:calc(50% + var(--arc-inner-offset));--arc-y:-5px;--arc-z:-42px;--arc-angle:-11deg;--arc-scale:.96;
     --arc-layer:2;
   }
   .crew-theater-arc-panel.is-outer-right{
-    --arc-x:85%;--arc-y:-5px;--arc-z:70px;--arc-angle:-23deg;--arc-scale:.94;
+    --arc-x:calc(50% + var(--arc-outer-offset));--arc-y:-5px;--arc-z:70px;--arc-angle:-32deg;--arc-scale:.94;
     --arc-layer:4;
   }
 
