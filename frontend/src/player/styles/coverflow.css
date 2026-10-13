@@ -42,19 +42,19 @@
     to{opacity:1;filter:none}
   }
   .crew-coverflow-item.is-outer-left{
-    --cover-x:15%;--cover-y:-4px;--cover-z:55px;--cover-rotation:-15deg;--cover-scale:1;
+    --cover-x:15%;--cover-y:-4px;--cover-z:55px;--cover-rotation:15deg;--cover-scale:1;
     --cover-layer:4;
   }
   .crew-coverflow-item.is-inner-left{
-    --cover-x:38%;--cover-y:22px;--cover-z:-75px;--cover-rotation:-3deg;--cover-scale:.94;
+    --cover-x:38%;--cover-y:22px;--cover-z:-75px;--cover-rotation:3deg;--cover-scale:.94;
     --cover-layer:2;
   }
   .crew-coverflow-item.is-inner-right{
-    --cover-x:62%;--cover-y:22px;--cover-z:-75px;--cover-rotation:3deg;--cover-scale:.94;
+    --cover-x:62%;--cover-y:22px;--cover-z:-75px;--cover-rotation:-3deg;--cover-scale:.94;
     --cover-layer:2;
   }
   .crew-coverflow-item.is-outer-right{
-    --cover-x:85%;--cover-y:-4px;--cover-z:55px;--cover-rotation:15deg;--cover-scale:1;
+    --cover-x:85%;--cover-y:-4px;--cover-z:55px;--cover-rotation:-15deg;--cover-scale:1;
     --cover-layer:4;
   }
   .crew-coverflow-item:hover,.crew-coverflow-item:focus-within{
