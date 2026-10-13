@@ -54,3 +54,18 @@ def test_four_slots_are_bounded_independent_card_layers():
     assert "rotateY(var(--cover-rotation))" in CSS
     assert "overflow:visible" not in CSS
     assert "@media (prefers-reduced-motion:reduce)" in CSS
+
+
+def test_coverflow_cards_face_inward_toward_the_center():
+    # Positive CSS rotateY faces right, negative faces left.
+    expected = {
+        "outer-left": 15,
+        "inner-left": 3,
+        "inner-right": -3,
+        "outer-right": -15,
+    }
+    for position, angle in expected.items():
+        anchor = ".crew-coverflow-item.is-" + position + "{"
+        assert anchor in CSS
+        declaration = CSS.split(anchor, 1)[1].split("}", 1)[0]
+        assert "--cover-rotation:" + str(angle) + "deg" in declaration
