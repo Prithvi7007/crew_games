@@ -8,29 +8,22 @@ CSS = (ROOT / "frontend/src/player/styles/theater-arc.css").read_text(encoding="
 COVERFLOW = (ROOT / "frontend/src/player/styles/coverflow.css").read_text(encoding="utf-8")
 
 
-def test_theater_arc_is_default_desktop_with_explicit_legacy_fallbacks():
-    # Default /home opts into the approved Theater Arc. The old preview URL
-    # remains valid, and ?theater_preview=0 can restore the former desktop.
-    assert "const theaterPreview = query.get('theater_preview') === '1'" in MAIN
-    assert "const coverflowPreview = !theaterPreview && query.get('coverflow_preview') === '1'" in MAIN
-    assert "const theaterArc = theaterPreview || (!coverflowPreview && query.get('theater_preview') !== '0')" in MAIN
-    assert "theaterArc ? ' has-theater-arc' : ''" in MAIN
+def test_new_preview_does_not_replace_home_or_existing_coverflow():
+    assert "get('theater_preview') === '1'" in MAIN
+    assert "query.get('coverflow_preview') === '1'" in MAIN
+    assert "const coverflowPreview = !theaterPreview" in MAIN
     assert "has-coverflow-preview" in MAIN
-    assert "{theaterArc ? <HomeTheaterArc games={games}" in MAIN
+    assert "has-theater-preview" in MAIN
     assert "import HomeTheaterArc from './HomeTheaterArc'" in MAIN
     assert "import './styles/theater-arc.css'" in MAIN
-
-    # Keep fallback implementations for desktop rollback, coverflow QA and
-    # the unchanged tablet/mobile game journey.
     assert "<HomeDesktop games={games} featured={featured} today={today}/>" in MAIN
     assert "<HomeCoverflow games={games}" in MAIN
+    assert "<HomeTheaterArc games={games}" in MAIN
     assert "<HomeJourney games={games} featured={featured} today={today}/>" in MAIN
-    assert ".crew-coverflow-stage" in COVERFLOW
-    assert ".v17-today-shell.has-theater-arc .v22-today-desktop{display:none}" in CSS
+    assert ".v17-today-shell.has-theater-preview .v22-today-desktop{display:none}" in CSS
     assert ".crew-theater-arc{display:none}" in CSS
     assert "@media (min-width:1121px)" in CSS
-    assert CSS.index(".crew-theater-arc{display:none}") < CSS.index("@media (min-width:1121px)")
-    assert CSS.index(".v17-today-shell.has-theater-arc .v22-today-desktop{display:none}") > CSS.index("@media (min-width:1121px)")
+    assert ".crew-coverflow-stage" in COVERFLOW
 
 
 def test_game_portals_are_four_separate_cards_with_original_game_behavior():
@@ -251,19 +244,3 @@ def test_locked_theater_cards_are_muted_but_readable_and_do_not_lift():
     # Locking is cosmetic only: preserves original dates, scores and gameplay links.
     assert "UNLOCKS ${upperMonthDay(game.date)}" not in CSS
     assert "href={game.url}" in MAIN
-
-
-def test_future_copy_is_readable_without_unmuting_artwork():
-    """Improve lock instructions only, keeping the spotlight and art muted."""
-    locked = CSS.split(".crew-theater-arc-panel .v22-day-card.future{", 1)[1].split("\n  }", 1)[0]
-    assert "opacity:.74" in locked
-    assert "filter:grayscale(.75) saturate(.30) brightness(.88)" in locked
-    assert "border-color:rgba(255,255,255,.09)" in locked
-    assert ".crew-theater-arc-panel .v22-day-card.future .v22-day-copy p," in CSS
-    assert ".crew-theater-arc-panel .v22-day-card.future .v22-card-action," in CSS
-    assert ".crew-theater-arc-panel .v22-day-card.future .v22-points span{" in CSS
-    boost = CSS.split(".crew-theater-arc-panel .v22-day-card.future .v22-points span{", 1)[1].split("\n  }", 1)[0]
-    assert "color:rgba(244,248,253,.92)" in boost
-    # Only existing unlocked link cards retain the overhead stage light.
-    assert ".crew-theater-arc-panel a.v22-day-card:not(.future)::before{" in CSS
-    assert ".crew-theater-arc-panel .v22-day-card.future::before{" not in CSS
