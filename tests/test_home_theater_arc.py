@@ -8,22 +8,29 @@ CSS = (ROOT / "frontend/src/player/styles/theater-arc.css").read_text(encoding="
 COVERFLOW = (ROOT / "frontend/src/player/styles/coverflow.css").read_text(encoding="utf-8")
 
 
-def test_new_preview_does_not_replace_home_or_existing_coverflow():
-    assert "get('theater_preview') === '1'" in MAIN
-    assert "query.get('coverflow_preview') === '1'" in MAIN
-    assert "const coverflowPreview = !theaterPreview" in MAIN
+def test_approved_theater_arc_is_desktop_default_with_safe_fallback():
+    # The browser-verified preview still works. With four games, regular /home
+    # now renders the same arc. A partial week falls back to the prior layout.
+    assert "const theaterPreview = query.get('theater_preview') === '1'" in MAIN
+    assert "const coverflowPreview = !theaterPreview && query.get('coverflow_preview') === '1'" in MAIN
+    assert "const theaterArc = theaterPreview || (!coverflowPreview && query.get('theater_preview') !== '0' && games.length === 4)" in MAIN
+    assert "theaterArc ? ' has-theater-arc' : ''" in MAIN
+    assert "{theaterArc ? <HomeTheaterArc games={games}" in MAIN
     assert "has-coverflow-preview" in MAIN
-    assert "has-theater-preview" in MAIN
     assert "import HomeTheaterArc from './HomeTheaterArc'" in MAIN
     assert "import './styles/theater-arc.css'" in MAIN
+
+    # Old desktop layout and separate coverflow remain available by URL:
+    # ?theater_preview=0 and ?coverflow_preview=1.
     assert "<HomeDesktop games={games} featured={featured} today={today}/>" in MAIN
     assert "<HomeCoverflow games={games}" in MAIN
-    assert "<HomeTheaterArc games={games}" in MAIN
     assert "<HomeJourney games={games} featured={featured} today={today}/>" in MAIN
-    assert ".v17-today-shell.has-theater-preview .v22-today-desktop{display:none}" in CSS
+    assert ".crew-coverflow-stage" in COVERFLOW
+    # Theater Arc exists at >=1121px only, so original tablet/mobile render.
     assert ".crew-theater-arc{display:none}" in CSS
     assert "@media (min-width:1121px)" in CSS
-    assert ".crew-coverflow-stage" in COVERFLOW
+    assert CSS.index(".crew-theater-arc{display:none}") < CSS.index("@media (min-width:1121px)")
+    assert CSS.index(".v17-today-shell.has-theater-arc .v22-today-desktop{display:none}") > CSS.index("@media (min-width:1121px)")
 
 
 def test_game_portals_are_four_separate_cards_with_original_game_behavior():
@@ -269,3 +276,35 @@ def test_recessed_theater_cards_receive_pointer_hits():
     assert ".crew-theater-arc-panel a.v22-day-card:focus-visible" in CSS
     assert ".crew-theater-arc-panel a.v22-day-card:not(.future)::before{" in CSS
     assert ".crew-theater-arc-panel .v22-day-card.future{" in CSS
+
+
+def test_desktop_promotion_keeps_click_fix_and_readable_locked_cards():
+    """Avoid repeating the regression from the first default-home launch.
+
+    The 3D stage is behind the center cards in *pointer* hit testing, even
+    though it appears transparent. Keep it inert and opt real game anchors in.
+    The actual Trivia Tuesday link was also verified in the authenticated
+    production preview before the default-home promotion.
+    """
+    stage = CSS.split(".crew-theater-arc-stage{", 1)[1].split("\n  }", 1)[0]
+    assert "pointer-events:none" in stage
+    assert "perspective:1450px" in stage
+    assert "transform-style:preserve-3d" in stage
+    clickable = CSS.split(".crew-theater-arc-panel a.v22-day-card{", 1)[1].split("\n  }", 1)[0]
+    assert "pointer-events:auto" in clickable
+    assert "return future?<article className={cls}>{content}</article>:<a className={cls} href={game.url}>{content}</a>" in MAIN
+    assert ".crew-theater-arc-panel:has(> a.v22-day-card:hover)" in CSS
+    assert ".crew-theater-arc-panel a.v22-day-card:focus-visible" in CSS
+    assert ".crew-theater-arc-panel a.v22-day-card:not(.future)::before{" in CSS
+    assert "pointer-events:auto" not in CSS.split(".crew-theater-arc-panel{", 1)[1].split("\n  }", 1)[0]
+
+    # Improve the muted locked-card date/description contrast without
+    # allowing their theme spotlight or colored shadow to leak back in.
+    locked = CSS.split(".crew-theater-arc-panel .v22-day-card.future{", 1)[1].split("\n  }", 1)[0]
+    assert "opacity:.74" in locked
+    assert "filter:grayscale(.75) saturate(.30) brightness(.88)" in locked
+    assert "border-color:rgba(255,255,255,.09)" in locked
+    assert "var(--v22-tone)" not in locked
+    assert ".crew-theater-arc-panel .v22-day-card.future .v22-card-action," in CSS
+    bright = CSS.split(".crew-theater-arc-panel .v22-day-card.future .v22-points span{", 1)[1].split("\n  }", 1)[0]
+    assert "color:rgba(244,248,253,.92)" in bright
