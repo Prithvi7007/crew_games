@@ -27,6 +27,9 @@
     perspective:1450px;
     perspective-origin:50% 46%;
     transform-style:preserve-3d;
+    /* The z=0 stage would otherwise steal pointer hits from the inner
+       cards at z=-42px, despite their artwork rendering visibly. */
+    pointer-events:none;
   }
 
   /* The theater is suggested with atmosphere, not a drawn semicircle. */
@@ -111,6 +114,12 @@
       0 -10px 22px -18px color-mix(in srgb,var(--v22-tone) 45%,transparent),
       inset 0 1px rgba(255,255,255,.10);
     backface-visibility:hidden;
+  }
+
+  /* Re-enable hit testing only on real links, above the noninteractive
+     stage plane. Future games remain inert article cards. */
+  .crew-theater-arc-panel a.v22-day-card{
+    pointer-events:auto;
   }
 
   /* Only unlocked games are real links. Future games are non-clickable
