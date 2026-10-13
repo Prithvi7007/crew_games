@@ -6,7 +6,7 @@ const ANATOMY_PHASES = [
   ['GAME SIGNATURE', 'Inner ring: your game colors.'],
   ['ACHIEVEMENT EMBLEM', 'Center symbol: your achievement.'],
   ['SEASON STAMP', 'Season tag: when you earned it.'],
-  ['COMPLETE BADGE', 'Four details. One badge.'],
+  ['COMPLETE BADGE', ''],
 ];
 
 export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction }) {
@@ -23,7 +23,7 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
   const headings = ['Your badges are here', 'How a badge works', 'Your badge collection', 'Wear your badge'];
   const copy = [
     'Every win deserves a badge.',
-    'Built one detail at a time.',
+    '',
     earned.length ? 'Badges you have earned so far.' : 'Play CREW games to earn your first badge.',
     'See your profile transform.',
   ];
@@ -81,12 +81,12 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
   }
 
   return <div className="crew-tour-backdrop">
-    <section className="crew-tour-dialog" role="dialog" aria-modal="true" aria-labelledby="crew-tour-title" aria-describedby="crew-tour-description" tabIndex={-1} ref={dialogRef} onKeyDown={handleKeys}>
+    <section className="crew-tour-dialog" role="dialog" aria-modal="true" aria-labelledby="crew-tour-title" aria-describedby={copy[step] ? "crew-tour-description" : undefined} tabIndex={-1} ref={dialogRef} onKeyDown={handleKeys}>
       <button type="button" className="crew-tour-close" aria-label="Close badge welcome tour" disabled={saving} onClick={() => close('later')}>×</button>
       <div className="crew-tour-stage" key={step}>
-      <p className="crew-tour-kicker">{tour.preview ? 'PREVIEW · ' : ''}CREW BADGES · {step + 1} / 4</p>
+      
       <h2 id="crew-tour-title">{headings[step]}</h2>
-      <p id="crew-tour-description" className="crew-tour-copy">{copy[step]}</p>
+      {copy[step] ? <p id="crew-tour-description" className="crew-tour-copy">{copy[step]}</p> : null}
       {step === 0 ? <div className="crew-tour-vault" aria-hidden="true">
         <div className="crew-tour-vault-atmosphere"/>
         <div className="crew-tour-vault-halo is-outer"/>
@@ -107,9 +107,9 @@ export default function TrophyWelcomeTour({ tour, avatar, onClose, saveAction })
           <span className="crew-tour-medal-season">S{String(tour.seasonNumber || 1).padStart(2, '0')}</span>
         </div>
         <div className="crew-tour-medal-narration" aria-live="polite" aria-atomic="true">
-          <span className="crew-tour-medal-counter">{String(anatomyPhase + 1).padStart(2, '0')} / 05</span>
+          
           <h3>{ANATOMY_PHASES[anatomyPhase][0]}</h3>
-          <p>{ANATOMY_PHASES[anatomyPhase][1]}</p>
+          {ANATOMY_PHASES[anatomyPhase][1] ? <p>{ANATOMY_PHASES[anatomyPhase][1]}</p> : null}
         </div>
         <div className="crew-tour-medal-beats" aria-label="Badge design stages">
           {ANATOMY_PHASES.map(([name], index) => <button key={name} type="button" className={index === anatomyPhase ? 'is-active' : ''} aria-label={`Show ${name.toLowerCase()}`} aria-pressed={index === anatomyPhase} onClick={() => setAnatomyPhase(index)}><span/></button>)}

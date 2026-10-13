@@ -27,7 +27,10 @@ def test_sitewide_navigation_and_unlock_copy_says_badges():
 
 
 def test_all_tour_screens_have_concise_badge_only_copy():
-    assert "CREW BADGES" in TOUR
+    assert "PREVIEW ·" not in TOUR
+    assert "CREW BADGES ·" not in TOUR
+    assert "Built one detail at a time." not in TOUR
+    assert "Four details. One badge." not in TOUR
     assert "BADGES UNLOCKED" in TOUR
     assert "Your badges are here" in TOUR
     assert "How a badge works" in TOUR
@@ -41,7 +44,7 @@ def test_all_tour_screens_have_concise_badge_only_copy():
     end = TOUR.index("];", start)
     narration = TOUR[start:end]
     captions = re.findall(r"\['[A-Z ]+', '([^']+)'\]", narration)
-    assert len(captions) == 5
+    assert len(captions) == 4
     assert all(len(text.split()) <= 10 for text in captions)
     assert "trophy" not in TOUR.lower().split("const anatomy_phases = [",1)[1].split("export default",1)[0]
     assert "COMPLETE BADGE" in TOUR

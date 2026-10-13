@@ -25,7 +25,7 @@ def test_anatomy_reveals_standalone_medal_layers_sequentially():
     source = TOUR.read_text(encoding="utf-8")
     css = STYLES.read_text(encoding="utf-8")
     assert "How a badge works" in source
-    assert "Built one detail at a time." in source
+    assert "Built one detail at a time." not in source
     assert "const ANATOMY_PHASES" in source
     for label in ("RARITY FRAME", "GAME SIGNATURE", "ACHIEVEMENT EMBLEM",
                   "SEASON STAMP", "COMPLETE BADGE"):
