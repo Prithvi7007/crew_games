@@ -1,11 +1,11 @@
 /*
- * Opt-in cinema arc: separate game cards, one shared viewing geometry.
- * No track, no continuous screen, and no carousel movement.
+ * Default desktop cinema arc: separate game cards, one shared geometry.
+ * Tablet/mobile retain their original layouts; no track or carousel motion.
  */
 .crew-theater-arc{display:none}
 
 @media (min-width:1121px){
-  .v17-today-shell.has-theater-preview .v22-today-desktop{display:none}
+  .v17-today-shell.has-theater-arc .v22-today-desktop{display:none}
 
   .crew-theater-arc{
     display:block;
@@ -170,6 +170,14 @@
   }
   .crew-theater-arc-panel .v22-day-card.future::after{
     opacity:.20;
+  }
+
+  /* The artwork remains muted, but the unlock instructions must be legible.
+     Text-only contrast avoids reintroducing a spotlight on future cards. */
+  .crew-theater-arc-panel .v22-day-card.future .v22-day-copy p,
+  .crew-theater-arc-panel .v22-day-card.future .v22-card-action,
+  .crew-theater-arc-panel .v22-day-card.future .v22-points span{
+    color:rgba(244,248,253,.92);
   }
 
   .crew-theater-arc-panel .v22-day-copy{
