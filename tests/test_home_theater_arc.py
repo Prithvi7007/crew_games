@@ -188,7 +188,7 @@ def test_projected_card_seams_and_spacing_remain_smooth_on_desktop():
 def test_preview_spotlights_are_static_clipped_and_theme_colored():
     """A low-opacity themed overhead wash, not a new layout or moving beam."""
     assert CSS.index(".crew-theater-arc{display:none}") < CSS.index("@media (min-width:1121px)")
-    spot_selector = ".crew-theater-arc-panel .v22-day-card::before{"
+    spot_selector = ".crew-theater-arc-panel a.v22-day-card:not(.future)::before{"
     assert CSS.count(spot_selector) == 1
     light = CSS.split(spot_selector, 1)[1].split("\n  }", 1)[0]
     assert 'content:""' in light
@@ -211,3 +211,36 @@ def test_preview_spotlights_are_static_clipped_and_theme_colored():
     assert "z-index:3" in CSS
     assert ".crew-theater-arc-panel a.v22-day-card:focus-visible{" in CSS
     assert ".crew-theater-arc-panel .v22-day-card.future{" in CSS
+
+
+def test_spotlights_are_reserved_for_unlocked_link_cards():
+    """Only actually accessible games get a beam or the colored top-edge glow."""
+    # The HomeDesktopCard contract: future cards render as locked articles,
+    # all available/current/completed states render as anchors.
+    assert "const future=state==='future'" in MAIN
+    assert "return future?<article className={cls}>{content}</article>:<a className={cls} href={game.url}>{content}</a>" in MAIN
+    assert ".crew-theater-arc-panel a.v22-day-card:not(.future)::before{" in CSS
+    assert ".crew-theater-arc-panel .v22-day-card::before{" not in CSS
+    assert ".crew-theater-arc-panel .v22-day-card.future::before{" not in CSS
+    # Preserve the established color for unlocked cards.
+    assert "color-mix(in srgb,var(--v22-tone) 35%,transparent)" in CSS
+    assert "0 -10px 22px -18px color-mix(in srgb,var(--v22-tone) 45%,transparent)" in CSS
+
+
+def test_locked_theater_cards_are_muted_but_readable_and_do_not_lift():
+    selector = ".crew-theater-arc-panel .v22-day-card.future{"
+    assert CSS.count(selector) == 1
+    locked = CSS.split(selector, 1)[1].split("\n  }", 1)[0]
+    assert "opacity:.74" in locked
+    assert "grayscale(.75) saturate(.30) brightness(.88)" in locked
+    assert "border-color:rgba(255,255,255,.09)" in locked
+    assert "box-shadow:" in locked
+    assert "var(--v22-tone)" not in locked
+    glint = CSS.split(".crew-theater-arc-panel .v22-day-card.future::after{", 1)[1].split("\n  }", 1)[0]
+    assert "opacity:.20" in glint
+    assert ".crew-theater-arc-panel:has(> a.v22-day-card:hover)," in CSS
+    assert ".crew-theater-arc-panel:hover," not in CSS
+    assert ".crew-theater-arc-panel:focus-within{" in CSS
+    # Locking is cosmetic only: preserves original dates, scores and gameplay links.
+    assert "UNLOCKS ${upperMonthDay(game.date)}" not in CSS
+    assert "href={game.url}" in MAIN
