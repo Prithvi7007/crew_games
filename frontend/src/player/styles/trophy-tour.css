@@ -531,3 +531,104 @@
   .crew-tour-medal-guide{gap:7px;margin:0 auto}
   .crew-tour-medal-narration{min-height:92px}
 }
+
+
+/* Before → after: profile avatar stays centered as its badge is equipped. */
+.crew-tour-wear-reveal{display:grid;justify-items:center;gap:9px;margin:4px auto 0}
+.crew-tour-wear-scene{
+  position:relative;isolation:isolate;display:grid;place-items:center;
+  width:min(100%,320px);height:238px
+}
+.crew-tour-wear-scene::before{
+  content:"";position:absolute;inset:7%;z-index:-1;
+  border-radius:50%;background:radial-gradient(circle,rgba(72,180,251,.18),transparent 65%);
+  filter:blur(20px)
+}
+.crew-tour-wear-before,.crew-tour-wear-after{
+  position:absolute;inset:0;display:grid;place-items:center
+}
+.crew-tour-wear-plain{
+  display:grid;place-items:center;width:142px;height:142px;border-radius:50%;
+  color:#fff;font-size:70px;
+  background:linear-gradient(145deg,#233956,#0b1426);
+  box-shadow:inset 0 0 18px rgba(0,0,0,.45),0 6px 32px rgba(0,0,0,.22)
+}
+.crew-tour-wear-after .crew-equipped-badge{
+  width:174px;height:174px;flex:0 0 174px;
+  filter:drop-shadow(0 0 18px rgba(103,200,255,.27))
+}
+.crew-tour-wear-after .crew-equipped-avatar{font-size:71px}
+.crew-tour-wear-after .crew-equipped-season{font-size:13px}
+.crew-tour-wear-after .crew-equipped-achievement{border-width:3px}
+.crew-tour-wear-light{
+  position:absolute;width:210px;height:210px;inset:auto;
+  border-radius:50%;pointer-events:none;opacity:0;
+  border:2px solid rgba(175,231,255,.85);
+  box-shadow:0 0 28px rgba(93,205,255,.4)
+}
+.crew-tour-wear-caption{
+  min-height:22px;margin:0;color:#bdd9ed;
+  font:700 .78rem/1.4 Inter,sans-serif
+}
+@media(prefers-reduced-motion:no-preference){
+  .crew-tour-wear-before{animation:crew-wear-before 2.9s ease-in-out both}
+  .crew-tour-wear-after{animation:crew-wear-after 2.9s cubic-bezier(.17,1,.28,1) both}
+  .crew-tour-wear-after .crew-equipped-outer{
+    animation:crew-wear-ring 2.9s cubic-bezier(.17,1,.28,1) both;
+    transform-origin:50% 50%
+  }
+  .crew-tour-wear-after .crew-equipped-game-ring{
+    animation:crew-wear-game-ring 2.9s ease-out both;
+    transform-origin:50% 50%
+  }
+  .crew-tour-wear-after .crew-equipped-achievement{
+    animation:crew-wear-mark 2.9s cubic-bezier(.17,1,.28,1) both
+  }
+  .crew-tour-wear-after .crew-equipped-season{
+    animation:crew-wear-season 2.9s cubic-bezier(.17,1,.28,1) both
+  }
+  .crew-tour-wear-light{animation:crew-wear-flash 2.9s ease-out both}
+  @keyframes crew-wear-before{
+    0%,28%{opacity:1;transform:scale(1)}
+    43%{opacity:0;transform:scale(.94)}
+    100%{opacity:0}
+  }
+  @keyframes crew-wear-after{
+    0%,26%{opacity:0;transform:scale(.86)}
+    40%{opacity:1;transform:scale(1)}
+    100%{opacity:1;transform:scale(1)}
+  }
+  @keyframes crew-wear-ring{
+    0%,31%{opacity:0;transform:rotate(-80deg) scale(.6)}
+    61%,100%{opacity:1;transform:none}
+  }
+  @keyframes crew-wear-game-ring{
+    0%,41%{opacity:0;transform:rotate(65deg) scale(.7)}
+    69%,100%{opacity:1;transform:none}
+  }
+  @keyframes crew-wear-mark{
+    0%,55%{opacity:0;transform:scale(.25) rotate(-25deg)}
+    77%,100%{opacity:1;transform:scale(1) rotate(0)}
+  }
+  @keyframes crew-wear-season{
+    0%,63%{opacity:0;transform:scale(.25)}
+    82%,100%{opacity:1;transform:scale(1)}
+  }
+  @keyframes crew-wear-flash{
+    0%,43%{opacity:0;transform:scale(.5)}
+    57%{opacity:.9;transform:scale(1)}
+    82%,100%{opacity:0;transform:scale(1.25)}
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .crew-tour-wear-before{display:none}
+  .crew-tour-wear-after{opacity:1}
+  .crew-tour-wear-after,.crew-tour-wear-after *,
+  .crew-tour-wear-light{animation:none!important;transition:none!important}
+}
+@media(max-width:480px){
+  .crew-tour-wear-scene{height:205px}
+  .crew-tour-wear-after .crew-equipped-badge{width:152px;height:152px;flex-basis:152px}
+  .crew-tour-wear-after .crew-equipped-avatar{font-size:61px}
+  .crew-tour-wear-plain{width:120px;height:120px;font-size:61px}
+}
