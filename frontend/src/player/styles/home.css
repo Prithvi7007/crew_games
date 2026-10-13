@@ -1337,65 +1337,52 @@ a.v17-secondary-card:hover {
 }
 
 
-/* Opt-in desktop experiment: /home?deck_preview=1. Default layout untouched. */
+/* Opt-in desktop trial. Keep cards inside the viewport; no extreme 3D stretch. */
 @media (min-width:1121px) {
-  .v22-today-desktop.is-deck-preview .v22-feature,
-  .v22-today-desktop.is-deck-preview .v22-week-progress {display:none}
-  .v22-today-desktop.is-deck-preview {
-    perspective:1250px;
-    margin-top:clamp(42px,6vw,88px);
-  }
-  .v22-today-desktop.is-deck-preview .v22-week-grid {
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    align-items:center;
-    gap:clamp(0px,.5vw,10px);
-    min-height:clamp(400px,40vw,550px);
-    overflow:visible;
-    transform-style:preserve-3d;
-  }
-  .v22-today-desktop.is-deck-preview .v22-day-card,
-  .v22-today-desktop.is-deck-preview .v22-day-card.is-featured {
-    display:grid;
-    height:clamp(360px,37vw,490px);
-    min-height:0;
-    padding:clamp(15px,1.7vw,25px);
-    border-color:color-mix(in srgb,var(--v22-tone) 38%,rgba(255,255,255,.20));
-    box-shadow:0 25px 65px rgba(0,0,0,.58),0 0 35px color-mix(in srgb,var(--v22-tone) 8%,transparent);
-    backface-visibility:hidden;
-    opacity:1;
-    transition:transform .42s cubic-bezier(.2,.8,.2,1),box-shadow .25s ease,border-color .25s ease;
-  }
-  .v22-today-desktop.is-deck-preview .v22-day-card:nth-child(1){
-    z-index:3;
-    transform-origin:right center;
-    transform:perspective(750px) rotateY(23deg) translateZ(52px) translateY(-3px);
-  }
-  .v22-today-desktop.is-deck-preview .v22-day-card:nth-child(2){
-    z-index:1;
-    transform:perspective(750px) rotateY(7deg) translateZ(-75px) scale(.92) translateY(9px);
-  }
-  .v22-today-desktop.is-deck-preview .v22-day-card:nth-child(3){
-    z-index:1;
-    transform:perspective(750px) rotateY(-7deg) translateZ(-75px) scale(.92) translateY(9px);
-  }
-  .v22-today-desktop.is-deck-preview .v22-day-card:nth-child(4){
-    z-index:3;
-    transform-origin:left center;
-    transform:perspective(750px) rotateY(-23deg) translateZ(52px) translateY(-3px);
-  }
-  .v22-today-desktop.is-deck-preview a.v22-day-card:hover,
-  .v22-today-desktop.is-deck-preview a.v22-day-card:focus-visible{
-    z-index:5;transform:translateZ(80px) translateY(-10px) scale(1.04);
-    border-color:var(--v22-tone);
-    box-shadow:0 30px 90px rgba(0,0,0,.65),0 0 34px color-mix(in srgb,var(--v22-tone) 25%,transparent);
-  }
-  .v22-today-desktop.is-deck-preview .v22-day-copy{width:100%}
-  .v22-today-desktop.is-deck-preview .v22-day-copy h3{font-size:clamp(1.45rem,2vw,2.45rem)}
-  .v22-today-desktop.is-deck-preview .v22-day-card.future{
-    filter:grayscale(.60) saturate(.55);opacity:.64;
-  }
+ .v22-today-desktop.is-deck-preview .v22-feature,
+ .v22-today-desktop.is-deck-preview .v22-week-progress{display:none}
+ .v22-today-desktop.is-deck-preview{margin-top:clamp(32px,4vw,64px)}
+ .v22-today-desktop.is-deck-preview .v22-week-grid{
+   display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+   gap:clamp(12px,1.45vw,24px);align-items:center;
+   min-height:clamp(390px,35vw,485px);overflow:visible;
+   perspective:1600px;perspective-origin:center center;
+ }
+ .v22-today-desktop.is-deck-preview .v22-day-card,
+ .v22-today-desktop.is-deck-preview .v22-day-card.is-featured{
+   display:grid;width:100%;min-width:0;
+   height:clamp(355px,34vw,470px);min-height:0;
+   padding:clamp(14px,1.4vw,22px);
+   opacity:1;filter:none;
+   border-color:color-mix(in srgb,var(--v22-tone) 35%,rgba(255,255,255,.20));
+   box-shadow:0 16px 42px rgba(0,0,0,.48),0 0 22px color-mix(in srgb,var(--v22-tone) 7%,transparent);
+   transition:transform .3s ease,border-color .3s ease,box-shadow .3s ease;
+   backface-visibility:visible;
+ }
+ .v22-today-desktop.is-deck-preview .v22-day-card:nth-child(1){
+   z-index:2;transform-origin:center center;transform:rotateY(-9deg) translateY(-5px);
+ }
+ .v22-today-desktop.is-deck-preview .v22-day-card:nth-child(2){
+   z-index:1;transform:translateY(8px) scale(.965);
+ }
+ .v22-today-desktop.is-deck-preview .v22-day-card:nth-child(3){
+   z-index:1;transform:translateY(8px) scale(.965);
+ }
+ .v22-today-desktop.is-deck-preview .v22-day-card:nth-child(4){
+   z-index:2;transform-origin:center center;transform:rotateY(9deg) translateY(-5px);
+ }
+ .v22-today-desktop.is-deck-preview a.v22-day-card:hover,
+ .v22-today-desktop.is-deck-preview a.v22-day-card:focus-visible{
+   z-index:5;transform:translateY(-10px) scale(1.025);
+   border-color:var(--v22-tone);
+   box-shadow:0 24px 62px rgba(0,0,0,.52),0 0 26px color-mix(in srgb,var(--v22-tone) 18%,transparent);
+ }
+ .v22-today-desktop.is-deck-preview .v22-day-copy{width:100%}
+ .v22-today-desktop.is-deck-preview .v22-day-copy h3{font-size:clamp(1.3rem,1.7vw,2.2rem)}
+ .v22-today-desktop.is-deck-preview .v22-day-card.future{
+   opacity:.83;filter:saturate(.72);
+ }
 }
-@media (prefers-reduced-motion:reduce) {
+@media(prefers-reduced-motion:reduce){
  .v22-today-desktop.is-deck-preview .v22-day-card{transition:none!important}
 }
