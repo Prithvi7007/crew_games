@@ -53,10 +53,10 @@ def test_cinema_orientation_and_depth_do_not_exaggerate_card_scale():
     assert "translateZ(var(--arc-z))" in CSS
     assert "rotateY(var(--arc-angle))" in CSS
     expected = {
-        "outer-left": ("15%", "70px", "23deg"),
-        "inner-left": ("38%", "-42px", "7deg"),
-        "inner-right": ("62%", "-42px", "-7deg"),
-        "outer-right": ("85%", "70px", "-23deg"),
+        "outer-left": ("calc(50% - var(--arc-outer-offset))", "70px", "32deg"),
+        "inner-left": ("calc(50% - var(--arc-inner-offset))", "-42px", "11deg"),
+        "inner-right": ("calc(50% + var(--arc-inner-offset))", "-42px", "-11deg"),
+        "outer-right": ("calc(50% + var(--arc-outer-offset))", "70px", "-32deg"),
     }
     for position, (x, z, yaw) in expected.items():
         anchor = ".crew-theater-arc-panel.is-" + position + "{"
@@ -67,8 +67,11 @@ def test_cinema_orientation_and_depth_do_not_exaggerate_card_scale():
         assert "--arc-angle:" + yaw in block
     assert "scale(var(--arc-scale))" in CSS
     assert "scale(calc(var(--arc-scale) + .025))" in CSS
-    assert "width:clamp(205px,22vw,324px)" in CSS
+    assert "--arc-card-width:clamp(205px,22vw,324px)" in CSS
+    assert "width:var(--arc-card-width)" in CSS
     assert "height:clamp(336px,31vw,430px)" in CSS
+    assert "--arc-inner-offset:calc(var(--arc-card-width) * .5)" in CSS
+    assert "--arc-outer-offset:calc(var(--arc-card-width) * 1.43)" in CSS
     assert "crew-theater-arc-ambient" in ARC
     assert ".crew-theater-arc-panel::before" in CSS
     assert ".crew-theater-arc-panel:focus-within" in CSS
@@ -76,13 +79,13 @@ def test_cinema_orientation_and_depth_do_not_exaggerate_card_scale():
     assert "@media (prefers-reduced-motion:reduce)" in CSS
 
 
-def test_theater_arc_vertical_alignment_is_symmetric_and_subtle():
-    # The screenshot showed the projected outer cards ending below the center
-    # pair. Lift both outer panels 14px, lower both inner panels 14px.
+def test_theater_arc_adjacent_edges_share_one_symmetric_curve():
+    # A shared baseline avoids the previous ~40px near-seam height mismatch.
+    # Depth and mirrored yaw now make the center look recessed.
     expected_y = {
         "outer-left": "-5px",
-        "inner-left": "14px",
-        "inner-right": "14px",
+        "inner-left": "-5px",
+        "inner-right": "-5px",
         "outer-right": "-5px",
     }
     for position, y in expected_y.items():
@@ -90,22 +93,22 @@ def test_theater_arc_vertical_alignment_is_symmetric_and_subtle():
         block = CSS.split(anchor, 1)[1].split("}", 1)[0]
         assert "--arc-y:" + y in block
 
-    # Preserve the current cinema-facing yaw/depth and existing hover lift.
-    assert "--arc-z:70px;--arc-angle:23deg" in CSS
-    assert "--arc-z:-42px;--arc-angle:7deg" in CSS
-    assert "--arc-z:-42px;--arc-angle:-7deg" in CSS
-    assert "--arc-z:70px;--arc-angle:-23deg" in CSS
+    # Consistent ~22 degree steps mean the inner facets follow the same arc.
+    assert "--arc-z:70px;--arc-angle:32deg" in CSS
+    assert "--arc-z:-42px;--arc-angle:11deg" in CSS
+    assert "--arc-z:-42px;--arc-angle:-11deg" in CSS
+    assert "--arc-z:70px;--arc-angle:-32deg" in CSS
     assert "translateY(calc(var(--arc-y) - 9px))" in CSS
     assert ".crew-theater-arc-panel:focus-within" in CSS
 
 
-def test_theater_arc_compensates_perspective_without_changing_orientation():
-    """Equalize apparent card size while retaining actual Z-depth and inward yaw."""
+def test_theater_arc_matches_adjacent_projected_edge_heights():
+    """Match seam silhouettes while keeping a physically recessed center."""
     expected = {
-        "outer-left": ("70px", "23deg", ".94"),
-        "inner-left": ("-42px", "7deg", "1.06"),
-        "inner-right": ("-42px", "-7deg", "1.06"),
-        "outer-right": ("70px", "-23deg", ".94"),
+        "outer-left": ("70px", "32deg", ".94"),
+        "inner-left": ("-42px", "11deg", ".96"),
+        "inner-right": ("-42px", "-11deg", ".96"),
+        "outer-right": ("70px", "-32deg", ".94"),
     }
     for position, (depth, yaw, scale) in expected.items():
         anchor = ".crew-theater-arc-panel.is-" + position + "{"
@@ -114,8 +117,69 @@ def test_theater_arc_compensates_perspective_without_changing_orientation():
         assert "--arc-angle:" + yaw in declaration
         assert "--arc-scale:" + scale in declaration
     assert "height:clamp(336px,31vw,430px)" in CSS
-    assert "width:clamp(205px,22vw,324px)" in CSS
-    assert "--arc-y:-5px" in CSS and "--arc-y:14px" in CSS
+    assert "--arc-card-width:clamp(205px,22vw,324px)" in CSS
+    assert "width:var(--arc-card-width)" in CSS
+    assert CSS.count("--arc-y:-5px") == 4
+    assert "--arc-y:14px" not in CSS
     assert "scale(var(--arc-scale))" in CSS
     assert "scale(calc(var(--arc-scale) + .025))" in CSS
     assert "crew-theater-arc-controls" not in CSS
+
+
+def test_projected_card_seams_and_spacing_remain_smooth_on_desktop():
+    """Projected 3D quads preserve the upper AND lower silhouette at all widths.
+
+    Representative desktop widths include the CSS minimum breakpoint and
+    widths above the 324px card cap. The stage may be narrower than the
+    viewport inside CREW's content shell.
+    """
+    from math import cos, radians, sin
+
+    slots = (
+        (-1.43, 70, 32, .94),
+        (-.5, -42, 11, .96),
+        (.5, -42, -11, .96),
+        (1.43, 70, -32, .94),
+    )
+
+    def clamp(minimum, value, maximum):
+        return max(minimum, min(value, maximum))
+
+    for viewport in (1121, 1200, 1366, 1600, 1918, 2100):
+        stage_width = min(viewport - 90, 1500)
+        stage_height = clamp(382, viewport * .36, 480)
+        card_width = clamp(205, viewport * .22, 324)
+        card_height = clamp(336, viewport * .31, 430)
+        origin_y = .46 * stage_height
+        origin_x = .5 * stage_width
+
+        def corner(slot, at_right, at_bottom):
+            offset, depth, yaw, scale = slots[slot]
+            u = (.5 if at_right else -.5) * card_width
+            v = (.5 if at_bottom else -.5) * card_height
+            angle = radians(yaw)
+            world_x = origin_x + offset * card_width + scale * cos(angle) * u
+            world_y = 10 - 5 + card_height / 2 + scale * v
+            world_z = depth - scale * sin(angle) * u
+            perspective = 1450 / (1450 - world_z)
+            return (
+                origin_x + (world_x - origin_x) * perspective,
+                origin_y + (world_y - origin_y) * perspective,
+            )
+
+        for left in (0, 1, 2):
+            right = left + 1
+            top_left = corner(left, True, False)
+            top_right = corner(right, False, False)
+            bottom_left = corner(left, True, True)
+            bottom_right = corner(right, False, True)
+            gap = top_right[0] - top_left[0]
+            # Separate clickable cards without huge empty seams.
+            assert 8 <= gap <= 32, (viewport, left, "gap", gap)
+            # Both corners must connect, not just the upper silhouette.
+            assert abs(top_right[1] - top_left[1]) <= 6, (viewport, left, "top")
+            assert abs(bottom_right[1] - bottom_left[1]) <= 6, (viewport, left, "bottom")
+
+        # Both outside portals remain within their container.
+        assert corner(0, False, False)[0] > 0
+        assert corner(3, True, False)[0] < stage_width
