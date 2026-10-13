@@ -5,6 +5,7 @@ import './styles/gameplay.css';
 import './styles/results.css';
 import './styles/word.css';
 import './styles/home.css';
+import './styles/coverflow.css';
 import './styles/games.css';
 import './styles/rankings.css';
 import './styles/profile.css';
@@ -13,6 +14,7 @@ import './styles/trophies.css';
 import './styles/trophy-tour.css';
 import TrophyRoom, { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
 import TrophyWelcomeTour from './TrophyWelcomeTour';
+import HomeCoverflow from './HomeCoverflow';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -336,6 +338,7 @@ function GameResult({ game, icon='✦', kicker='ROUND COMPLETE', score=0, meta=[
 
 function HomePage({ data }) {
   const {games=[], today, season, weekNumber, shell} = data;
+  const coverflowPreview = new URLSearchParams(window.location.search).get('coverflow_preview') === '1';
   const completed = games.filter(g=>g.completed);
   const points = completed.reduce((sum,g)=>sum+Number(g.score||0),0);
   const featured = games.find(g=>g.date===today) || [...games].filter(g=>g.date<=today).pop() || null;
@@ -344,7 +347,7 @@ function HomePage({ data }) {
   const first = games[0]?.date || today, last = games[games.length-1]?.date || today;
   const fp=parseYmd(first), lp=parseYmd(last);
   const weekLabel = fp.month===lp.month ? `${monthName(first)} ${fp.day}–${lp.day}` : `${monthDay(first)}–${monthDay(last)}`;
-  return <div className={`v17-today-shell v17-current-${featureKey}`} style={{'--journey-progress':progress}}><AppHeader shell={shell}/><main className="v17-today-main"><header className="v17-intro home-summary"><div className="home-week"><span className="v17-eyebrow">{season ? `SEASON ${season.number} · WEEK ${String(season.week_number).padStart(2,'0')}` : weekNumber>0 ? `WEEK ${String(weekNumber).padStart(2,'0')}` : 'PRESEASON'}</span><h1>{weekLabel}</h1><p>Four games. A week of fun.</p></div><aside className="v17-score home-score" style={{'--score-progress':`${completed.length*25}%`}} aria-label="Weekly score"><div className="v17-score-value"><strong>{points}</strong><span>/ 400 PTS</span></div><div className="v17-score-rail" aria-hidden="true"><i/></div><p>{completed.length} OF 4 COMPLETE</p></aside>{season?<a className="home-season-summary" href="/leaderboard"><span>SEASON {season.number} TOTAL</span><strong>{season.points} <small>pts</small></strong><em>{season.rank?`RANK #${season.rank}`:'UNRANKED'}</em><b aria-hidden="true">→</b></a>:null}</header><HomeDesktop games={games} featured={featured} today={today}/><HomeJourney games={games} featured={featured} today={today}/></main></div>;
+  return <div className={`v17-today-shell v17-current-${featureKey}${coverflowPreview ? ' has-coverflow-preview' : ''}`} style={{'--journey-progress':progress}}><AppHeader shell={shell}/><main className="v17-today-main"><header className="v17-intro home-summary"><div className="home-week"><span className="v17-eyebrow">{season ? `SEASON ${season.number} · WEEK ${String(season.week_number).padStart(2,'0')}` : weekNumber>0 ? `WEEK ${String(weekNumber).padStart(2,'0')}` : 'PRESEASON'}</span><h1>{weekLabel}</h1><p>Four games. A week of fun.</p></div><aside className="v17-score home-score" style={{'--score-progress':`${completed.length*25}%`}} aria-label="Weekly score"><div className="v17-score-value"><strong>{points}</strong><span>/ 400 PTS</span></div><div className="v17-score-rail" aria-hidden="true"><i/></div><p>{completed.length} OF 4 COMPLETE</p></aside>{season?<a className="home-season-summary" href="/leaderboard"><span>SEASON {season.number} TOTAL</span><strong>{season.points} <small>pts</small></strong><em>{season.rank?`RANK #${season.rank}`:'UNRANKED'}</em><b aria-hidden="true">→</b></a>:null}</header><HomeDesktop games={games} featured={featured} today={today}/>{coverflowPreview ? <HomeCoverflow games={games} renderCard={(game,index) => <HomeDesktopCard game={game} index={index} featured={null} today={today}/>} /> : null}<HomeJourney games={games} featured={featured} today={today}/></main></div>;
 }
 function HomeDesktop({games,featured,today}) {
   const [featureState,featureLabel] = featured ? stateFor(featured,today) : ['future','LOCKED'];
