@@ -56,22 +56,24 @@
     transition:transform .38s cubic-bezier(.2,.78,.2,1),filter .3s ease;
   }
 
+  /* Symmetric vertical rhythm: foreground edges lift while the recessed pair
+     settles slightly, tracing one shared viewing arc without changing depth. */
   /* Outer portals stand nearer to the viewer; middle portals recede.
      Angles are opposite on each side so all four face the same viewer. */
   .crew-theater-arc-panel.is-outer-left{
-    --arc-x:15%;--arc-y:9px;--arc-z:70px;--arc-angle:23deg;
+    --arc-x:15%;--arc-y:-5px;--arc-z:70px;--arc-angle:23deg;
     --arc-layer:4;
   }
   .crew-theater-arc-panel.is-inner-left{
-    --arc-x:38%;--arc-y:0px;--arc-z:-42px;--arc-angle:7deg;
+    --arc-x:38%;--arc-y:14px;--arc-z:-42px;--arc-angle:7deg;
     --arc-layer:2;
   }
   .crew-theater-arc-panel.is-inner-right{
-    --arc-x:62%;--arc-y:0px;--arc-z:-42px;--arc-angle:-7deg;
+    --arc-x:62%;--arc-y:14px;--arc-z:-42px;--arc-angle:-7deg;
     --arc-layer:2;
   }
   .crew-theater-arc-panel.is-outer-right{
-    --arc-x:85%;--arc-y:9px;--arc-z:70px;--arc-angle:-23deg;
+    --arc-x:85%;--arc-y:-5px;--arc-z:70px;--arc-angle:-23deg;
     --arc-layer:4;
   }
 

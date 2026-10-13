@@ -73,3 +73,26 @@ def test_cinema_orientation_and_depth_do_not_exaggerate_card_scale():
     assert ".crew-theater-arc-panel:focus-within" in CSS
     assert "a.v22-day-card:focus-visible" in CSS
     assert "@media (prefers-reduced-motion:reduce)" in CSS
+
+
+def test_theater_arc_vertical_alignment_is_symmetric_and_subtle():
+    # The screenshot showed the projected outer cards ending below the center
+    # pair. Lift both outer panels 14px, lower both inner panels 14px.
+    expected_y = {
+        "outer-left": "-5px",
+        "inner-left": "14px",
+        "inner-right": "14px",
+        "outer-right": "-5px",
+    }
+    for position, y in expected_y.items():
+        anchor = ".crew-theater-arc-panel.is-" + position + "{"
+        block = CSS.split(anchor, 1)[1].split("}", 1)[0]
+        assert "--arc-y:" + y in block
+
+    # Preserve the current cinema-facing yaw/depth and existing hover lift.
+    assert "--arc-z:70px;--arc-angle:23deg" in CSS
+    assert "--arc-z:-42px;--arc-angle:7deg" in CSS
+    assert "--arc-z:-42px;--arc-angle:-7deg" in CSS
+    assert "--arc-z:70px;--arc-angle:-23deg" in CSS
+    assert "translateY(calc(var(--arc-y) - 9px))" in CSS
+    assert ".crew-theater-arc-panel:focus-within" in CSS
