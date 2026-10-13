@@ -244,3 +244,28 @@ def test_locked_theater_cards_are_muted_but_readable_and_do_not_lift():
     # Locking is cosmetic only: preserves original dates, scores and gameplay links.
     assert "UNLOCKS ${upperMonthDay(game.date)}" not in CSS
     assert "href={game.url}" in MAIN
+
+
+def test_recessed_theater_cards_receive_pointer_hits():
+    """The 3D stage at z=0 must not swallow clicks on cards at z=-42px.
+
+    Browser reproduction: without this rule, document.elementFromPoint at the
+    center of Trivia Tuesday returns .crew-theater-arc-stage, while the
+    foreground Mystery Monday returns its anchor. Set stage pointer-events
+    none and opt only playable card links back into hit testing. This retains
+    the approved 3D perspective, Z positions, colors and hover behavior.
+    """
+    stage = CSS.split(".crew-theater-arc-stage{", 1)[1].split("\n  }", 1)[0]
+    assert "perspective:1450px" in stage
+    assert "transform-style:preserve-3d" in stage
+    assert "pointer-events:none" in stage
+    link = CSS.split(".crew-theater-arc-panel a.v22-day-card{", 1)[1].split("\n  }", 1)[0]
+    assert "pointer-events:auto" in link
+    assert "pointer-events:auto" not in CSS.split(".crew-theater-arc-panel{", 1)[1].split("\n  }", 1)[0]
+    assert "return future?<article className={cls}>{content}</article>:<a className={cls} href={game.url}>{content}</a>" in MAIN
+    assert "--arc-z:-42px" in CSS
+    assert "--arc-z:70px" in CSS
+    assert ".crew-theater-arc-panel:has(> a.v22-day-card:hover)" in CSS
+    assert ".crew-theater-arc-panel a.v22-day-card:focus-visible" in CSS
+    assert ".crew-theater-arc-panel a.v22-day-card:not(.future)::before{" in CSS
+    assert ".crew-theater-arc-panel .v22-day-card.future{" in CSS
