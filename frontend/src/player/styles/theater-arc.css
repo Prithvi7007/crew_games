@@ -1,0 +1,167 @@
+/*
+ * Opt-in cinema arc: separate game cards, one shared viewing geometry.
+ * No track, no continuous screen, and no carousel movement.
+ */
+.crew-theater-arc{display:none}
+
+@media (min-width:1121px){
+  .v17-today-shell.has-theater-preview .v22-today-desktop{display:none}
+
+  .crew-theater-arc{
+    display:block;
+    position:relative;
+    isolation:isolate;
+    width:100%;
+    max-width:1500px;
+    margin:clamp(24px,2.8vw,42px) auto 0;
+  }
+
+  .crew-theater-arc-stage{
+    position:relative;
+    width:100%;
+    height:clamp(382px,36vw,480px);
+    perspective:1450px;
+    perspective-origin:50% 46%;
+    transform-style:preserve-3d;
+  }
+
+  /* The theater is suggested with atmosphere, not a drawn semicircle. */
+  .crew-theater-arc-ambient{
+    position:absolute;
+    pointer-events:none;
+    z-index:0;
+    inset:-18% -6% -12%;
+    background:
+      radial-gradient(ellipse 30% 65% at 15% 51%,rgba(62,222,182,.095),transparent 76%),
+      radial-gradient(ellipse 35% 65% at 84% 51%,rgba(177,84,245,.090),transparent 76%),
+      radial-gradient(ellipse 40% 60% at 50% 52%,rgba(49,116,204,.080),transparent 78%);
+    filter:blur(27px);
+  }
+
+  .crew-theater-arc-panel{
+    position:absolute;
+    left:var(--arc-x);
+    top:10px;
+    z-index:var(--arc-layer);
+    width:clamp(205px,22vw,324px);
+    height:clamp(336px,31vw,430px);
+    min-width:0;
+    transform-style:preserve-3d;
+    transform-origin:50% 50%;
+    transform:
+      translateX(-50%)
+      translateY(var(--arc-y))
+      translateZ(var(--arc-z))
+      rotateY(var(--arc-angle));
+    transition:transform .38s cubic-bezier(.2,.78,.2,1),filter .3s ease;
+  }
+
+  /* Outer portals stand nearer to the viewer; middle portals recede.
+     Angles are opposite on each side so all four face the same viewer. */
+  .crew-theater-arc-panel.is-outer-left{
+    --arc-x:15%;--arc-y:9px;--arc-z:70px;--arc-angle:23deg;
+    --arc-layer:4;
+  }
+  .crew-theater-arc-panel.is-inner-left{
+    --arc-x:38%;--arc-y:0px;--arc-z:-42px;--arc-angle:7deg;
+    --arc-layer:2;
+  }
+  .crew-theater-arc-panel.is-inner-right{
+    --arc-x:62%;--arc-y:0px;--arc-z:-42px;--arc-angle:-7deg;
+    --arc-layer:2;
+  }
+  .crew-theater-arc-panel.is-outer-right{
+    --arc-x:85%;--arc-y:9px;--arc-z:70px;--arc-angle:-23deg;
+    --arc-layer:4;
+  }
+
+  .crew-theater-arc-panel::before{
+    content:"";
+    position:absolute;
+    pointer-events:none;
+    inset:10px 8px -12px;
+    border-radius:20px;
+    background:rgba(0,0,0,.65);
+    filter:blur(21px);
+    transform:translateZ(-34px) translateY(12px) scale(.94);
+  }
+
+  .crew-theater-arc-panel .v22-day-card,
+  .crew-theater-arc-panel .v22-day-card.is-featured{
+    position:relative;
+    width:100%;
+    height:100%;
+    min-height:0;
+    display:grid;
+    padding:clamp(13px,1.4vw,21px);
+    border:1px solid color-mix(in srgb,var(--v22-tone) 40%,rgba(255,255,255,.20));
+    border-radius:17px;
+    background:#050b10;
+    box-shadow:
+      0 22px 48px rgba(0,0,0,.55),
+      0 0 30px color-mix(in srgb,var(--v22-tone) 10%,transparent),
+      inset 0 1px rgba(255,255,255,.10);
+    backface-visibility:hidden;
+  }
+
+  /* Light glances across each card independently; their edges remain distinct. */
+  .crew-theater-arc-panel .v22-day-card::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:3;
+    pointer-events:none;
+    border-radius:inherit;
+    background:linear-gradient(120deg,rgba(228,243,255,.12),transparent 31%,transparent 82%,rgba(181,210,255,.055));
+    opacity:.55;
+  }
+
+  .crew-theater-arc-panel .v22-day-card.future{
+    opacity:.87;
+    filter:saturate(.80);
+  }
+
+  .crew-theater-arc-panel .v22-day-copy{
+    width:100%;
+    padding:26px 0 12px;
+  }
+  .crew-theater-arc-panel .v22-day-copy h3{
+    font-size:clamp(1.28rem,1.65vw,1.96rem);
+    line-height:1.06;
+    letter-spacing:-.055em;
+  }
+  .crew-theater-arc-panel .v22-day-copy p{
+    font-size:clamp(.62rem,.69vw,.72rem);
+    line-height:1.42;
+  }
+  .crew-theater-arc-panel .v22-day-foot{gap:6px}
+  .crew-theater-arc-panel .v22-card-action{font-size:.56rem}
+
+  /* In-place focus: card lifts toward the viewer, but never scrolls or rotates. */
+  .crew-theater-arc-panel:hover,
+  .crew-theater-arc-panel:focus-within{
+    z-index:8;
+    transform:
+      translateX(-50%)
+      translateY(calc(var(--arc-y) - 9px))
+      translateZ(calc(var(--arc-z) + 45px))
+      rotateY(var(--arc-angle));
+    filter:brightness(1.10);
+  }
+  .crew-theater-arc-panel a.v22-day-card:hover{
+    transform:none;
+    border-color:var(--v22-tone);
+  }
+  .crew-theater-arc-panel a.v22-day-card:focus-visible{
+    outline:3px solid #95e8ff;
+    outline-offset:4px;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .crew-theater-arc-panel,
+  .crew-theater-arc-panel *{
+    transition:none!important;
+    animation:none!important;
+  }
+}
