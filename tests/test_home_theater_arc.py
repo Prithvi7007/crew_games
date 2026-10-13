@@ -65,7 +65,8 @@ def test_cinema_orientation_and_depth_do_not_exaggerate_card_scale():
         assert "--arc-x:" + x in block
         assert "--arc-z:" + z in block
         assert "--arc-angle:" + yaw in block
-    assert "scale(var(--arc-scale))" not in CSS
+    assert "scale(var(--arc-scale))" in CSS
+    assert "scale(calc(var(--arc-scale) + .025))" in CSS
     assert "width:clamp(205px,22vw,324px)" in CSS
     assert "height:clamp(336px,31vw,430px)" in CSS
     assert "crew-theater-arc-ambient" in ARC
@@ -96,3 +97,25 @@ def test_theater_arc_vertical_alignment_is_symmetric_and_subtle():
     assert "--arc-z:70px;--arc-angle:-23deg" in CSS
     assert "translateY(calc(var(--arc-y) - 9px))" in CSS
     assert ".crew-theater-arc-panel:focus-within" in CSS
+
+
+def test_theater_arc_compensates_perspective_without_changing_orientation():
+    """Equalize apparent card size while retaining actual Z-depth and inward yaw."""
+    expected = {
+        "outer-left": ("70px", "23deg", ".94"),
+        "inner-left": ("-42px", "7deg", "1.06"),
+        "inner-right": ("-42px", "-7deg", "1.06"),
+        "outer-right": ("70px", "-23deg", ".94"),
+    }
+    for position, (depth, yaw, scale) in expected.items():
+        anchor = ".crew-theater-arc-panel.is-" + position + "{"
+        declaration = CSS.split(anchor, 1)[1].split("}", 1)[0]
+        assert "--arc-z:" + depth in declaration
+        assert "--arc-angle:" + yaw in declaration
+        assert "--arc-scale:" + scale in declaration
+    assert "height:clamp(336px,31vw,430px)" in CSS
+    assert "width:clamp(205px,22vw,324px)" in CSS
+    assert "--arc-y:-5px" in CSS and "--arc-y:14px" in CSS
+    assert "scale(var(--arc-scale))" in CSS
+    assert "scale(calc(var(--arc-scale) + .025))" in CSS
+    assert "crew-theater-arc-controls" not in CSS
