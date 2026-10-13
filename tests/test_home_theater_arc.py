@@ -183,3 +183,31 @@ def test_projected_card_seams_and_spacing_remain_smooth_on_desktop():
         # Both outside portals remain within their container.
         assert corner(0, False, False)[0] > 0
         assert corner(3, True, False)[0] < stage_width
+
+
+def test_preview_spotlights_are_static_clipped_and_theme_colored():
+    """A low-opacity themed overhead wash, not a new layout or moving beam."""
+    assert CSS.index(".crew-theater-arc{display:none}") < CSS.index("@media (min-width:1121px)")
+    spot_selector = ".crew-theater-arc-panel .v22-day-card::before{"
+    assert CSS.count(spot_selector) == 1
+    light = CSS.split(spot_selector, 1)[1].split("\n  }", 1)[0]
+    assert 'content:""' in light
+    assert "position:absolute" in light
+    assert "inset:0 0 auto" in light
+    assert "height:34%" in light
+    assert "pointer-events:none" in light
+    assert "border-radius:inherit" in light
+    assert "radial-gradient(" in light
+    assert "var(--v22-tone)" in light
+    assert "linear-gradient(" in light
+    assert "opacity:.78" in light
+    assert "filter:blur(7px)" in light
+    assert "animation:" not in light
+    assert "transition:" not in light
+    # Existing artwork and tap targets are still present, with the overlay
+    # beneath the copy (z-index 1) and decorative glint (z-index 3).
+    assert "z-index:0" in light
+    assert ".crew-theater-arc-panel .v22-day-card::after{" in CSS
+    assert "z-index:3" in CSS
+    assert ".crew-theater-arc-panel a.v22-day-card:focus-visible{" in CSS
+    assert ".crew-theater-arc-panel .v22-day-card.future{" in CSS

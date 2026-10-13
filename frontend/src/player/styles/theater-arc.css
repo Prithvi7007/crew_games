@@ -108,8 +108,42 @@
     box-shadow:
       0 22px 48px rgba(0,0,0,.55),
       0 0 30px color-mix(in srgb,var(--v22-tone) 10%,transparent),
+      0 -10px 22px -18px color-mix(in srgb,var(--v22-tone) 45%,transparent),
       inset 0 1px rgba(255,255,255,.10);
     backface-visibility:hidden;
+  }
+
+  /* Preview-only overhead stage lights. Each game's own --v22-tone colors
+     a soft source at the upper edge and a diffused pool over the top third.
+     The existing card clips the light; artwork and content remain untouched.
+     Keep lighting static and non-interactive to avoid motion/hover noise. */
+  .crew-theater-arc-panel .v22-day-card::before{
+    content:"";
+    position:absolute;
+    inset:0 0 auto;
+    height:34%;
+    z-index:0;
+    pointer-events:none;
+    border-radius:inherit;
+    background:
+      radial-gradient(
+        ellipse 32% 25% at 50% 0%,
+        color-mix(in srgb,var(--v22-tone) 35%,transparent),
+        transparent 100%
+      ),
+      radial-gradient(
+        ellipse 56% 88% at 50% -14%,
+        color-mix(in srgb,var(--v22-tone) 19%,transparent) 0%,
+        color-mix(in srgb,var(--v22-tone) 7%,transparent) 54%,
+        transparent 86%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb,var(--v22-tone) 7%,transparent),
+        transparent 82%
+      );
+    opacity:.78;
+    filter:blur(7px);
   }
 
   /* Light glances across each card independently; their edges remain distinct. */
