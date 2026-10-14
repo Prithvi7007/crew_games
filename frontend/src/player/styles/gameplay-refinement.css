@@ -1,0 +1,601 @@
+/* CREW GAMEPLAY REFINEMENT / STAFF PREVIEW
+   Read-only visual restyle for all four live game pages.
+   The server only authorizes this body class for admin/owner ?gameplay_preview=1.
+   Scope every rule to the class to keep current gameplay unchanged for players. */
+
+/* Session-shell hierarchy. The game is now the hero; the page title is a compact
+   mission label, not a giant landing-page masthead. */
+body.crew-gameplay-preview{
+  --crew-play-accent:#55e6ac;
+  --crew-play-soft:rgba(85,230,172,.22);
+  --crew-play-panel:rgba(7,16,27,.84);
+  --crew-play-border:rgba(142,179,213,.17);
+}
+body.crew-gameplay-preview.word-page{--crew-play-accent:#55b9ff;--crew-play-soft:rgba(85,185,255,.22)}
+body.crew-gameplay-preview.timer-page{--crew-play-accent:#c55cff;--crew-play-soft:rgba(197,92,255,.23)}
+body.crew-gameplay-preview.v19-trivia-page{--crew-play-accent:#ffbd45;--crew-play-soft:rgba(255,189,69,.20)}
+
+body.crew-gameplay-preview.game-page .single-game-main,
+body.crew-gameplay-preview.word-page .word-main,
+body.crew-gameplay-preview .v19-trivia-main{
+  width:min(1190px,calc(100% - 48px));
+  padding:clamp(19px,3vh,32px) 0 clamp(60px,8vh,92px);
+  margin-inline:auto;
+}
+
+/* Shared navigation / title strip */
+body.crew-gameplay-preview.game-page .game-title-row,
+body.crew-gameplay-preview.word-page .word-heading,
+body.crew-gameplay-preview .v19-trivia-heading{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px 22px;
+  min-height:92px;
+  margin:0 0 20px;
+  padding:10px 8px 19px;
+  border-bottom:1px solid var(--crew-play-border);
+}
+
+body.crew-gameplay-preview.game-page .game-title-row::after,
+body.crew-gameplay-preview.word-page .word-heading::after,
+body.crew-gameplay-preview .v19-trivia-heading::after{
+  position:absolute;
+  bottom:-1px;
+  left:0;
+  content:"";
+  width:90px;
+  height:2px;
+  background:linear-gradient(90deg,var(--crew-play-accent),transparent);
+  box-shadow:0 0 14px var(--crew-play-soft);
+  pointer-events:none;
+}
+
+body.crew-gameplay-preview.game-page .game-title-row>div:first-child,
+body.crew-gameplay-preview.word-page .word-heading>div:first-child{
+  display:grid;
+  grid-template-columns:max-content minmax(0,1fr);
+  align-items:center;
+  gap:5px 15px;
+  min-width:0;
+}
+body.crew-gameplay-preview.game-page .game-title-row .back-link,
+body.crew-gameplay-preview.word-page .word-heading .back-link,
+body.crew-gameplay-preview .v19-trivia-context .v19-back-link{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  margin:0;
+  padding:6px 9px;
+  min-height:29px;
+  border:1px solid rgba(181,203,226,.18);
+  border-radius:7px;
+  color:#a6bbd2;
+  background:rgba(18,34,50,.59);
+  font:750 .68rem/1.15 Inter,system-ui,sans-serif;
+  text-decoration:none;
+  transition:color .16s,border-color .16s,background .16s;
+}
+body.crew-gameplay-preview.game-page .game-title-row .back-link:hover,
+body.crew-gameplay-preview.word-page .word-heading .back-link:hover,
+body.crew-gameplay-preview .v19-trivia-context .v19-back-link:hover{
+  transform:none;
+  color:#fff;
+  background:rgba(28,48,69,.86);
+  border-color:var(--crew-play-accent);
+}
+body.crew-gameplay-preview.game-page .game-title-row .eyebrow,
+body.crew-gameplay-preview.word-page .word-heading .eyebrow{
+  grid-column:2;
+  align-self:center;
+  margin:0;
+  color:var(--crew-play-accent);
+  font:800 .62rem/1.3 Inter,system-ui,sans-serif;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+body.crew-gameplay-preview.game-page .game-title-row h1,
+body.crew-gameplay-preview.word-page .word-heading h1,
+body.crew-gameplay-preview .v19-trivia-heading h1{
+  grid-column:1 / -1;
+  margin:2px 0 0;
+  color:#f5f9ff;
+  font:850 clamp(1.75rem,2.5vw,2.45rem)/1.12 Manrope,Inter,system-ui,sans-serif;
+  letter-spacing:-.045em;
+  text-wrap:balance;
+}
+body.crew-gameplay-preview.game-page .game-title-row p,
+body.crew-gameplay-preview.word-page .word-heading p,
+body.crew-gameplay-preview .v19-trivia-heading-copy>p{
+  grid-column:1 / -1;
+  margin:0;
+  max-width:660px;
+  color:#8ea7c2;
+  font:500 .77rem/1.42 Inter,system-ui,sans-serif;
+}
+
+/* Score/value pill: single focal number and short label rather than another card. */
+body.crew-gameplay-preview.game-page .game-title-row .glass-stat,
+body.crew-gameplay-preview.word-page .word-heading .glass-stat{
+  min-width:128px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:11px 16px;
+  border:1px solid var(--crew-play-border);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(26,43,65,.75),rgba(8,16,28,.86));
+  box-shadow:inset 0 1px rgba(255,255,255,.045);
+  backdrop-filter:blur(10px);
+}
+body.crew-gameplay-preview .game-title-row .glass-stat .stat-icon,
+body.crew-gameplay-preview.word-page .word-score .stat-icon{
+  color:var(--crew-play-accent);
+  font-size:1.1rem;
+}
+body.crew-gameplay-preview .game-title-row .glass-stat strong,
+body.crew-gameplay-preview.word-page .word-score strong{
+  color:#f7fbff;
+  font:900 1.38rem/1 Manrope,system-ui,sans-serif;
+  letter-spacing:-.035em;
+}
+body.crew-gameplay-preview .game-title-row .glass-stat span:last-child,
+body.crew-gameplay-preview.word-page .word-score span:last-child{
+  color:#9baec6;
+  font-size:.58rem;
+  letter-spacing:.02em;
+}
+
+/* Common play-stage material language: purposeful artwork and subtle edge energy. */
+body.crew-gameplay-preview.game-page .game-stage,
+body.crew-gameplay-preview.game-page .timer-stage,
+body.crew-gameplay-preview.game-page .game-side-panel,
+body.crew-gameplay-preview.word-page .word-game-panel,
+body.crew-gameplay-preview.word-page .word-side-card,
+body.crew-gameplay-preview .react-trivia-stage{
+  border-radius:16px;
+  border:1px solid var(--crew-play-border);
+  box-shadow:0 24px 65px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.065);
+}
+body.crew-gameplay-preview.game-page .game-two-column{
+  grid-template-columns:minmax(0,1.58fr) minmax(250px,.42fr);
+  gap:14px;
+  align-items:start;
+}
+body.crew-gameplay-preview.game-page .game-side-panel,
+body.crew-gameplay-preview.word-page .word-side-card{
+  padding:21px;
+  background:var(--crew-play-panel);
+}
+body.crew-gameplay-preview.game-page .game-side-panel .eyebrow,
+body.crew-gameplay-preview.word-page .word-side-card .eyebrow{
+  color:var(--crew-play-accent);
+  letter-spacing:.16em;
+  font-size:.59rem;
+}
+body.crew-gameplay-preview.game-page .game-side-panel h2,
+body.crew-gameplay-preview.word-page .word-side-card h2{
+  font:820 clamp(1.12rem,1.5vw,1.38rem)/1.22 Manrope,system-ui,sans-serif;
+  letter-spacing:-.035em;
+  margin:9px 0 16px;
+  color:#eff6ff;
+}
+body.crew-gameplay-preview.game-page .game-side-panel>p,
+body.crew-gameplay-preview.word-page .word-side-card>p{
+  color:#829bb7;
+  font-size:.69rem;
+  line-height:1.55;
+}
+body.crew-gameplay-preview.game-page .score-ladder{gap:3px}
+body.crew-gameplay-preview.game-page .score-ladder span{
+  padding:9px 2px;
+  font-size:.69rem;
+}
+body.crew-gameplay-preview.game-page .score-ladder b{color:#e8f3ff}
+body.crew-gameplay-preview.game-page .primary-button,
+body.crew-gameplay-preview.game-page .secondary-button{
+  border-radius:10px;
+  min-height:47px;
+}
+body.crew-gameplay-preview.game-page .primary-button:focus-visible,
+body.crew-gameplay-preview.game-page .secondary-button:focus-visible,
+body.crew-gameplay-preview.game-page .answer-entry input:focus-visible,
+body.crew-gameplay-preview .react-trivia-option:focus-visible,
+body.crew-gameplay-preview.word-page .key:focus-visible{
+  outline:2px solid var(--crew-play-accent);
+  outline-offset:3px;
+}
+
+/* Mystery Monday: case-board reading experience, not a school worksheet. */
+body.crew-gameplay-preview.mystery-page .game-stage{
+  min-height:clamp(430px,62vh,565px);
+  padding:clamp(20px,3vw,30px);
+  background:radial-gradient(ellipse at 83% 5%,rgba(85,230,172,.07),transparent 48%),rgba(5,14,23,.79);
+}
+body.crew-gameplay-preview.mystery-page .stage-top{
+  padding-bottom:15px;
+  border-bottom:1px solid rgba(154,189,218,.13);
+  font-size:.72rem;
+}
+body.crew-gameplay-preview.mystery-page .stage-top>span:last-child{
+  color:#c3d7e9;
+  font-weight:750;
+}
+body.crew-gameplay-preview.mystery-page .clue-list{
+  gap:9px;
+  margin:19px 0 22px;
+}
+body.crew-gameplay-preview.mystery-page .clue-list>*{
+  display:grid;
+  grid-template-columns:35px minmax(0,1fr);
+  gap:11px;
+  align-items:start;
+  border:1px solid rgba(133,164,197,.15);
+  border-radius:10px;
+  padding:13px 15px;
+  background:linear-gradient(105deg,rgba(24,44,54,.77),rgba(7,19,27,.55));
+  box-shadow:inset 2px 0 0 rgba(85,230,172,.27);
+}
+body.crew-gameplay-preview.mystery-page .clue-card span{
+  width:29px;
+  height:29px;
+  border-radius:8px;
+  background:rgba(85,230,172,.1);
+  color:#91f5c8;
+  font-size:.69rem;
+}
+body.crew-gameplay-preview.mystery-page .clue-card p{
+  margin:3px 0 0;
+  font-size:clamp(.84rem,1.25vw,.94rem);
+  line-height:1.55;
+  color:#e2edf7;
+}
+body.crew-gameplay-preview.mystery-page .answer-entry{
+  margin:14px 0 0;
+  gap:9px;
+}
+body.crew-gameplay-preview.mystery-page .answer-entry input{
+  height:47px;
+  background:rgba(7,18,31,.87);
+  border-color:rgba(171,205,226,.26);
+  font-size:.85rem;
+}
+body.crew-gameplay-preview.mystery-page .reveal-button{
+  width:100%;
+  margin:8px 0 0;
+  border:1px solid rgba(141,170,202,.2);
+  background:rgba(255,255,255,.025);
+}
+
+/* Tick-Tock Thursday: central target and action are the hero. */
+body.crew-gameplay-preview.timer-page .game-title-row{grid-template-columns:1fr}
+body.crew-gameplay-preview.timer-page .timer-two-column{
+  grid-template-columns:minmax(0,1.45fr) minmax(240px,.55fr);
+}
+body.crew-gameplay-preview.timer-page .timer-stage{
+  min-height:clamp(440px,62vh,550px);
+  padding:26px 22px;
+  border-color:rgba(197,92,255,.27);
+  background:radial-gradient(ellipse at 50% 45%,rgba(197,92,255,.14),transparent 57%),rgba(7,11,23,.78);
+}
+body.crew-gameplay-preview.timer-page .timer-label{
+  margin:18px 0 4px;
+  font-size:.63rem;
+}
+body.crew-gameplay-preview.timer-page .target-time{
+  color:#fff;
+  font:850 clamp(3.7rem,7vw,6.15rem)/.94 Manrope,system-ui,sans-serif;
+  letter-spacing:-.055em;
+}
+body.crew-gameplay-preview.timer-page .timer-visual{margin:17px 0 16px}
+body.crew-gameplay-preview.timer-page .timer-ring{
+  width:clamp(123px,12vw,154px);
+  height:clamp(123px,12vw,154px);
+  border:1px solid rgba(212,155,255,.46);
+  background:radial-gradient(circle,rgba(197,92,255,.18),rgba(197,92,255,.04) 60%,transparent 70%);
+  box-shadow:0 0 0 9px rgba(197,92,255,.04),0 0 58px rgba(197,92,255,.14);
+}
+body.crew-gameplay-preview.timer-page .timer-action{
+  min-height:54px;
+  min-width:min(100%,250px);
+  margin-top:13px;
+  justify-content:center;
+  font-size:.88rem;
+}
+body.crew-gameplay-preview.timer-page .timer-tip{
+  margin-top:12px;
+  color:#8099b3;
+  font-size:.7rem;
+}
+
+/* Wordle Wednesday: put the interactive board/keyboard above the fold. */
+body.crew-gameplay-preview.word-page .word-layout{
+  grid-template-columns:minmax(0,1.56fr) minmax(240px,.44fr);
+  gap:14px;
+}
+body.crew-gameplay-preview.word-page .word-game-panel{
+  min-height:clamp(530px,71vh,680px);
+  padding:18px clamp(16px,3vw,28px) 22px;
+  background:radial-gradient(ellipse at 52% -6%,rgba(85,185,255,.09),transparent 54%),rgba(5,14,24,.87);
+}
+body.crew-gameplay-preview.word-page .word-panel-top{
+  margin-bottom:10px;
+  padding-bottom:12px;
+  border-bottom:1px solid rgba(142,179,213,.14);
+}
+body.crew-gameplay-preview.word-page .word-message{
+  min-height:26px;
+  margin:0 auto 6px;
+}
+body.crew-gameplay-preview.word-page .word-board{
+  width:min(100%,310px);
+  gap:5px;
+  margin:0 auto 13px;
+}
+body.crew-gameplay-preview.word-page .word-row{
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px;
+  margin:0;
+}
+body.crew-gameplay-preview.word-page .word-tile{
+  width:100%;
+  height:auto;
+  aspect-ratio:1;
+  border-radius:8px;
+  font-size:clamp(1.1rem,2vw,1.45rem);
+}
+body.crew-gameplay-preview.word-page .keyboard-legend{
+  margin:7px 0 11px;
+  gap:7px 12px;
+  font-size:.6rem;
+}
+body.crew-gameplay-preview.word-page .word-keyboard{
+  max-width:560px;
+  gap:5px;
+}
+body.crew-gameplay-preview.word-page .keyboard-row{gap:4px}
+body.crew-gameplay-preview.word-page .key{
+  flex:1 1 0;
+  max-width:none;
+  min-width:0;
+  height:42px;
+  border-radius:7px;
+  font-size:.72rem;
+}
+body.crew-gameplay-preview.word-page .key.key-wide{
+  min-width:0;
+  flex:1.45 1 0;
+  max-width:none;
+  font-size:.58rem;
+}
+body.crew-gameplay-preview.word-page .word-side-card .score-scale{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+}
+body.crew-gameplay-preview.word-page .score-scale>div{
+  padding:11px 7px;
+  border-radius:8px;
+  text-align:center;
+}
+body.crew-gameplay-preview.word-page .score-scale span{font-size:.66rem}
+body.crew-gameplay-preview.word-page .score-scale strong{font-size:.84rem}
+
+/* Trivia Tuesday: question takes priority; answer choices remain touch-friendly. */
+body.crew-gameplay-preview .v19-trivia-heading{
+  min-height:92px;
+  padding:10px 8px 19px;
+}
+body.crew-gameplay-preview .v19-trivia-heading-copy{
+  min-width:0;
+}
+body.crew-gameplay-preview .v19-trivia-context{
+  margin:0 0 8px;
+  gap:10px;
+}
+body.crew-gameplay-preview .v19-trivia-date{
+  color:var(--crew-play-accent);
+  font-size:.64rem;
+}
+body.crew-gameplay-preview .v19-trivia-heading h1{margin:0 0 5px}
+body.crew-gameplay-preview .v19-trivia-heading-mark{
+  min-width:76px;
+  justify-items:center;
+  padding:10px 14px;
+  border:1px solid rgba(255,189,69,.25);
+  border-radius:10px;
+  background:rgba(255,189,69,.04);
+}
+body.crew-gameplay-preview .v19-trivia-heading-mark span{font-size:1.65rem}
+body.crew-gameplay-preview.v19-trivia-page .react-trivia-stage{
+  min-height:clamp(490px,66vh,600px);
+  padding:clamp(22px,3vw,36px);
+  border-color:rgba(255,189,69,.23);
+}
+body.crew-gameplay-preview.v19-trivia-page .react-trivia-progress{
+  height:4px;
+  margin:13px 0 clamp(18px,3vh,30px);
+}
+body.crew-gameplay-preview.v19-trivia-page .react-trivia-question-wrap{
+  grid-template-columns:43px minmax(0,1fr);
+  gap:15px;
+  max-width:860px;
+}
+body.crew-gameplay-preview.v19-trivia-page .react-question-number{
+  width:40px;height:40px;border-radius:9px;font-size:.77rem;
+}
+body.crew-gameplay-preview.v19-trivia-page .react-trivia-question-wrap h1{
+  max-width:760px;
+  margin:0;
+  font:750 clamp(1.6rem,2.7vw,2.45rem)/1.15 Manrope,system-ui,sans-serif;
+  letter-spacing:-.035em;
+}
+body.crew-gameplay-preview.v19-trivia-page .react-trivia-options{
+  gap:9px;
+  max-width:930px;
+  margin:clamp(22px,3.3vh,32px) 0 18px 58px;
+}
+body.crew-gameplay-preview.v19-trivia-page .react-trivia-option{
+  grid-template-columns:37px minmax(0,1fr) 19px;
+  gap:12px;
+  min-height:62px;
+  padding:10px 13px;
+  border-radius:10px;
+  background:rgba(7,15,24,.85);
+}
+body.crew-gameplay-preview.v19-trivia-page .react-option-letter{
+  width:35px;height:35px;border-radius:9px;
+}
+body.crew-gameplay-preview.v19-trivia-page .react-option-copy{
+  font:650 clamp(.84rem,1.3vw,1rem)/1.4 Inter,system-ui,sans-serif;
+}
+body.crew-gameplay-preview.v19-trivia-page .react-trivia-feedback{
+  min-height:51px;
+  max-width:930px;
+  margin-left:58px;
+  padding-top:14px;
+}
+body.crew-gameplay-preview.v19-trivia-page .react-trivia-feedback button{
+  min-height:44px;
+  border-radius:9px;
+}
+
+/* Responsive: one-column gameplay, readable copy, no horizontal keyboard
+   scrolling or title panels that consume half a small phone viewport. */
+@media(max-width:960px){
+  body.crew-gameplay-preview.game-page .game-two-column,
+  body.crew-gameplay-preview.timer-page .timer-two-column,
+  body.crew-gameplay-preview.word-page .word-layout{
+    grid-template-columns:minmax(0,1fr);
+  }
+  body.crew-gameplay-preview.game-page .game-side-panel,
+  body.crew-gameplay-preview.word-page .word-side-stack{
+    max-width:none;
+  }
+  body.crew-gameplay-preview.word-page .word-side-stack{grid-template-columns:1fr}
+  body.crew-gameplay-preview.game-page .game-title-row .glass-stat,
+  body.crew-gameplay-preview.word-page .word-heading .glass-stat{
+    display:flex;
+  }
+  body.crew-gameplay-preview .v19-trivia-heading-mark{display:grid}
+}
+@media(max-width:680px){
+  body.crew-gameplay-preview.game-page .single-game-main,
+  body.crew-gameplay-preview.word-page .word-main,
+  body.crew-gameplay-preview .v19-trivia-main{
+    width:calc(100% - 24px);
+    padding:14px 0 92px;
+  }
+  body.crew-gameplay-preview.game-page .game-title-row,
+  body.crew-gameplay-preview.word-page .word-heading,
+  body.crew-gameplay-preview .v19-trivia-heading{
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px;
+    padding:6px 3px 14px;
+    margin:0 0 13px;
+    min-height:0;
+  }
+  body.crew-gameplay-preview.game-page .game-title-row>div:first-child,
+  body.crew-gameplay-preview.word-page .word-heading>div:first-child{
+    gap:5px 8px;
+  }
+  body.crew-gameplay-preview.game-page .game-title-row .back-link,
+  body.crew-gameplay-preview.word-page .word-heading .back-link{
+    font-size:.61rem;padding:6px 8px;min-height:27px;
+  }
+  body.crew-gameplay-preview.game-page .game-title-row .eyebrow,
+  body.crew-gameplay-preview.word-page .word-heading .eyebrow{
+    font-size:.52rem;
+    letter-spacing:.06em;
+  }
+  body.crew-gameplay-preview.game-page .game-title-row h1,
+  body.crew-gameplay-preview.word-page .word-heading h1,
+  body.crew-gameplay-preview .v19-trivia-heading h1{
+    font-size:clamp(1.38rem,6.2vw,1.75rem);
+    margin:2px 0 0;
+  }
+  body.crew-gameplay-preview.game-page .game-title-row p,
+  body.crew-gameplay-preview.word-page .word-heading p,
+  body.crew-gameplay-preview .v19-trivia-heading-copy>p{
+    font-size:.67rem;
+    line-height:1.4;
+  }
+  body.crew-gameplay-preview.game-page .game-title-row .glass-stat,
+  body.crew-gameplay-preview.word-page .word-heading .glass-stat{
+    min-width:61px;
+    gap:0;
+    padding:9px 8px;
+    flex-direction:column;
+    border-radius:9px;
+  }
+  body.crew-gameplay-preview .game-title-row .glass-stat .stat-icon,
+  body.crew-gameplay-preview.word-page .word-score .stat-icon{display:none}
+  body.crew-gameplay-preview .game-title-row .glass-stat strong,
+  body.crew-gameplay-preview.word-page .word-score strong{font-size:1.18rem}
+  body.crew-gameplay-preview .game-title-row .glass-stat span:last-child,
+  body.crew-gameplay-preview.word-page .word-score span:last-child{
+    font-size:.49rem;
+    line-height:1.2;
+    text-align:center;
+  }
+  body.crew-gameplay-preview.mystery-page .game-stage{min-height:0;padding:18px 14px}
+  body.crew-gameplay-preview.mystery-page .clue-list{margin:17px 0;gap:7px}
+  body.crew-gameplay-preview.mystery-page .clue-list>*{padding:12px 10px}
+  body.crew-gameplay-preview.mystery-page .answer-entry{grid-template-columns:minmax(0,1fr);margin-top:12px}
+  body.crew-gameplay-preview.mystery-page .answer-entry .primary-button{width:100%;justify-content:center}
+  body.crew-gameplay-preview.timer-page .timer-stage{min-height:445px;padding:20px 12px}
+  body.crew-gameplay-preview.timer-page .target-time{font-size:clamp(3.35rem,14vw,5.4rem)}
+  body.crew-gameplay-preview.timer-page .timer-visual{margin:19px 0}
+  body.crew-gameplay-preview.word-page .word-game-panel{min-height:0;padding:16px 11px 20px}
+  body.crew-gameplay-preview.word-page .word-board{width:min(100%,310px)}
+  body.crew-gameplay-preview.word-page .word-panel-top{gap:8px}
+  body.crew-gameplay-preview.word-page .keyboard-legend{gap:6px 10px}
+  body.crew-gameplay-preview.word-page .key{height:clamp(36px,9vw,44px);font-size:.63rem}
+  body.crew-gameplay-preview.word-page .key.key-wide{font-size:.51rem}
+  body.crew-gameplay-preview .v19-trivia-context{gap:7px;margin:0 0 6px}
+  body.crew-gameplay-preview .v19-trivia-heading-mark{min-width:53px;padding:7px}
+  body.crew-gameplay-preview .v19-trivia-heading-mark span{font-size:1.25rem}
+  body.crew-gameplay-preview .v19-trivia-heading-mark small{font-size:.38rem}
+  body.crew-gameplay-preview.v19-trivia-page .react-trivia-stage{
+    min-height:calc(100svh - 208px);
+    padding:18px 14px;
+  }
+  body.crew-gameplay-preview.v19-trivia-page .react-trivia-question-wrap{
+    grid-template-columns:1fr;gap:9px;
+  }
+  body.crew-gameplay-preview.v19-trivia-page .react-question-number{width:31px;height:31px}
+  body.crew-gameplay-preview.v19-trivia-page .react-trivia-question-wrap h1{
+    font-size:clamp(1.35rem,5.1vw,1.75rem);
+    line-height:1.21;
+  }
+  body.crew-gameplay-preview.v19-trivia-page .react-trivia-options{
+    grid-template-columns:minmax(0,1fr);
+    margin:20px 0 13px;
+    gap:8px;
+  }
+  body.crew-gameplay-preview.v19-trivia-page .react-trivia-option{
+    min-height:55px;
+    padding:8px 10px;
+    gap:9px;
+  }
+  body.crew-gameplay-preview.v19-trivia-page .react-trivia-feedback{
+    margin-left:0;
+    padding-top:11px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+}
+@media(max-width:360px){
+  body.crew-gameplay-preview.game-page .game-title-row p,
+  body.crew-gameplay-preview.word-page .word-heading p,
+  body.crew-gameplay-preview .v19-trivia-heading-copy>p{display:none}
+  body.crew-gameplay-preview.word-page .keyboard-legend{font-size:.52rem}
+  body.crew-gameplay-preview.word-page .key{font-size:.55rem}
+}
+@media(prefers-reduced-motion:reduce){
+  body.crew-gameplay-preview.game-page .primary-button,
+  body.crew-gameplay-preview.game-page .secondary-button,
+  body.crew-gameplay-preview.word-page .key,
+  body.crew-gameplay-preview .react-trivia-option{transition:none!important}
+}

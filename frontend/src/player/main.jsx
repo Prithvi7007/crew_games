@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import './styles/page.css';
@@ -15,6 +15,7 @@ import './styles/trivia.css';
 import './styles/trophies.css';
 import './styles/trophy-tour.css';
 import './styles/badge-unlock-preview.css';
+import './styles/gameplay-refinement.css';
 import TrophyRoom, { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
 import TrophyWelcomeTour from './TrophyWelcomeTour';
 import BadgeUnlockPreview, { CinematicReveal } from './BadgeUnlockPreview';
@@ -345,9 +346,17 @@ function BadgeUnlockCelebration({ codes=[], cinematic=false, gameKey=null }) {
   </aside>;
 }
 
+// A completed game replaces a tall playing layout on the same route.
+// Reset inherited scroll before paint so its results begin in the viewport.
+function useCompletionViewport(completed) {
+  useLayoutEffect(() => {
+    if (completed) window.scrollTo(0, 0);
+  }, [completed]);
+}
+
 function GameResult({ game, icon='✦', kicker='ROUND COMPLETE', score=0, meta=[], copy='', badges=[], showBadges=true, cinematic=false }) {
   useEffect(() => { document.body.classList.add('crew-game-complete'); return () => document.body.classList.remove('crew-game-complete'); }, []);
-  return <>{showBadges ? <BadgeUnlockCelebration codes={badges} cinematic={cinematic} gameKey={game}/> : null}<section className={`crew-result-stage crew-result-${game}`} aria-live="polite"><div className="crew-result-shade" aria-hidden="true"/><div className="crew-result-content"><div className="crew-result-burst" aria-hidden="true"><span>{icon}</span></div><p className="crew-result-kicker">{kicker}</p><strong className="crew-result-score">{score}</strong><span className="crew-result-label">POINTS</span>{meta.filter(Boolean).length ? <div className="crew-result-meta">{meta.filter(Boolean).map((item,i)=><span key={i}>{item}</span>)}</div>:null}{copy?<p className="crew-result-copy">{copy}</p>:null}<div className="crew-result-actions"><a className="crew-result-primary" href="/leaderboard"><span>View Rankings</span><span>→</span></a></div></div></section></>;
+  return <div className="crew-result-presentation">{showBadges ? <BadgeUnlockCelebration codes={badges} cinematic={cinematic} gameKey={game}/> : null}<section className={`crew-result-stage crew-result-${game}`} aria-live="polite"><div className="crew-result-shade" aria-hidden="true"/><div className="crew-result-content"><div className="crew-result-burst" aria-hidden="true"><span>{icon}</span></div><p className="crew-result-kicker">{kicker}</p><strong className="crew-result-score">{score}</strong><span className="crew-result-label">POINTS</span>{meta.filter(Boolean).length ? <div className="crew-result-meta">{meta.filter(Boolean).map((item,i)=><span key={i}>{item}</span>)}</div>:null}{copy?<p className="crew-result-copy">{copy}</p>:null}<div className="crew-result-actions"><a className="crew-result-primary" href="/leaderboard"><span>View Rankings</span><span>→</span></a></div></div></section></div>;
 }
 
 function HomePage({ data }) {
@@ -591,6 +600,7 @@ function ProfilePage({data}) {
 
 function MysteryPage({data}) {
   const [state,setState]=useState(data.state); const [badgesEarned,setBadgesEarned]=useState([]); const [answer,setAnswer]=useState(''); const [message,setMessage]=useState(''); const [busy,setBusy]=useState(false);
+  useCompletionViewport(state.completed);
   async function guess(event){event.preventDefault();if(busy||state.completed)return;setBusy(true);try{const p=await postJson(data.guessUrl,{answer});setState(p.state);if(p.completed)setBadgesEarned(p.badge_awards||[]);setMessage(p.message||'');setAnswer('');}catch(e){setMessage(e.message);}finally{setBusy(false)}}
   async function reveal(){if(busy||state.completed)return;setBusy(true);try{const p=await postJson(data.revealUrl);setState(p.state);setMessage('Another clue unlocked.');}catch(e){setMessage(e.message);}finally{setBusy(false)}}
   if(state.completed)return <div className="app-shell game-shell"><AppHeader shell={data.shell}/><main className="single-game-main"><GameResult game="mystery" icon={state.won?'✓':'◇'} kicker={state.won?'CASE CLOSED':'CASE COMPLETE'} score={state.score} meta={state.won?[`SOLVED ON CLUE ${state.revealed_count}`,String(state.answer||'').toUpperCase()]:[`ANSWER · ${String(state.answer||'').toUpperCase()}`]} copy="Monday is in the books." badges={badgesEarned} showBadges={data.shell?.trophiesVisible !== false} cinematic={data.shell?.cinematicBadgeUnlocksEnabled === true}/></main></div>;
@@ -600,6 +610,7 @@ function MysteryPage({data}) {
 
 function TickTockPage({data}) {
   const [state,setState]=useState(data.state); const [badgesEarned,setBadgesEarned]=useState([]); const [busy,setBusy]=useState(false); const [display,setDisplay]=useState(state.started&&!state.completed?'GO':'READY'); const [message,setMessage]=useState(state.started&&!state.completed?'The hidden timer is still running.':'Press begin, watch the countdown, then stop as close to the target as you can.'); const running=state.started&&!state.completed;
+  useCompletionViewport(state.completed);
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   async function begin(){if(busy||running)return;setBusy(true);for(const t of ['3','2','1']){setDisplay(t);await sleep(650);}try{const p=await postJson(data.startUrl);setState(p.state);setDisplay('GO');setMessage('The timer is hidden. Stop when your internal clock says it is time.');}catch(e){setMessage(e.message);setDisplay('READY');}finally{setBusy(false)}}
   async function stop(){if(busy||!running)return;setBusy(true);try{const p=await postJson(data.stopUrl);setState(p.state);setBadgesEarned(p.badge_awards||[]);}catch(e){setMessage(e.message);}finally{setBusy(false)}}
@@ -614,6 +625,7 @@ function tileState(tile) {
 
 function WordPage({ data }) {
   const [state,setState]=useState(data.state); const [badgesEarned,setBadgesEarned]=useState([]); const [guess,setGuess]=useState(''); const [message,setMessage]=useState(''); const [busy,setBusy]=useState(false); const [help,setHelp]=useState(false);
+  useCompletionViewport(state.completed);
   const rows=useMemo(()=>{const out=state.guesses.map(item=>({letters:item.guess.split(''),tiles:(item.tiles||[]).map(tileState)}));if(!state.completed&&out.length<6)out.push({letters:guess.padEnd(5,' ').split(''),tiles:[]});while(out.length<6)out.push({letters:[' ',' ',' ',' ',' '],tiles:[]});return out.slice(0,6)},[state,guess]);
   const keyState=useMemo(()=>{const rank={absent:1,present:2,correct:3},result={};state.guesses.forEach(item=>item.guess.split('').forEach((letter,i)=>{const next=tileState(item.tiles?.[i]);if(!result[letter]||rank[next]>rank[result[letter]])result[letter]=next}));return result},[state.guesses]);
   const locked=state.completed||!state.playable||busy;
@@ -626,16 +638,21 @@ function WordPage({ data }) {
 
 function TriviaPage({data}) {
   const [state,setState]=useState(data.state); const [next,setNext]=useState(null); const [selected,setSelected]=useState(null); const [resolution,setResolution]=useState(null); const [status,setStatus]=useState('idle'); const [message,setMessage]=useState(''); const [stats,setStats]=useState(null); const [badgesEarned,setBadgesEarned]=useState([]); const stageRef=useRef(null);
+  useCompletionViewport(state.completed);
   const answered=next?next.index:state.index,points=next?next.correct_count*10:state.correct_count*10,progress=state.total?Math.min(100,(answered/state.total)*100):0,current=Math.min(state.index+1,state.total);
   async function choose(index){if(status!=='idle'||!state.question)return;setSelected(index);setStatus('submitting');setMessage('');try{const p=await postJson(data.answerUrl,{selected:index});setResolution({correct:p.correct,correctIndex:Number(p.correct_index),correctAnswer:p.correct_answer});setNext(p.state);if(p.completed&&p.stats)setStats(p.stats);if(p.completed)setBadgesEarned(p.badge_awards||[]);setStatus('answered');setMessage(p.correct?'Correct.':`Not quite — ${p.correct_answer}.`)}catch(e){setSelected(null);setStatus('idle');setMessage(e.message)}}
   function advance(){if(!next)return;setState(next);setNext(null);setSelected(null);setResolution(null);setStatus('idle');setMessage('')}
   useEffect(()=>{stageRef.current?.focus({preventScroll:true})},[state.index,state.completed]);
   useEffect(()=>{function key(e){if(e.metaKey||e.ctrlKey||e.altKey||isInteractiveTarget(e.target))return;if(status==='answered'&&e.key==='Enter'){e.preventDefault();advance();return}const map={a:0,b:1,c:2,d:3,'1':0,'2':1,'3':2,'4':3},choice=map[e.key.toLowerCase()];if(status==='idle'&&choice!==undefined){e.preventDefault();choose(choice)}}window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[status,state,next]);
-  if(state.completed){const score=Number(state.score||state.correct_count*10||0);return <div className="v19-trivia-shell"><AppHeader shell={data.shell}/><main className="v19-trivia-main">{data.shell?.trophiesVisible !== false ? <BadgeUnlockCelebration codes={badgesEarned} cinematic={data.shell?.cinematicBadgeUnlocksEnabled === true} gameKey="trivia"/> : null}<section className="react-trivia-stage react-trivia-result" ref={stageRef} tabIndex="-1"><p className="react-trivia-kicker">Round complete</p><strong className="react-result-score">{score}</strong><span className="react-result-label">POINTS</span><div className="react-result-meta"><span><strong>{state.correct_count}/{state.total}</strong> correct</span>{stats?.streak?<span><strong>{stats.streak}</strong> day streak</span>:null}</div><p className="react-result-copy">Tuesday is in the books.</p><div className="react-result-actions"><a className="react-trivia-primary" href="/leaderboard">View Rankings <span>→</span></a></div></section></main></div>}
+  if(state.completed){const score=Number(state.score||state.correct_count*10||0);return <div className="v19-trivia-shell"><AppHeader shell={data.shell}/><main className="v19-trivia-main crew-result-presentation">{data.shell?.trophiesVisible !== false ? <BadgeUnlockCelebration codes={badgesEarned} cinematic={data.shell?.cinematicBadgeUnlocksEnabled === true} gameKey="trivia"/> : null}<section className="react-trivia-stage react-trivia-result" ref={stageRef} tabIndex="-1"><p className="react-trivia-kicker">Round complete</p><strong className="react-result-score">{score}</strong><span className="react-result-label">POINTS</span><div className="react-result-meta"><span><strong>{state.correct_count}/{state.total}</strong> correct</span>{stats?.streak?<span><strong>{stats.streak}</strong> day streak</span>:null}</div><p className="react-result-copy">Tuesday is in the books.</p><div className="react-result-actions"><a className="react-trivia-primary" href="/leaderboard">View Rankings <span>→</span></a></div></section></main></div>}
   return <div className="v19-trivia-shell"><AppHeader shell={data.shell}/><main className="v19-trivia-main"><header className="v19-trivia-heading"><div className="v19-trivia-heading-copy"><div className="v19-trivia-context"><a className="v19-back-link" href={data.returnUrl}>← Back</a><span className="v19-trivia-date">{data.dayLabel}</span></div><h1>Trivia Tuesday</h1><p>Ten questions. Ten points each. One clean run.</p></div><div className="v19-trivia-heading-mark" aria-hidden="true"><span>10</span><small>QUESTIONS</small></div></header><section className="react-trivia-stage" ref={stageRef} tabIndex="-1"><header className="react-trivia-topline"><div><span className="react-trivia-kicker">{state.theme||'Trivia Tuesday'}</span><strong>{points}<small>/100</small></strong></div><span>Question {current} of {state.total}</span></header><div className="react-trivia-progress" aria-hidden="true"><i style={{width:`${progress}%`}}/></div><div className="react-trivia-question-wrap"><span className="react-question-number">{String(current).padStart(2,'0')}</span><h1>{state.question?.prompt}</h1></div><div className="react-trivia-options" role="group">{state.question?.options?.map((option,index)=>{const cls=['react-trivia-option'];if(status==='answered'&&index===resolution?.correctIndex)cls.push('is-correct');if(status==='answered'&&index===selected&&!resolution?.correct)cls.push('is-wrong');if(status==='answered'&&index!==resolution?.correctIndex&&index!==selected)cls.push('is-dimmed');return <button type="button" key={index} className={cls.join(' ')} disabled={status!=='idle'} onClick={()=>choose(index)}><span className="react-option-letter">{LETTERS[index]}</span><span className="react-option-copy">{option}</span><span className="react-option-status" aria-hidden="true">{status==='answered'&&index===resolution?.correctIndex?'✓':status==='answered'&&index===selected?'×':'→'}</span></button>})}</div><footer className={`react-trivia-feedback ${message?'is-visible':''} ${resolution?.correct?'is-success':resolution?'is-error':''}`} aria-live="polite"><span>{message||(status==='submitting'?'Locking it in…':'Choose one answer.')}</span>{status==='answered'?<button type="button" onClick={advance}>{next?.completed?'See results':'Next question'} <span>→</span></button>:null}</footer></section></main></div>;
 }
 
 function PlayerWithTour({ Component, data }) {
+  useEffect(() => {
+    document.body.classList.toggle('crew-gameplay-preview', data.shell?.gameplayPreviewEnabled === true);
+    return () => document.body.classList.remove('crew-gameplay-preview');
+  }, [data.shell?.gameplayPreviewEnabled]);
   const [tour, setTour] = useState(data.unlockPreviewEnabled ? null : (data.shell?.trophyTour || null));
   return <>
     <Component data={data}/>
