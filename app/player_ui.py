@@ -50,6 +50,12 @@ def render_player(page, title, body_class, payload, user, nav_points=None):
         },
         "navPoints": nav_points,
         "trophiesVisible": trophies_visible_to(user),
+        # Owner/admin-only visual lab: never changes game state or rules.
+        "gameplayPreviewEnabled": bool(
+            page in {"mystery", "trivia", "word", "tick_tock"}
+            and trophy_preview_enabled(user)
+            and request.args.get("gameplay_preview") == "1"
+        ),
         # Public animation requires an explicit feature flag and the Oct 19 gate.
         # Staff can test a real, server-confirmed unlock via opt-in query only.
         "cinematicBadgeUnlocksEnabled": bool(
