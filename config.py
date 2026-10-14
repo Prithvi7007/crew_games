@@ -41,6 +41,7 @@ class Config:
     DB_POOL_TIMEOUT = int(os.getenv("DB_POOL_TIMEOUT", "10"))
     AUTO_DB_MIGRATE = _env_flag("AUTO_DB_MIGRATE", "false" if IS_PRODUCTION else "true")
     TROPHY_TOUR_ENABLED = _env_flag("TROPHY_TOUR_ENABLED", "true")
+    CINEMATIC_BADGE_UNLOCKS_ENABLED = _env_flag("CINEMATIC_BADGE_UNLOCKS_ENABLED", "false")
 
     RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
     CREW_EMAIL_FROM = os.getenv("CREW_EMAIL_FROM", "").strip()
