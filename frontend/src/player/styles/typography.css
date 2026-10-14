@@ -1,95 +1,27 @@
-/* CREW typography system — authenticated React screens only.
-   Keep scores, gameplay prompts/tiles, and cinematic art as distinct display
-   elements. Unifies page identity rather than indiscriminately sizing h1/h2. */
+/* CREW page typography correction.
+   Match the ORIGINAL Games / Rankings heading from page.css:
+   800 clamp(1.75rem, 2.4vw, 2.35rem)/1 Manrope.
+   Other page labels, descriptions and Profile use their pre-PR #74 styles.
+   This file is loaded last so it only needs exceptions for Home, Badges
+   and the already-approved smaller gameplay headings. */
 .react-player-page {
-  --crew-type-page-title: clamp(2rem, 2.8vw, 2.5rem);       /* 32–40px */
-  --crew-type-game-title: clamp(1.75rem, 2.5vw, 2.45rem);  /* 28–39px */
-  --crew-type-profile-title: clamp(2rem, 3vw, 2.75rem);    /* 32–44px */
-  --crew-type-section-title: clamp(1.375rem, 2vw, 1.625rem);
-  --crew-type-description: clamp(.875rem, .96vw, 1rem);    /* 14–16px */
-  --crew-type-context: .70rem;                             /* 11.2px */
+  --crew-type-page-title: clamp(1.75rem, 2.4vw, 2.35rem);
+  --crew-type-game-title: clamp(1.75rem, 2.5vw, 2.45rem);
 }
 
-/* Page identity: Games and Rankings use the same semantic H1 level. */
-.react-player-page .crew-page-head h1 {
-  font-size: var(--crew-type-page-title);
-  line-height: 1.12;
-  letter-spacing: -.045em;
-  text-wrap: balance;
-}
-.react-player-page .crew-page-head p {
-  font-size: var(--crew-type-description);
-  line-height: 1.55;
-}
-.react-player-page .crew-page-head .crew-page-kicker {
-  font-size: var(--crew-type-context);
-  line-height: 1.3;
-  letter-spacing: .13em;
-}
-
-/* Home is the feature-level header, not another oversized campaign splash.
-   Text remains dynamic (season/week H1; date as small eyebrow). */
-.react-player-page .home-week h1 {
-  font-size: var(--crew-type-page-title);
-  line-height: 1.12;
-  letter-spacing: -.052em;
-  text-wrap: balance;
-}
-.react-player-page .home-week .v17-eyebrow {
-  font-size: var(--crew-type-context);
-  line-height: 1.35;
-  letter-spacing: .12em;
-}
-.react-player-page .home-week p {
-  font-size: var(--crew-type-description);
-  line-height: 1.45;
-}
-
-/* Badge collection's actual H1 is "All badges".
-   The old .trophy-hero-copy artwork selectors do not own this React page. */
+/* Home and Badge collection follow the existing Games / Rankings H1.
+   Do not override .crew-page-head: its original CSS already owns those pages. */
+.react-player-page .home-week h1,
 .react-player-page .trophy-section-header h1 {
   font-size: var(--crew-type-page-title);
-  line-height: 1.12;
+  font-weight: 800;
+  line-height: 1;
   letter-spacing: -.045em;
   text-wrap: balance;
 }
-.react-player-page .trophy-section-header .trophy-eyebrow {
-  font-size: var(--crew-type-context);
-  line-height: 1.35;
-  letter-spacing: .13em;
-}
-.react-player-page .trophy-section-header .trophy-equip-guidance {
-  font-size: var(--crew-type-description);
-  line-height: 1.55;
-}
-.react-player-page .trophy-section-header h1 small {
-  font-size: .78rem;
-  line-height: 1.45;
-  letter-spacing: 0;
-}
-.react-player-page .trophy-group-heading h2 {
-  font-size: var(--crew-type-section-title);
-  line-height: 1.22;
-}
 
-/* Profile name remains personal, but no longer overwhelms the stats beside it. */
-.react-player-page .v20-profile-identity h1 {
-  font-size: var(--crew-type-profile-title);
-  line-height: 1.1;
-  letter-spacing: -.048em;
-  overflow-wrap: anywhere;
-}
-.react-player-page .v20-profile-identity .v20-kicker {
-  font-size: var(--crew-type-context);
-  line-height: 1.35;
-}
-.react-player-page .v20-profile-identity p {
-  font-size: var(--crew-type-description);
-  line-height: 1.55;
-}
-
-/* Four games: same scale with or without the separate owner-only gameplay
-   layout preview. Only heading wrappers are targeted — never game prompts. */
+/* Preserve compact Mystery, Trivia, Wordle and Tick-Tock page headings
+   independently of the in-game questions, tile letters, timers or scores. */
 .react-player-page.game-page .game-title-row h1,
 .react-player-page.word-page .word-heading h1,
 .react-player-page.v19-trivia-page .v19-trivia-heading h1 {
@@ -98,8 +30,8 @@
   letter-spacing: -.046em;
   text-wrap: balance;
 }
-/* The admin gameplay layout preview has more specific body selectors.
-   Explicitly share this heading token so previews and normal games agree. */
+
+/* Staff gameplay preview previously had higher-specificity heading rules. */
 body.react-player-page.crew-gameplay-preview.game-page .game-title-row h1,
 body.react-player-page.crew-gameplay-preview.word-page .word-heading h1,
 body.react-player-page.crew-gameplay-preview.v19-trivia-page .v19-trivia-heading h1 {
@@ -107,49 +39,12 @@ body.react-player-page.crew-gameplay-preview.v19-trivia-page .v19-trivia-heading
   line-height: 1.13;
 }
 
-.react-player-page.game-page .game-title-row p,
-.react-player-page.word-page .word-heading p,
-.react-player-page.v19-trivia-page .v19-trivia-heading-copy > p {
-  font-size: var(--crew-type-description);
-  line-height: 1.48;
-}
-.react-player-page.game-page .game-title-row .eyebrow,
-.react-player-page.word-page .word-heading .eyebrow,
-.react-player-page.v19-trivia-page .v19-trivia-date {
-  font-size: var(--crew-type-context);
-  line-height: 1.3;
-}
-.react-player-page.game-page .game-side-panel h2,
-.react-player-page.word-page .word-side-card h2 {
-  font-size: var(--crew-type-section-title);
-  line-height: 1.2;
-  letter-spacing: -.035em;
-}
-
-/* Compact viewports get a legible but space-efficient heading hierarchy. */
 @media (max-width: 760px) {
   .react-player-page {
-    --crew-type-page-title: clamp(1.625rem, 6.5vw, 2.125rem);
+    --crew-type-page-title: clamp(1.75rem, 2.4vw, 2.35rem);
     --crew-type-game-title: clamp(1.55rem, 6.3vw, 2rem);
-    --crew-type-profile-title: clamp(1.75rem, 7vw, 2.2rem);
-    --crew-type-section-title: clamp(1.22rem, 4.6vw, 1.5rem);
-  }
-
-  /* Trophy counters may be long during staff preview. Don't squeeze H1. */
-  .react-player-page .trophy-section-header h1 small {
-    display: block;
-    margin: 7px 0 0;
-    font-size: .75rem;
-  }
-
-  /* Avoid oversized gaps inherited from old full-page game mastheads. */
-  .react-player-page.game-page:not(.crew-gameplay-preview) .game-title-row,
-  .react-player-page.word-page:not(.crew-gameplay-preview) .word-heading {
-    gap: 12px;
-    margin-bottom: 18px;
   }
 }
-
 @media (max-width: 380px) {
   .react-player-page {
     --crew-type-game-title: 1.55rem;
