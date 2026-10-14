@@ -35,7 +35,7 @@ def test_small_labels_descriptions_badge_count_and_profile_keep_old_styles():
         ".v17-eyebrow", ".crew-page-kicker", ".home-week p",
         ".crew-page-head p", ".trophy-eyebrow", ".trophy-equip-guidance",
         ".trophy-section-header h1 small", ".trophy-group-heading h2",
-        ".v20-profile-identity", ".v20-kicker",
+        ".v20-profile-identity .v20-kicker", ".v20-profile-identity p",
         ".game-title-row p", ".word-heading p", ".v19-trivia-date",
         ".game-title-row .eyebrow", ".word-heading .eyebrow",
         ".game-side-panel h2", ".word-side-card h2",
@@ -44,6 +44,11 @@ def test_small_labels_descriptions_badge_count_and_profile_keep_old_styles():
     assert "--crew-type-description" not in css
     assert "--crew-type-context" not in css
     assert "--crew-type-profile-title" not in css
+    # Profile heading remains exactly as approved before this correction.
+    assert ".react-player-page .v20-profile-identity h1" in css
+    assert "font-size: clamp(2rem, 3vw, 2.75rem)" in css
+    assert "font-size: clamp(1.75rem, 7vw, 2.2rem)" in css
+    assert "overflow-wrap: anywhere" in css
 
 
 def test_game_titles_stay_compact_without_resizing_game_content():
