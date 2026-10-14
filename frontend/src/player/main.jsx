@@ -13,8 +13,10 @@ import './styles/profile.css';
 import './styles/trivia.css';
 import './styles/trophies.css';
 import './styles/trophy-tour.css';
+import './styles/badge-unlock-preview.css';
 import TrophyRoom, { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
 import TrophyWelcomeTour from './TrophyWelcomeTour';
+import BadgeUnlockPreview from './BadgeUnlockPreview';
 import HomeCoverflow from './HomeCoverflow';
 import HomeTheaterArc from './HomeTheaterArc';
 
@@ -311,7 +313,9 @@ function AppHeader({ shell }) {
     <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{link('home','Home','/home',true)}{link('games','Games','/games',true)}{link('leaderboard','Rankings','/leaderboard',true)}{trophiesVisible ? link('trophies','Badges','/trophies',true) : null}</nav>
   </>;
 }
-function TrophyPage({data}) { return <TrophyRoom data={data} Header={AppHeader} saveSlot={(slot,awardId)=>postJson(data.showcaseUrl,{slot,awardId})} savePreview={badgeCode=>postJson(data.trophyPreview.url,{badgeCode})}/>; }
+function TrophyPage({data}) { return data.unlockPreviewEnabled && data.trophyPreview?.enabled
+  ? <BadgeUnlockPreview data={data} Header={AppHeader}/>
+  : <TrophyRoom data={data} Header={AppHeader} saveSlot={(slot,awardId)=>postJson(data.showcaseUrl,{slot,awardId})} savePreview={badgeCode=>postJson(data.trophyPreview.url,{badgeCode})}/>; }
 
 function BadgeUnlockCelebration({ codes=[] }) {
   const [dismissed, setDismissed] = useState(false);
@@ -624,7 +628,7 @@ function TriviaPage({data}) {
 }
 
 function PlayerWithTour({ Component, data }) {
-  const [tour, setTour] = useState(data.shell?.trophyTour || null);
+  const [tour, setTour] = useState(data.unlockPreviewEnabled ? null : (data.shell?.trophyTour || null));
   return <>
     <Component data={data}/>
     {tour ? <TrophyWelcomeTour
