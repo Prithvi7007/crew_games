@@ -151,3 +151,29 @@
 .cul-cinema .cul-aura{opacity:.55;transform:scale(1)}
 .cul-cinema .cul-orbit{opacity:.5}
 }
+
+
+/* Opt-in real-game version of the same approved cinematic.
+   Portaled to the document body, independent of results-page stacking contexts. */
+.cul-cinema.cul-live{
+  position:fixed;z-index:3000;inset:12px;margin:auto;
+  width:min(900px,calc(100% - 24px));
+  height:min(765px,calc(100dvh - 24px));
+  min-height:650px;overflow-y:auto;
+  box-shadow:0 0 0 100vmax rgba(2,5,13,.85),0 26px 115px rgba(0,0,0,.7);
+  outline:none;
+}
+.cul-live .cul-cinema-footer button:focus-visible{outline:2px solid #c4e7ff;outline-offset:3px}
+.cul-live.cul-many{min-height:760px}
+.cul-live.cul-many .cul-collection{grid-template-columns:repeat(3,minmax(0,1fr));max-width:600px}
+.cul-live.cul-many .cul-message{bottom:70px}
+.cul-live.cul-many .cul-message h2{font-size:clamp(1.8rem,4vw,3.1rem)}
+@media(max-width:680px){
+  .cul-cinema.cul-live{inset:6px;width:calc(100% - 12px);height:calc(100dvh - 12px);min-height:570px;border-radius:13px}
+  .cul-live.cul-many{min-height:720px}
+  .cul-live.cul-many .cul-collection{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:380px){
+  .cul-cinema.cul-live{min-height:540px}
+  .cul-live.cul-many{min-height:710px}
+}

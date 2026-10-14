@@ -5,10 +5,10 @@ from functools import lru_cache
 from hashlib import sha256
 from pathlib import Path
 
-from flask import render_template
+from flask import current_app, render_template, request
 
 from app.badge_display import equipped_badge_for_viewer
-from app.trophy_access import trophies_visible_to
+from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.trophy_tour import tour_for_player
 
 
@@ -50,6 +50,15 @@ def render_player(page, title, body_class, payload, user, nav_points=None):
         },
         "navPoints": nav_points,
         "trophiesVisible": trophies_visible_to(user),
+        # Public animation requires an explicit feature flag and the Oct 19 gate.
+        # Staff can test a real, server-confirmed unlock via opt-in query only.
+        "cinematicBadgeUnlocksEnabled": bool(
+            trophies_visible_to(user) and (
+                current_app.config.get("CINEMATIC_BADGE_UNLOCKS_ENABLED", False)
+                or (trophy_preview_enabled(user) and
+                    request.args.get("cinematic_unlock_test") == "1")
+            )
+        ),
         "trophyTour": tour_for_player(user, page),
         "userEquippedBadge": equipped_badge_for_viewer(user),
         "active": "games" if page in {"mystery", "trivia", "word", "tick_tock"} else page,

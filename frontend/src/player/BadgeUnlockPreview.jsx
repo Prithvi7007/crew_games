@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BadgeMedallion, badgeFromAwardCode } from './TrophyRoom';
 
 // These are illustrative catalog choices, never claimed as earned or sent to an API.
@@ -11,19 +11,50 @@ const PRESETS = Object.freeze([
   { key: 'triple', label: '3 badges', codes: ['case_closed', 'sharp_instincts', 'mind_reader'], description: 'Three achievements. One extraordinary round.' },
 ]);
 const RANK = { common: 0, rare: 1, epic: 2, legendary: 3 };
+const GAME_LABELS = { mystery: 'MYSTERY MONDAY', trivia: 'TRIVIA TUESDAY', word: 'WORDLE WEDNESDAY', tick_tock: 'TICK-TOCK THURSDAY' };
 
 function revealDetails(preset) {
   const badges = preset.codes.map(badgeFromAwardCode).filter(Boolean);
   const top = [...badges].sort((a, b) => RANK[b.rarity] - RANK[a.rarity])[0];
-  return { badges, top, multiple: badges.length > 1 };
+  const featured = badges.length <= 3 ? badges : [...badges]
+    .sort((a, b) => RANK[a.rarity] - RANK[b.rarity]).slice(-3);
+  return { badges, featured, top, multiple: badges.length > 1 };
 }
 
-function CinematicReveal({ preset, seasonNumber }) {
-  const { badges, top, multiple } = useMemo(() => revealDetails(preset), [preset]);
+export function CinematicReveal({ preset, seasonNumber, gameKey, onDismiss }) {
+  const badgeKey = preset.codes.join('|');
+  const { badges, featured, top, multiple } = useMemo(() => revealDetails(preset), [badgeKey]);
+  const dialogRef = useRef(null);
   const [skipped, setSkipped] = useState(false);
   const [phase, setPhase] = useState('ACHIEVEMENTS DETECTED');
   const [progress, setProgress] = useState(0);
   const count = badges.length;
+  const shownCount = featured.length;
+  const title = multiple
+    ? count === 2 ? 'DOUBLE UNLOCK' : count === 3 ? 'TRIPLE UNLOCK' : count + ' BADGES UNLOCKED'
+    : top.name;
+
+  // Live view is a dismissible dialog; the staff-only lab remains an inline preview.
+  useEffect(() => {
+    if (!onDismiss) return undefined;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.focus();
+    function onKeyDown(event) {
+      if (event.key === 'Escape') { event.preventDefault(); onDismiss(); }
+      if (event.key === 'Tab') {
+        const action = dialogRef.current?.querySelector('button:not([disabled])');
+        if (action) { event.preventDefault(); action.focus(); }
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus?.();
+    };
+  }, [onDismiss]);
 
   useEffect(() => {
     if (skipped) {
@@ -41,17 +72,17 @@ function CinematicReveal({ preset, seasonNumber }) {
     const timers = [];
     const later = (ms, fn) => timers.push(window.setTimeout(fn, ms));
     if (multiple) {
-      badges.forEach((badge, index) => later(500 + index * 920, () => {
-        setProgress(index + 1);
+      featured.forEach((badge, index) => later(500 + index * 920, () => {
+        setProgress(index === featured.length - 1 ? count : index + 1);
         setPhase(badge.name.toUpperCase() + ' · ' + badge.rarity.toUpperCase() + ' UNLOCKED');
       }));
-      later(count === 2 ? 2560 : 3490, () => setPhase('REWARDS ACQUIRED'));
+      later(shownCount === 2 ? 2560 : 3490, () => setPhase('REWARDS ACQUIRED'));
     } else {
       later(600, () => setPhase('SUMMONING YOUR REWARD'));
       later(1750, () => { setPhase(top.rarity.toUpperCase() + ' REWARD UNLOCKED'); setProgress(1); });
     }
     return () => timers.forEach(window.clearTimeout);
-  }, [badges, count, multiple, top, skipped]);
+  }, [badgeKey, count, multiple, shownCount, top, skipped]);
 
   function skip() {
     setSkipped(true);
@@ -60,9 +91,13 @@ function CinematicReveal({ preset, seasonNumber }) {
   }
 
   return <section
-    className={'cul-cinema cul-' + (multiple ? 'multi' : 'single') + ' cul-count-' + count + ' cul-tier-' + top.rarity + (skipped ? ' is-skipped' : ' is-playing')}
-    aria-label="Cinematic badge unlock preview"
-    onKeyDown={event => { if (event.key === 'Escape') skip(); }}
+    className={'cul-cinema cul-' + (multiple ? 'multi' : 'single') + ' cul-count-' + Math.min(count, 3) + ' cul-tier-' + top.rarity + (onDismiss ? ' cul-live' : '') + (count > 3 ? ' cul-many' : '') + (skipped ? ' is-skipped' : ' is-playing')}
+    aria-label={onDismiss ? 'New badges unlocked' : 'Cinematic badge unlock preview'}
+    role={onDismiss ? 'dialog' : 'region'}
+    aria-modal={onDismiss ? true : undefined}
+    tabIndex={onDismiss ? -1 : undefined}
+    ref={dialogRef}
+    onKeyDown={event => { if (event.key === 'Escape' && !onDismiss) skip(); }}
   >
     <div className="cul-atmosphere" aria-hidden="true"/>
     <div className="cul-grid" aria-hidden="true"/>
@@ -74,12 +109,12 @@ function CinematicReveal({ preset, seasonNumber }) {
     <div className="cul-flash" aria-hidden="true"/>
     <div className="cul-vignette" aria-hidden="true"/>
     <div className="cul-hud">
-      <div><span>CREW REWARDS / SEASON {String(seasonNumber || 1).padStart(2, '0')}</span><strong>{top.gameKey === 'word' ? 'WORDLE WEDNESDAY' : 'MYSTERY MONDAY'}</strong></div>
+      <div><span>CREW REWARDS{seasonNumber != null ? ' / SEASON ' + String(seasonNumber).padStart(2, '0') : ''}</span><strong>{GAME_LABELS[gameKey || top.gameKey] || 'CREW GAMES'}</strong></div>
       <div className="cul-hud-right"><span>ACHIEVEMENTS</span><strong>{String(progress).padStart(2, '0')} / {String(count).padStart(2, '0')}</strong></div>
     </div>
     <p className="cul-phase" aria-live="polite" aria-atomic="true">{phase}</p>
-    <div className="cul-medals" aria-label={count + ' simulated badge unlocks'}>
-      {badges.map((badge, index) => <div
+    <div className="cul-medals" aria-label={count + (onDismiss ? ' newly earned' : ' simulated') + ' badge unlocks'}>
+      {featured.map((badge, index) => <div
         key={badge.code}
         className={'cul-medal cul-medal-' + (index + 1) + ' trophy-rarity-' + badge.rarity + ' cul-game-' + (badge.gameKey || 'mystery')}
         style={{ '--cul-sequence': index }}
@@ -102,17 +137,17 @@ function CinematicReveal({ preset, seasonNumber }) {
     </div>
     <div className="cul-message">
       <div className="cul-rarity-heading">{multiple ? 'ACHIEVEMENT COLLECTION UPDATED' : top.rarity.toUpperCase() + ' · BADGE UNLOCKED'}</div>
-      <h2>{multiple ? (count === 2 ? 'DOUBLE UNLOCK' : 'TRIPLE UNLOCK') : top.name}</h2>
-      <p>{preset.description}</p>
-      {multiple ? <div className="cul-collection" aria-label="All simulated badges">
+      <h2>{title}</h2>
+      <p>{preset.description || (count === 1 ? 'A new badge for your CREW collection.' : count + ' achievements earned in one round.')}</p>
+      {multiple ? <div className="cul-collection" aria-label={onDismiss ? 'All newly earned badges' : 'All simulated badges'}>
         {badges.map(badge => <div key={badge.code} className={'cul-collection-item trophy-rarity-' + badge.rarity}>
           <span aria-hidden="true">✦</span><div><strong>{badge.name}</strong><small>{badge.rarity.toUpperCase()}</small></div>
         </div>)}
       </div> : null}
     </div>
     <div className="cul-cinema-footer">
-      <span>SIMULATION · NO AWARDS ISSUED</span>
-      <button type="button" onClick={skip} disabled={skipped}>Skip animation <span aria-hidden="true">→</span></button>
+      <span>{onDismiss ? 'NEW AWARDS SAVED TO YOUR COLLECTION' : 'SIMULATION · NO AWARDS ISSUED'}</span>
+      <button type="button" onClick={onDismiss || skip} disabled={!onDismiss && skipped}>{onDismiss ? 'Continue to results' : 'Skip animation'} <span aria-hidden="true">→</span></button>
     </div>
   </section>;
 }

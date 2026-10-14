@@ -55,9 +55,10 @@ def test_rarity_is_distinct_without_changing_mobile_card_dimensions():
 def test_game_result_celebrates_only_new_server_awards():
     source = APP.read_text(encoding="utf-8")
     css = CSS.read_text(encoding="utf-8")
-    assert "function BadgeUnlockCelebration({ codes=[] })" in source
+    assert "function BadgeUnlockCelebration({ codes=[], cinematic=false, gameKey=null })" in source
     assert "const medals = [...new Set(codes)].map(badgeFromAwardCode).filter(Boolean)" in source
-    assert "<BadgeUnlockCelebration codes={badges}/>" in source
+    assert "<BadgeUnlockCelebration codes={badges} cinematic={cinematic} gameKey={game}/>" in source
+    assert "if (cinematic) return createPortal(" in source
     assert "<BadgeMedallion badge={featured} size=\"victory\"/>" in source
     assert "onClick={() => setDismissed(true)}" in source
     assert "href=\"/trophies\"" in source
