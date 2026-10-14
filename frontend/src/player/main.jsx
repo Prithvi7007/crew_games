@@ -382,6 +382,12 @@ function RankingsPage({ data }) {
 
   const selected=(data.filters?.seasons||[]).find(item=>String(item.id)===season);
   const weeks=Array.from({length:selected?.weeks_total||0},(_,i)=>i+1);
+  const rankedPlayers=board.players||[];
+  // Keep a badge-holder's avatar visible when this filter has no ranked score.
+  // A supplemental self-row must never grant a rank or alter leaderboard data.
+  const unrankedMe=board.me?.equippedBadge && !rankedPlayers.some(player=>player.profile_id===board.me.profile_id)
+    ? {...board.me,unranked:true} : null;
+  const visiblePlayers=unrankedMe ? [...rankedPlayers,unrankedMe] : rankedPlayers;
 
   async function load(next={}) {
     const requestId=++requestRef.current;
@@ -524,20 +530,20 @@ function RankingsPage({ data }) {
         </div>
 
         <div className="rankings-leaderboard-list">
-          {(board.players||[]).map(player=>
+          {visiblePlayers.map(player=>
             <div
               key={player.profile_id||`${player.rank}-${player.username}`}
-              className={`rankings-leader-row place-${player.rank||0}${player.me?' is-me':''}`}
+              className={`rankings-leader-row place-${player.rank||0}${player.me?' is-me':''}${player.unranked?' is-unranked':''}`}
             >
               <span className="rankings-rank">{player.rank||'—'}</span>
 
               <span className="rankings-player">
                 {player.equippedBadge
-                  ? <span className="rankings-player-medal" aria-label={player.equippedBadge.name + ' equipped'}><EquippedProfileBadge badge={player.equippedBadge} avatar={player.avatar} size="compact"/></span>
+                  ? <span className="rankings-player-medal" aria-label={player.equippedBadge.name + (player.equippedBadge.preview ? ' private preview' : ' equipped')}><EquippedProfileBadge badge={player.equippedBadge} avatar={player.avatar} size="compact"/></span>
                   : <i aria-hidden="true">{player.avatar}</i>}
                 <span>
                   <strong>{player.username}</strong>
-                  <small>{player.detail}</small>
+                  <small>{player.unranked ? 'Unranked in this filter' : player.detail}{player.equippedBadge?.preview ? ' · PRIVATE PREVIEW' : ''}</small>
                 </span>
               </span>
 
@@ -557,7 +563,7 @@ function RankingsPage({ data }) {
 
         <div
           className="rankings-empty"
-          hidden={(board.players||[]).length>0}
+          hidden={visiblePlayers.length>0}
         >
           No scores in this view yet.
         </div>
