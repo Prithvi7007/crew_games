@@ -208,3 +208,10 @@
   min-width:42px;overflow:visible;
 }
 .rankings-player-medal .crew-equipped-badge{max-width:none}
+
+/* An unranked badge-holder's self-row is informational, not a leaderboard place. */
+.rankings-leader-row.is-unranked{
+  background:rgba(73,154,188,.065);
+  border-top:1px dashed rgba(106,188,226,.27);
+}
+.rankings-leader-row.is-unranked .rankings-rank{color:#a7c4da}
