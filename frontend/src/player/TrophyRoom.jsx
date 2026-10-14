@@ -267,6 +267,7 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
       <span className="crew-badge-apply-spark" aria-hidden="true">✦</span>
     </div> : null}
     <main className="trophy-room-main">
+      {previewMode ? <a className="cul-staff-link" href="/trophies?unlock_preview=1">✦ Preview cinematic badge unlocks →</a> : null}
       <section className="trophy-collection" aria-labelledby="trophy-collection-title">
         <header className="trophy-section-header"><div><span className="trophy-eyebrow">ACHIEVEMENT COLLECTION</span><h1 id="trophy-collection-title">All badges <small>{previewMode ? `${badges.length} available to preview · ${earned} earned` : `${earned} / ${badges.length} unlocked`}</small></h1><p className="trophy-equip-guidance">{previewMode ? 'Admin preview: Try on any badge without earning it. This does not affect achievements or rankings.' : equippedBadge ? `Wearing: ${equippedBadge.name}. Select another unlocked badge to switch, or select the equipped badge again to remove it.` : 'Select an unlocked badge to wear it on your profile. Select it again to remove it.'}</p>{previewMode && equippedBadge ? <p className="trophy-preview-current">Previewing {equippedBadge.name} · <a href="/profile">View on profile →</a></p> : null}</div></header>
         <p className="trophy-editor-feedback trophy-collection-feedback" role="status" aria-live="polite">{feedback}</p>

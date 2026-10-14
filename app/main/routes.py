@@ -332,6 +332,9 @@ def trophies():
                 "badgeCode": preview_code,
                 "url": url_for("main.update_trophy_preview_badge") if preview_enabled else None,
             },
+            "unlockPreviewEnabled": (
+                preview_enabled and request.args.get("unlock_preview") == "1"
+            ),
             "selectedSeason": selected,
             "seasons": [
                 {"id": season["id"], "number": season["number"], "name": season["name"]}
