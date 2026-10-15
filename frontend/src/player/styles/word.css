@@ -72,31 +72,28 @@
 }
 
 .word-page .word-main {
-  width: min(1320px, calc(100% - 64px));
+  width: min(1280px, calc(100% - 64px));
   margin: 0 auto;
-  padding: clamp(46px,6vw,78px) 0 90px;
+  padding: var(--crew-game-main-top) 0 90px;
 }
 
 .word-page .word-heading {
   display: grid;
   grid-template-columns: minmax(0,1fr) auto;
   align-items: end;
-  gap: 42px;
-  margin-bottom: 28px;
-  padding: 25px 4px 27px;
+  gap: 36px;
+  margin-bottom: 16px;
+  padding: 4px 4px 12px;
 }
 
-.word-page .word-heading > div:first-child {
-  display: grid;
-  gap: 7px;
-}
+.word-page .word-heading > div:first-child { display: block; }
 
 .word-page .back-link {
   width: max-content;
   display: inline-flex;
-  margin-bottom: 17px;
-  color: rgba(225,234,243,.52);
-  font: 700 .66rem/1 Inter,sans-serif;
+  margin: 0;
+  color: rgba(229,237,245,.50);
+  font: 750 .60rem/1 Inter,sans-serif;
   text-decoration: none;
   transition: .2s;
 }
@@ -109,20 +106,20 @@
 .word-page .word-heading .eyebrow {
   display: block;
   color: color-mix(in srgb,var(--game-accent) 76%,white);
-  font: 800 .56rem/1 Inter,sans-serif;
-  letter-spacing: .18em;
+  font: 750 .60rem/1 Inter,sans-serif;
+  letter-spacing: .16em;
 }
 
 .word-page .word-heading h1 {
-  margin: 13px 0 10px;
+  margin: 0;
   color: #fff;
-  font: 850 clamp(4rem,6vw,6.4rem)/.84 Manrope,Inter,sans-serif;
-  letter-spacing: -.07em;
+  font: 850 var(--crew-type-game-title, clamp(1.75rem,2.5vw,2.45rem))/1.13 Manrope,Inter,sans-serif;
+  letter-spacing: -.046em;
 }
 
 .word-page .word-heading p {
   max-width: 680px;
-  margin: 0;
+  margin: 14px 0 0;
   color: var(--crew-color-muted);
   font: 500 .82rem/1.55 Inter,sans-serif;
 }
@@ -526,7 +523,7 @@
 @media (max-width: 760px) {
   .word-page .word-main {
     width: calc(100% - 28px);
-    padding: 34px 0 96px;
+    padding: 16px 0 96px;
   }
 
   .word-page::before,
@@ -538,11 +535,8 @@
     grid-template-columns: 1fr;
     align-items: flex-start;
     gap: 18px;
-    padding-top: 20px;
-  }
-
-  .word-page .word-heading h1 {
-    font-size: clamp(3rem,13vw,4.4rem);
+    padding: 4px 4px 10px;
+    margin-bottom: 14px;
   }
 
   .word-page .word-score {

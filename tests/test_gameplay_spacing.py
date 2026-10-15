@@ -1,59 +1,80 @@
-"""Game page title spacing must not inherit the old oversized hero layout."""
+"""Game masthead regression: all four pages share Trivia's header structure.
+
+Root cause is fixed in the source owners, not in a late CSS override layer.
+"""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAYER = ROOT / "frontend" / "src" / "player"
 MAIN = (PLAYER / "main.jsx").read_text(encoding="utf-8")
-SPACING = (PLAYER / "styles" / "gameplay-spacing.css").read_text(encoding="utf-8")
-ORIGINAL_GAME = (PLAYER / "styles" / "gameplay.css").read_text(encoding="utf-8")
-ORIGINAL_WORD = (PLAYER / "styles" / "word.css").read_text(encoding="utf-8")
-ORIGINAL_TRIVIA = (PLAYER / "styles" / "trivia.css").read_text(encoding="utf-8")
+SHARED = (PLAYER / "styles" / "gameplay.css").read_text(encoding="utf-8")
+WORD = (PLAYER / "styles" / "word.css").read_text(encoding="utf-8")
+TRIVIA = (PLAYER / "styles" / "trivia.css").read_text(encoding="utf-8")
+PREVIEW = (PLAYER / "styles" / "gameplay-refinement.css").read_text(encoding="utf-8")
 
 
-def test_spacing_layer_follows_typography_and_game_preview_styles():
-    imports = [
-        "gameplay.css", "word.css", "trivia.css",
-        "gameplay-refinement.css", "typography.css",
-        "gameplay-spacing.css",
-    ]
-    order = [MAIN.index(f"import './styles/{name}';") for name in imports]
-    assert order == sorted(order)
+def test_deprecated_spacing_override_is_removed():
+    assert not (PLAYER / "styles" / "gameplay-spacing.css").exists()
+    assert "gameplay-spacing.css" not in MAIN
+    assert "import './styles/typography.css';" in MAIN
 
 
-def test_main_padding_compacted_for_all_four_regular_game_routes():
-    # Original spacing was 42–78px above a second 25–26px title pad.
-    assert "clamp(46px,6vw,78px)" in ORIGINAL_GAME
-    assert "clamp(46px,6vw,78px)" in ORIGINAL_WORD
-    assert "clamp(42px,5vw,70px)" in ORIGINAL_TRIVIA
-    assert "padding-top: clamp(18px, 2.4vw, 30px)" in SPACING
-    assert ".game-page:not(.crew-gameplay-preview):not(.crew-game-complete) .single-game-main" in SPACING
-    assert ".word-page:not(.crew-gameplay-preview):not(.crew-game-complete) .word-main" in SPACING
-    assert ".v19-trivia-page:not(.crew-gameplay-preview) .v19-trivia-main:not(.crew-result-presentation)" in SPACING
-    assert ".game-title-row" in SPACING
-    assert ".word-heading" in SPACING
-    assert ".v19-trivia-heading" in SPACING
+def test_all_four_games_share_trivia_back_and_date_structure():
+    # Mystery, Word and Tick use a common context row; Trivia retains its
+    # working DOM structure while joining the same shared class.
+    assert MAIN.count('<div className="crew-game-context">') == 3
+    assert 'className="v19-trivia-context crew-game-context"' in MAIN
+    assert MAIN.count('aria-label={state.archive?') == 3
+    assert MAIN.count('>← Back</a>') >= 4
+    assert ".crew-game-context {" in SHARED
+    assert "display: flex;" in SHARED.split(".crew-game-context {", 1)[1].split("}", 1)[0]
+    assert "margin-bottom: 10px" in SHARED
+    # The heading is aligned on the same 1280px content rail on every page.
+    assert "width: min(1280px, calc(100% - 64px))" in SHARED
+    assert "width: min(1280px, calc(100% - 64px))" in WORD
+    assert "width: min(1280px, calc(100% - 64px))" in TRIVIA
+    assert "width: min(1160px, calc(100% - 64px))" not in SHARED
 
 
-def test_gameplay_preview_and_completion_view_remain_isolated():
-    assert ":not(.crew-gameplay-preview)" in SPACING
-    assert ":not(.crew-game-complete)" in SPACING
-    assert ":not(.crew-result-presentation)" in SPACING
-    for target in (
-        ".game-stage", ".word-game-panel", ".timer-stage",
-        ".react-trivia-stage", ".crew-result-stage",
-        ".v20-profile-main", ".home-week", ".trophy-section-header",
-        ".crew-page-head", ".app-nav", ".word-tile",
+def test_original_layout_owners_use_one_top_padding_token():
+    assert "--crew-game-main-top: clamp(18px, 2.4vw, 30px)" in SHARED
+    for source in (SHARED, WORD, TRIVIA):
+        assert "var(--crew-game-main-top)" in source
+    assert "clamp(46px,6vw,78px)" not in SHARED
+    assert "clamp(46px,6vw,78px)" not in WORD
+    assert "clamp(42px,5vw,70px)" not in TRIVIA
+    assert ".single-game-main { padding-top:52px; }" not in SHARED
+    assert ".game-title-row { padding:26px 4px 28px;" not in SHARED
+    assert "padding: 25px 4px 27px" not in WORD
+    assert "font-size: clamp(3rem,13vw,4.4rem)" not in WORD
+    assert "font-size:clamp(3rem,13vw,4.4rem)" not in SHARED
+    assert "font-size: clamp(2.7rem,12vw,4rem)" not in TRIVIA
+
+
+def test_trivia_reference_spacing_is_identical_at_breakpoints():
+    assert "margin-bottom: 16px" in TRIVIA
+    assert "margin-bottom: 16px" in WORD
+    assert "margin-bottom: 16px" in SHARED
+    assert "margin-bottom: 10px" in TRIVIA
+    assert "margin: 14px 0 0" in WORD
+    assert "margin: 14px 0 0" in SHARED
+    assert "padding: 16px 0 30px" in TRIVIA
+    assert "padding: 16px 0 96px" in WORD
+    assert "padding: 16px 0 96px" in SHARED
+    assert "margin-bottom: 14px" in TRIVIA
+    assert "margin-bottom: 14px" in WORD
+    assert "margin-bottom:14px" in SHARED
+
+
+def test_staff_preview_keeps_a_context_line_and_results_unchanged_in_js():
+    assert "body.crew-gameplay-preview .crew-game-context" in PREVIEW
+    assert "display:block;" in PREVIEW
+    assert "body.crew-gameplay-preview .v19-trivia-heading" in PREVIEW
+    for marker in (
+        "<GameResult game=\"word\"",
+        "<GameResult game=\"mystery\"",
+        "<GameResult game=\"tick_tock\"",
+        "useCompletionViewport(state.completed)",
+        "data.shell?.gameplayPreviewEnabled",
     ):
-        assert target not in SPACING
-    assert "data.shell?.gameplayPreviewEnabled" in MAIN
-    assert "useCompletionViewport" in MAIN
-
-
-def test_mobile_and_context_spacing_are_compact():
-    assert "@media (max-width: 760px)" in SPACING
-    assert "padding-top: 16px" in SPACING
-    assert "margin-bottom: 14px" in SPACING
-    assert "margin-bottom: 8px" in SPACING
-    assert "margin-top: 10px" in SPACING
-    assert "text-wrap" not in SPACING
-    assert "font-size" not in SPACING
+        assert marker in MAIN
