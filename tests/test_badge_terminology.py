@@ -10,14 +10,16 @@ ROOT = Path(__file__).resolve().parents[1]
 MAIN = (ROOT / "frontend/src/player/main.jsx").read_text()
 TOUR = (ROOT / "frontend/src/player/TrophyWelcomeTour.jsx").read_text()
 AUTH = (ROOT / "app/auth/routes.py").read_text()
+CINEMA = (ROOT / "frontend/src/player/BadgeUnlockPreview.jsx").read_text()
 
 
 def test_sitewide_navigation_and_unlock_copy_says_badges():
     assert "My badges" in MAIN
     assert "link('trophies','Badges'" in MAIN
-    assert "'A new badge for your CREW collection.'" in MAIN
-    assert "'You earned multiple new badges!'" in MAIN
-    assert "View badges" in MAIN
+    assert "'A new badge for your CREW collection.'" in CINEMA
+    assert "BADGES UNLOCKED" in CINEMA
+    assert "NEW AWARDS SAVED TO YOUR COLLECTION" in CINEMA
+    assert "Continue to results" in CINEMA
     assert "My trophies" not in MAIN
     assert "link('trophies','Trophies'" not in MAIN
     assert "new trophy" not in MAIN.lower()
