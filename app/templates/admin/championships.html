@@ -38,6 +38,11 @@
         <span class="eyebrow">READ-ONLY {{ 'FROZEN RESULT' if summary.already_finalized else 'DRAFT PREVIEW' }}</span>
         <h2>Results for {{ season.start_date.strftime('%b %d') }} – {{ season.end_date.strftime('%b %d, %Y') }}</h2>
         <p>The five championships use total season points and per-game season points. Only a positive score is eligible. When multiple players tie for first, all receive that badge.</p>
+        {% if summary.already_finalized %}
+          <p><strong>Championship scoring closed:</strong> {{ summary.score_cutoff.replace('T', ' ') if summary.score_cutoff else 'At the original approval' }} UTC. These winners are frozen. Archived games completed afterward still earn normal points but cannot change these badges.</p>
+        {% else %}
+          <p><strong>Scoring cutoff:</strong> The instant an Admin finalizes the season (UTC). Later archive completions still count toward normal player and leaderboard totals, but cannot change the championship results.</p>
+        {% endif %}
       </div>
       <div class="v2-settings-copy">
         {% for code, winners in summary.winners.items() %}
@@ -62,7 +67,7 @@
         <div class="v2-settings-copy">
           <span class="eyebrow">FINAL APPROVAL</span>
           <h2>Freeze winners and award championship badges.</h2>
-          <p>This cannot be undone from the UI. Review the preview and scores above before confirming.</p>
+          <p>This cannot be undone from the UI. Approval immediately closes championship scoring and freezes these winners. Review the preview and scores above before confirming.</p>
         </div>
         <form method="post" class="v2-invite-form" action="{{ url_for('admin.review_championships', season_id=season.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
