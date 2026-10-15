@@ -11,6 +11,10 @@ from app.migrations import current_revision, upgrade_database
 from app.schedule import CREW_WEEK_ONE_DATE, crew_today, get_week_start, previous_scheduled_game_day
 
 
+class ConcurrentAttemptError(RuntimeError):
+    """Another request already changed or completed this game attempt."""
+
+
 class _Result:
     def __init__(self, result):
         self._result = result
@@ -736,19 +740,30 @@ def load_guesses(attempt_row):
     return load_json_list(attempt_row, "guesses_json")
 
 
-def save_word_attempt(user_key, game_date, guesses, completed, won, score):
+def save_word_attempt(user_key, game_date, guesses, completed, won, score, *,
+                      expected_guesses=None, commit=True):
     db = get_db()
     profile_id = _profile_id_from_user_key(user_key)
     completed_at = _db_timestamp() if completed else None
-    db.execute(
+    guard = " AND guesses_json = ?" if expected_guesses is not None else ""
+    params = (json.dumps(guesses), int(completed), int(won), score, completed_at,
+              profile_id, game_date)
+    if expected_guesses is not None:
+        params += (json.dumps(expected_guesses),)
+    cursor = db.execute(
         """
         UPDATE word_attempts
         SET guesses_json = ?, completed = ?, won = ?, score = ?, completed_at = ?
-        WHERE profile_id = ? AND game_date = ?
-        """,
-        (json.dumps(guesses), int(completed), int(won), score, completed_at, profile_id, game_date),
+        WHERE profile_id = ? AND game_date = ? AND completed = 0
+        """ + guard,
+        params,
     )
-    db.commit()
+    if cursor.rowcount != 1:
+        db.rollback()
+        raise ConcurrentAttemptError("Wordle attempt changed in another request.")
+    if commit:
+        db.commit()
+
 
 # ---------- Mystery ----------
 
@@ -771,19 +786,34 @@ def get_or_create_mystery_attempt(user_key, game_date):
         (profile_id, game_date),
     ).fetchone()
 
-def save_mystery_attempt(user_key, game_date, revealed_count, guesses, completed, won, score):
+def save_mystery_attempt(user_key, game_date, revealed_count, guesses, completed, won, score, *,
+                         expected_guesses=None, expected_revealed_count=None, commit=True):
     db = get_db()
     profile_id = _profile_id_from_user_key(user_key)
     completed_at = _db_timestamp() if completed else None
-    db.execute(
+    guard = ""
+    params = (revealed_count, json.dumps(guesses), int(completed), int(won), score,
+              completed_at, profile_id, game_date)
+    if expected_guesses is not None:
+        guard += " AND guesses_json = ?"
+        params += (json.dumps(expected_guesses),)
+    if expected_revealed_count is not None:
+        guard += " AND revealed_count = ?"
+        params += (int(expected_revealed_count),)
+    cursor = db.execute(
         """
         UPDATE mystery_attempts
         SET revealed_count = ?, guesses_json = ?, completed = ?, won = ?, score = ?, completed_at = ?
-        WHERE profile_id = ? AND game_date = ?
-        """,
-        (revealed_count, json.dumps(guesses), int(completed), int(won), score, completed_at, profile_id, game_date),
+        WHERE profile_id = ? AND game_date = ? AND completed = 0
+        """ + guard,
+        params,
     )
-    db.commit()
+    if cursor.rowcount != 1:
+        db.rollback()
+        raise ConcurrentAttemptError("Mystery attempt changed in another request.")
+    if commit:
+        db.commit()
+
 
 # ---------- Trivia ----------
 
@@ -806,19 +836,29 @@ def get_or_create_trivia_attempt(user_key, game_date):
         (profile_id, game_date),
     ).fetchone()
 
-def save_trivia_attempt(user_key, game_date, answers, completed, score):
+def save_trivia_attempt(user_key, game_date, answers, completed, score, *,
+                        expected_answers=None, commit=True):
     db = get_db()
     profile_id = _profile_id_from_user_key(user_key)
     completed_at = _db_timestamp() if completed else None
-    db.execute(
+    guard = " AND answers_json = ?" if expected_answers is not None else ""
+    params = (json.dumps(answers), int(completed), score, completed_at, profile_id, game_date)
+    if expected_answers is not None:
+        params += (json.dumps(expected_answers),)
+    cursor = db.execute(
         """
         UPDATE trivia_attempts
         SET answers_json = ?, completed = ?, score = ?, completed_at = ?
-        WHERE profile_id = ? AND game_date = ?
-        """,
-        (json.dumps(answers), int(completed), score, completed_at, profile_id, game_date),
+        WHERE profile_id = ? AND game_date = ? AND completed = 0
+        """ + guard,
+        params,
     )
-    db.commit()
+    if cursor.rowcount != 1:
+        db.rollback()
+        raise ConcurrentAttemptError("Trivia attempt changed in another request.")
+    if commit:
+        db.commit()
+
 
 # ---------- Tick-Tock ----------
 
@@ -849,32 +889,47 @@ def start_tick_tock_attempt(user_key, game_date):
     db = get_db()
     profile_id = _profile_id_from_user_key(user_key)
     started_at = time.time()
-    db.execute(
+    cursor = db.execute(
         """
         UPDATE tick_tock_attempts
         SET started_at = ?, stopped_at = NULL, elapsed_seconds = NULL, difference_seconds = NULL
-        WHERE profile_id = ? AND game_date = ? AND completed = 0
+        WHERE profile_id = ? AND game_date = ? AND completed = 0 AND started_at IS NULL
         """,
         (started_at, profile_id, game_date),
     )
+    if cursor.rowcount != 1:
+        db.rollback()
+        raise ConcurrentAttemptError("The timer has already started or finished.")
     db.commit()
     return started_at
 
-def finish_tick_tock_attempt(user_key, game_date, elapsed_seconds, difference_seconds, score):
+
+def finish_tick_tock_attempt(user_key, game_date, elapsed_seconds, difference_seconds,
+                             score, *, expected_started_at=None, commit=True):
     db = get_db()
     profile_id = _profile_id_from_user_key(user_key)
     stopped_at = time.time()
     completed_at = _db_timestamp()
-    db.execute(
+    guard = " AND started_at = ?" if expected_started_at is not None else ""
+    params = (stopped_at, elapsed_seconds, difference_seconds, score, completed_at,
+              profile_id, game_date)
+    if expected_started_at is not None:
+        params += (expected_started_at,)
+    cursor = db.execute(
         """
         UPDATE tick_tock_attempts
         SET stopped_at = ?, elapsed_seconds = ?, difference_seconds = ?,
             completed = 1, score = ?, completed_at = ?
-        WHERE profile_id = ? AND game_date = ?
-        """,
-        (stopped_at, elapsed_seconds, difference_seconds, score, completed_at, profile_id, game_date),
+        WHERE profile_id = ? AND game_date = ? AND completed = 0
+        """ + guard,
+        params,
     )
-    db.commit()
+    if cursor.rowcount != 1:
+        db.rollback()
+        raise ConcurrentAttemptError("The timer was already stopped or restarted.")
+    if commit:
+        db.commit()
+
 
 # ---------- Shared progress / scoring ----------
 

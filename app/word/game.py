@@ -1,5 +1,6 @@
 from collections import Counter
 from datetime import date
+import secrets
 
 from app.db import get_db, get_game_content
 from app.schedule import crew_today
@@ -53,15 +54,18 @@ def get_daily_solution(game_date=None):
     if row:
         return row["solution"]
 
-    # Stable date-based selection for the prototype; storing it keeps the answer fixed.
-    index = game_date.toordinal() % len(SOLUTIONS)
-    solution = SOLUTIONS[index]
+    # Unpredictable server-side selection, persisted once. Existing dates remain
+    # unchanged and competing requests cannot replace the first inserted answer.
+    candidate = secrets.choice(SOLUTIONS)
     db.execute(
-        "INSERT INTO word_games (game_date, solution) VALUES (?, ?)",
-        (day_key, solution),
+        "INSERT INTO word_games (game_date, solution) VALUES (?, ?) "
+        "ON CONFLICT (game_date) DO NOTHING",
+        (day_key, candidate),
     )
     db.commit()
-    return solution
+    return db.execute(
+        "SELECT solution FROM word_games WHERE game_date = ?", (day_key,)
+    ).fetchone()["solution"]
 
 
 def validate_guess(guess, game_date=None):

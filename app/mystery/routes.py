@@ -3,7 +3,7 @@ from flask import Blueprint, abort, jsonify, redirect, request, session, url_for
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
 from app.badge_awarding import safe_award_completion
-from app.db import finalize_game_stats, get_or_create_mystery_attempt, load_json_list, save_mystery_attempt
+from app.db import ConcurrentAttemptError, finalize_game_stats, get_or_create_mystery_attempt, load_json_list, save_mystery_attempt
 from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import get_puzzle, is_correct_answer, score_for_clues
 
@@ -81,7 +81,14 @@ def reveal():
     if revealed_count >= len(puzzle["clues"]):
         return jsonify({"ok": False, "message": "All clues are already revealed."}), 400
     revealed_count += 1
-    save_mystery_attempt(user_key, game_date, revealed_count, load_json_list(attempt, "guesses_json"), False, False, 0)
+    try:
+        save_mystery_attempt(user_key, game_date, revealed_count,
+                             load_json_list(attempt, "guesses_json"), False, False, 0,
+                             expected_guesses=load_json_list(attempt, "guesses_json"),
+                             expected_revealed_count=int(attempt["revealed_count"]))
+    except ConcurrentAttemptError:
+        return jsonify({"ok": False, "message": "The clues changed. Refresh your puzzle.",
+                        "state": serialize_state(user_key, game_day)}), 409
     return jsonify({"ok": True, "state": serialize_state(user_key, game_day)})
 
 
@@ -98,6 +105,7 @@ def guess():
     if not answer or len(answer) > 80:
         return jsonify({"ok": False, "message": "Enter your mystery answer first."}), 400
     guesses = load_json_list(attempt, "guesses_json"); revealed_count = int(attempt["revealed_count"])
+    previous_guesses = list(guesses)
     won = is_correct_answer(answer, puzzle); guesses.append({"answer": answer, "correct": won, "clue": revealed_count})
     if won:
         score, completed = score_for_clues(revealed_count, len(puzzle["clues"])), True
@@ -105,7 +113,14 @@ def guess():
         score, completed = 10, True
     else:
         score, completed, revealed_count = 0, False, revealed_count + 1
-    save_mystery_attempt(user_key, game_date, revealed_count, guesses, completed, won, score)
+    try:
+        save_mystery_attempt(user_key, game_date, revealed_count, guesses, completed, won, score,
+                             expected_guesses=previous_guesses,
+                             expected_revealed_count=int(attempt["revealed_count"]),
+                             commit=not completed)
+    except ConcurrentAttemptError:
+        return jsonify({"ok": False, "message": "The mystery changed. Refresh and try again.",
+                        "state": serialize_state(user_key, game_day)}), 409
     stats = None
     badge_awards = ()
     if completed:

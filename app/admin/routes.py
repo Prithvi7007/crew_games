@@ -861,6 +861,46 @@ def settings():
         current_season=current_season,
     )
 
+@admin_bp.route("/seasons/<int:season_id>/championships", methods=["GET", "POST"])
+@admin_required
+def review_championships(season_id):
+    """Explicit human review is the only way to award season championships."""
+    from app.championships import preview_season_championships, finalize_season_championships
+
+    season = get_season_by_id(season_id)
+    if not season:
+        flash("Season not found.", "error")
+        return redirect(url_for("admin.settings"))
+
+    if request.method == "POST":
+        expected = f"FINALIZE SEASON {season['number']}"
+        if request.form.get("confirm", "").strip() != expected:
+            flash(f"Type {expected} to confirm the championship awards.", "error")
+            return redirect(url_for("admin.review_championships", season_id=season_id))
+        try:
+            summary = finalize_season_championships(season_id)
+        except ValueError as exc:
+            flash(str(exc), "error")
+        else:
+            actor = g.admin_actor
+            audit_security_event(
+                "admin_championship_finalized",
+                actor["username"],
+                {"actor_profile_id": actor["profile_id"], "season_id": season_id,
+                 "new_awards": summary["new_awards"], "rule_version": summary["rule_version"]},
+            )
+            flash(f"Championship snapshot saved. {summary['new_awards']} new badge awards.", "success")
+        return redirect(url_for("admin.review_championships", season_id=season_id))
+
+    summary = preview_season_championships(season_id)
+    return render_template(
+        "admin/championships.html",
+        season=season,
+        summary=summary,
+        confirmation=f"FINALIZE SEASON {season['number']}",
+    )
+
+
 @admin_bp.get("/test/<game_key>/<game_date>")
 @admin_required
 def test_game(game_key, game_date):
