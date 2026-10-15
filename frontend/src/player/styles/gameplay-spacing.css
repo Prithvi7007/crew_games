@@ -1,0 +1,60 @@
+/* CREW gameplay header spacing.
+   The oversized legacy game masthead padding survived the compact type pass.
+   Tighten only ACTIVE, standard game layouts; leave results, admin gameplay
+   previews, game stages, background art and the shared navigation untouched. */
+
+/* Mystery Monday + Tick-Tock Thursday. */
+body.react-player-page.game-page:not(.crew-gameplay-preview):not(.crew-game-complete) .single-game-main,
+body.react-player-page.word-page:not(.crew-gameplay-preview):not(.crew-game-complete) .word-main,
+body.react-player-page.v19-trivia-page:not(.crew-gameplay-preview) .v19-trivia-main:not(.crew-result-presentation) {
+  padding-top: clamp(18px, 2.4vw, 30px);
+}
+
+body.react-player-page.game-page:not(.crew-gameplay-preview) .game-title-row {
+  padding: 4px 4px 12px;
+  margin-bottom: 16px;
+}
+body.react-player-page.word-page:not(.crew-gameplay-preview) .word-heading {
+  padding: 4px 4px 12px;
+  margin-bottom: 16px;
+}
+
+/* Preserve the back link/date/title hierarchy without padding each item
+   as though the heading were still a 100px cinema hero. */
+body.react-player-page.game-page:not(.crew-gameplay-preview) .game-title-row .back-link,
+body.react-player-page.word-page:not(.crew-gameplay-preview) .word-heading .back-link {
+  margin-bottom: 8px;
+}
+body.react-player-page.game-page:not(.crew-gameplay-preview) .game-title-row h1,
+body.react-player-page.word-page:not(.crew-gameplay-preview) .word-heading h1 {
+  margin: 8px 0 6px;
+}
+body.react-player-page.v19-trivia-page:not(.crew-gameplay-preview) .v19-trivia-heading {
+  margin-bottom: 16px;
+}
+body.react-player-page.v19-trivia-page:not(.crew-gameplay-preview) .v19-trivia-context {
+  margin-bottom: 10px;
+}
+body.react-player-page.v19-trivia-page:not(.crew-gameplay-preview) .v19-trivia-heading p {
+  margin-top: 10px;
+}
+
+/* Prioritize gameplay visibility on smaller screens. These selectors must
+   override legacy mobile top padding without altering the preview variant. */
+@media (max-width: 760px) {
+  body.react-player-page.game-page:not(.crew-gameplay-preview):not(.crew-game-complete) .single-game-main,
+  body.react-player-page.word-page:not(.crew-gameplay-preview):not(.crew-game-complete) .word-main,
+  body.react-player-page.v19-trivia-page:not(.crew-gameplay-preview) .v19-trivia-main:not(.crew-result-presentation) {
+    padding-top: 16px;
+  }
+
+  body.react-player-page.game-page:not(.crew-gameplay-preview) .game-title-row,
+  body.react-player-page.word-page:not(.crew-gameplay-preview) .word-heading {
+    padding-top: 4px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  body.react-player-page.v19-trivia-page:not(.crew-gameplay-preview) .v19-trivia-heading {
+    margin-bottom: 14px;
+  }
+}

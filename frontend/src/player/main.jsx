@@ -17,6 +17,7 @@ import './styles/trophy-tour.css';
 import './styles/badge-unlock-preview.css';
 import './styles/gameplay-refinement.css';
 import './styles/typography.css';
+import './styles/gameplay-spacing.css';
 import TrophyRoom, { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
 import TrophyWelcomeTour from './TrophyWelcomeTour';
 import BadgeUnlockPreview, { CinematicReveal } from './BadgeUnlockPreview';
