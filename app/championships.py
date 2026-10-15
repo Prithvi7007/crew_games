@@ -4,13 +4,13 @@ No awards are created automatically. An authenticated admin must explicitly
 review and finalize after the season ends. Tied first places share the badge.
 """
 import json
-from datetime import date
+from datetime import date, datetime, timezone
 
 from app.badges import CHAMPIONSHIP_CODES
-from app.db import _db_timestamp, get_db, get_season_by_id
+from app.db import _db_timestamp, get_db, get_season_by_id, get_championship_score_rows
 from app.schedule import crew_today
 
-RULE_VERSION = 1
+RULE_VERSION = 2
 CHAMPIONSHIP_GAME = {
     "season_champion": None,
     "season_mystery_master": "mystery",
@@ -32,7 +32,7 @@ def _stored(season_id):
     return {**snapshot, "already_finalized": True, "new_awards": 0}
 
 
-def preview_season_championships(season_id, *, today=None):
+def preview_season_championships(season_id, *, today=None, completed_before=None):
     """Return immutable winners after approval, otherwise live read-only preview."""
     today = today or crew_today()
     season = get_season_by_id(int(season_id), reference_day=today)
@@ -43,18 +43,9 @@ def preview_season_championships(season_id, *, today=None):
         return stored
 
     scores = {}
-    rows = get_db().execute(
-        """
-        SELECT p.id AS profile_id, p.username, gc.game_key,
-               SUM(gc.score) AS points
-        FROM game_completions gc
-        JOIN profiles p ON p.id = gc.profile_id
-        WHERE gc.game_date BETWEEN ? AND ?
-          AND gc.game_key IN ('mystery','trivia','word','tick_tock')
-        GROUP BY p.id, p.username, gc.game_key
-        """,
-        (season["start_date"].isoformat(), season["end_date"].isoformat()),
-    ).fetchall()
+    rows = get_championship_score_rows(
+        season["start_date"], season["end_date"], completed_before=completed_before,
+    )
     for row in rows:
         pid = int(row["profile_id"])
         result = scores.setdefault(pid, {
@@ -82,6 +73,7 @@ def preview_season_championships(season_id, *, today=None):
         "season_end": season["end_date"].isoformat(),
         "eligible": today > season["end_date"],
         "rule_version": RULE_VERSION,
+        "score_cutoff": completed_before,
         "tie_rule": "All players tied for the highest positive score share first place.",
         "winners": winners,
         "already_finalized": False,
@@ -91,7 +83,11 @@ def preview_season_championships(season_id, *, today=None):
 
 def finalize_season_championships(season_id, *, today=None):
     """Freeze a reviewed snapshot and award its winners once, atomically."""
-    preview = preview_season_championships(season_id, today=today)
+    # Freeze the competition at the moment of explicit Admin approval (UTC).
+    # Microsecond precision avoids excluding valid completions from that second.
+    # Any later archive play still earns personal/leaderboard points, not trophies.
+    cutoff = datetime.now(timezone.utc).replace(tzinfo=None).isoformat(timespec="microseconds")
+    preview = preview_season_championships(season_id, today=today, completed_before=cutoff)
     if preview["already_finalized"]:
         return preview
     if not preview["eligible"]:

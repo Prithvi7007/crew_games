@@ -101,3 +101,66 @@ def test_admin_championship_review_requires_login_and_explicit_confirmation(app,
             (season_id,)
         ).fetchone()
         assert row["n"] == 0
+
+
+def test_approval_sets_a_permanent_cutoff_while_late_archive_points_still_count(app):
+    """Late completions affect ordinary totals, never frozen championship badges."""
+    from app.db import get_championship_score_rows, get_rankings_between
+
+    with app.app_context():
+        season = get_season_for_date(date(2026, 10, 20))
+        early = _player("EarlyScoreChamp")
+        late = _player("LateScoreChamp")
+        finalize_game_stats(profile_user_key(early), "mystery", "2026-10-19", 50, True)
+        approved = finalize_season_championships(season["id"], today=date(2026, 11, 1))
+        cutoff = approved["score_cutoff"]
+        assert cutoff and "T" in cutoff
+        assert approved["winners"]["season_champion"][0]["profile_id"] == early
+
+        # A later archive result remains a saved, fully scored completion.
+        finalize_game_stats(profile_user_key(late), "trivia", "2026-10-20",
+                            100, True, competitive=False)
+        db = get_db()
+        # Make the completion timestamp unambiguously later than approval.
+        db.execute(
+            """UPDATE game_completions SET completed_at = ?
+               WHERE profile_id = ? AND game_date = ?""",
+            ("2099-01-01T00:00:00", late, "2026-10-20"),
+        )
+        db.commit()
+        scores_at_cutoff = get_championship_score_rows(
+            season["start_date"], season["end_date"], completed_before=cutoff,
+        )
+        assert {row["profile_id"] for row in scores_at_cutoff} == {early}
+        ordinary = get_rankings_between(season["start_date"], season["end_date"])
+        assert any(row["profile_id"] == late and row["points"] == 100 for row in ordinary)
+        frozen = preview_season_championships(season["id"], today=date(2026, 11, 2))
+        assert frozen["score_cutoff"] == cutoff
+        assert frozen["winners"]["season_champion"] == approved["winners"]["season_champion"]
+        assert not any(
+            a["badge_code"] == "season_champion"
+            for a in get_badge_awards(late, season["id"])
+        )
+
+
+def test_finalized_season_cannot_change_dates_even_with_zero_game_results(app):
+    from app.db import create_season, update_season
+
+    with app.app_context():
+        season = create_season("No Points Season", date(2030, 1, 7), date(2030, 1, 11))
+        approved = finalize_season_championships(season["id"], today=date(2030, 1, 12))
+        assert approved["already_finalized"] is True
+        assert all(not winners for winners in approved["winners"].values())
+        with pytest.raises(ValueError, match="locked after championship"):
+            update_season(season["id"], season["name"],
+                          date(2030, 1, 14), date(2030, 1, 18))
+
+
+def test_leaderboard_extraction_keeps_public_database_imports():
+    from app import db
+    from app import db_leaderboards
+    for name in (
+        "get_weekly_points", "get_weekly_leaderboard", "get_rankings_between",
+        "get_competitive_rankings_between", "get_home_leaderboard", "get_leaderboard",
+    ):
+        assert getattr(db, name) is getattr(db_leaderboards, name)
