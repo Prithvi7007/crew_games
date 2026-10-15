@@ -194,19 +194,6 @@
   padding: var(--crew-game-main-top) 0 90px;
 }
 
-.game-page .glass-stat{
-  min-width: 190px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  border: 1px solid var(--crew-color-line);
-  border-radius: 14px;
-  background: rgba(6,13,19,.66);
-  box-shadow: none;
-  backdrop-filter: blur(14px);
-}
-
 .game-page .archive-play-banner{
   margin: 0 0 18px;
   padding: 13px 16px;

@@ -122,6 +122,7 @@
           </div>
 
           <button class="admin-card-button" type="submit">Save →</button>
+          <a class="admin-card-button" href="{{ url_for('admin.review_championships', season_id=item.id) }}">Championships →</a>
         </form>
         {% else %}
         <div class="v2-season-empty">No seasons configured.</div>

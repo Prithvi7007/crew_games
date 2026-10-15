@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
-from app.db import finalize_game_stats, get_or_create_trivia_attempt, load_json_list, save_trivia_attempt
+from app.db import ConcurrentAttemptError, finalize_game_stats, get_or_create_trivia_attempt, load_json_list, save_trivia_attempt
 from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import get_quiz
 from app.player_ui import render_player
@@ -65,9 +65,15 @@ def answer():
     if index >= len(quiz["questions"]): return jsonify({"ok": False, "message": "No questions remaining."}), 409
     question = quiz["questions"][index]
     if selected < 0 or selected >= len(question["options"]): return jsonify({"ok": False, "message": "That answer choice is invalid."}), 400
+    previous_answers = list(answers)
     correct = selected == question["answer"]; answers.append({"question": index, "selected": selected, "correct": correct})
     completed = len(answers) == len(quiz["questions"]); score = sum(10 for item in answers if item["correct"]) if completed else 0
-    save_trivia_attempt(user_key, game_date, answers, completed, score)
+    try:
+        save_trivia_attempt(user_key, game_date, answers, completed, score,
+                            expected_answers=previous_answers, commit=not completed)
+    except ConcurrentAttemptError:
+        return jsonify({"ok": False, "message": "Your answers changed. Refresh the question.",
+                        "state": serialize_state(user_key, game_day)}), 409
     stats = None
     badge_awards = ()
     if completed:

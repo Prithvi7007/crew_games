@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
-from app.db import ensure_user_stats, finalize_word_stats, get_game_content, get_or_create_word_attempt, load_guesses, save_word_attempt
+from app.db import ConcurrentAttemptError, ensure_user_stats, finalize_word_stats, get_game_content, get_or_create_word_attempt, load_guesses, save_word_attempt
 from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import evaluate_guess, get_daily_solution, score_for_result, validate_guess
 from app.player_ui import render_player
@@ -65,9 +65,15 @@ def submit_guess():
     if attempt["completed"]: return jsonify({"ok": False, "message": "Wordle Wednesday is already complete.", "state": serialize_state(user_key, game_day)}), 409
     if normalized in guesses: return jsonify({"ok": False, "message": "You already tried that word."}), 400
     if len(guesses) >= 6: return jsonify({"ok": False, "message": "No guesses remaining."}), 409
+    previous_guesses = list(guesses)
     guesses.append(normalized); tiles = evaluate_guess(normalized, solution); won = normalized == solution; completed = won or len(guesses) == 6
     score = score_for_result(len(guesses), won) if completed else 0
-    save_word_attempt(user_key, game_date, guesses, completed, won, score)
+    try:
+        save_word_attempt(user_key, game_date, guesses, completed, won, score,
+                          expected_guesses=previous_guesses, commit=not completed)
+    except ConcurrentAttemptError:
+        return jsonify({"ok": False, "message": "Another guess was submitted. Refresh your puzzle.",
+                        "state": serialize_state(user_key, game_day)}), 409
     stats = None
     badge_awards = ()
     if completed:

@@ -4,7 +4,7 @@ from flask import Blueprint, abort, jsonify, redirect, request, session, url_for
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
 from app.badge_awarding import safe_award_completion
-from app.db import finalize_game_stats, finish_tick_tock_attempt, get_or_create_tick_tock_attempt, start_tick_tock_attempt
+from app.db import ConcurrentAttemptError, finalize_game_stats, finish_tick_tock_attempt, get_or_create_tick_tock_attempt, start_tick_tock_attempt
 from app.schedule import game_is_archive, game_is_competitive, game_is_in_archive, game_is_playable, parse_game_day
 from .game import get_target, get_timer_config, score_for_difference
 
@@ -63,7 +63,12 @@ def start():
     target = get_target(game_day); attempt = get_or_create_tick_tock_attempt(user_key, game_date, target)
     if attempt["completed"]: return jsonify({"ok": False, "message": "Tick-Tock Thursday is already complete.", "state": serialize_state(user_key, game_day)}), 409
     if attempt["started_at"]: return jsonify({"ok": False, "message": "The hidden timer is already running.", "state": serialize_state(user_key, game_day)}), 409
-    start_tick_tock_attempt(user_key, game_date); return jsonify({"ok": True, "state": serialize_state(user_key, game_day)})
+    try:
+        start_tick_tock_attempt(user_key, game_date)
+    except ConcurrentAttemptError:
+        return jsonify({"ok": False, "message": "This timer is already running.",
+                        "state": serialize_state(user_key, game_day)}), 409
+    return jsonify({"ok": True, "state": serialize_state(user_key, game_day)})
 
 
 @tick_tock_bp.post("/stop")
@@ -75,7 +80,12 @@ def stop():
     if attempt["completed"]: return jsonify({"ok": False, "message": "Tick-Tock Thursday is already complete.", "state": serialize_state(user_key, game_day)}), 409
     if not attempt["started_at"]: return jsonify({"ok": False, "message": "Start the timer first."}), 400
     elapsed = max(0.0, time.time() - float(attempt["started_at"])); difference = abs(elapsed - float(attempt["target_seconds"])); score = score_for_difference(difference)
-    finish_tick_tock_attempt(user_key, game_date, elapsed, difference, score)
+    try:
+        finish_tick_tock_attempt(user_key, game_date, elapsed, difference, score,
+                                  expected_started_at=attempt["started_at"], commit=False)
+    except ConcurrentAttemptError:
+        return jsonify({"ok": False, "message": "The timer has already stopped.",
+                        "state": serialize_state(user_key, game_day)}), 409
     row = finalize_game_stats(user_key, "tick_tock", game_date, score, True, competitive=game_is_competitive(game_day))
     badge_awards = safe_award_completion(session["user"]["profile_id"], "tick_tock", game_date)
     return jsonify({"ok": True, "stats": {"streak": row["current_streak"], "total_points": row["total_points"], "competitive": game_is_competitive(game_day)}, "badge_awards": badge_awards, "state": serialize_state(user_key, game_day)})
