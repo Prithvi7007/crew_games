@@ -29,23 +29,14 @@
   overflow-wrap: anywhere;
 }
 
-/* Preserve compact Mystery, Trivia, Wordle and Tick-Tock page headings
-   independently of the in-game questions, tile letters, timers or scores. */
-.react-player-page.game-page .game-title-row h1,
-.react-player-page.word-page .word-heading h1,
-.react-player-page.v19-trivia-page .v19-trivia-heading h1 {
+/* One component, one title scale on every game, including staff previews.
+   Only page headings are affected; never questions, scores or game controls. */
+.react-player-page .crew-game-heading h1,
+body.react-player-page.crew-gameplay-preview .crew-game-heading h1 {
   font-size: var(--crew-type-game-title);
   line-height: 1.13;
   letter-spacing: -.046em;
   text-wrap: balance;
-}
-
-/* Staff gameplay preview previously had higher-specificity heading rules. */
-body.react-player-page.crew-gameplay-preview.game-page .game-title-row h1,
-body.react-player-page.crew-gameplay-preview.word-page .word-heading h1,
-body.react-player-page.crew-gameplay-preview.v19-trivia-page .v19-trivia-heading h1 {
-  font-size: var(--crew-type-game-title);
-  line-height: 1.13;
 }
 
 @media (max-width: 760px) {
