@@ -48,7 +48,7 @@
 .v19-trivia-main {
   width: min(1280px, calc(100% - 64px));
   margin: 0 auto;
-  padding: clamp(42px,5vw,70px) 0 88px;
+  padding: var(--crew-game-main-top) 0 88px;
 }
 
 .v19-trivia-heading {
@@ -56,14 +56,14 @@
   grid-template-columns: minmax(0,1fr) auto;
   align-items: end;
   gap: 36px;
-  margin-bottom: 26px;
+  margin-bottom: 16px;
 }
 
 .v19-trivia-context {
   display: flex;
   align-items: center;
   gap: 15px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .v19-back-link,
@@ -88,12 +88,12 @@
 .v19-trivia-heading h1 {
   margin: 0;
   color: #fff;
-  font: 850 clamp(3.5rem,5.4vw,5.8rem)/.86 Manrope,Inter,sans-serif;
-  letter-spacing: -.068em;
+  font: 850 var(--crew-type-game-title, clamp(1.75rem,2.5vw,2.45rem))/1.13 Manrope,Inter,sans-serif;
+  letter-spacing: -.046em;
 }
 
 .v19-trivia-heading p {
-  margin: 14px 0 0;
+  margin: 10px 0 0;
   color: var(--tt-muted);
   font: 500 .82rem/1.55 Inter,sans-serif;
 }
@@ -471,22 +471,18 @@
 @media (max-width: 760px) {
   .v19-trivia-main {
     width: calc(100% - 28px);
-    padding: 28px 0 30px;
+    padding: 16px 0 30px;
   }
 
   .v19-trivia-heading {
     grid-template-columns: 1fr;
     gap: 0;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
   }
 
   .v19-trivia-context {
     flex-wrap: wrap;
     row-gap: 8px;
-  }
-
-  .v19-trivia-heading h1 {
-    font-size: clamp(2.7rem,12vw,4rem);
   }
 
   .v19-trivia-heading-mark {

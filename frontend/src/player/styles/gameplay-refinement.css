@@ -54,11 +54,15 @@ body.crew-gameplay-preview .v19-trivia-heading::after{
 
 body.crew-gameplay-preview.game-page .game-title-row>div:first-child,
 body.crew-gameplay-preview.word-page .word-heading>div:first-child{
-  display:grid;
-  grid-template-columns:max-content minmax(0,1fr);
-  align-items:center;
-  gap:5px 15px;
+  display:block;
   min-width:0;
+}
+body.crew-gameplay-preview .crew-game-context{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px 15px;
+  margin:0 0 7px;
 }
 body.crew-gameplay-preview.game-page .game-title-row .back-link,
 body.crew-gameplay-preview.word-page .word-heading .back-link,
