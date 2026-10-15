@@ -54,12 +54,8 @@ def test_small_labels_descriptions_badge_count_and_profile_keep_old_styles():
 def test_game_titles_stay_compact_without_resizing_game_content():
     css = TYPO.read_text(encoding="utf-8")
     for selector in (
-        ".react-player-page.game-page .game-title-row h1",
-        ".react-player-page.word-page .word-heading h1",
-        ".react-player-page.v19-trivia-page .v19-trivia-heading h1",
-        "body.react-player-page.crew-gameplay-preview.game-page .game-title-row h1",
-        "body.react-player-page.crew-gameplay-preview.word-page .word-heading h1",
-        "body.react-player-page.crew-gameplay-preview.v19-trivia-page .v19-trivia-heading h1",
+        ".react-player-page .crew-game-heading h1",
+        "body.react-player-page.crew-gameplay-preview .crew-game-heading h1",
     ):
         assert selector in css
     for element in (

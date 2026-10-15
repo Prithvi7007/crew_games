@@ -31,15 +31,67 @@
 .react-player-page {
   --crew-game-main-top: clamp(18px, 2.4vw, 30px);
 }
-.crew-game-context {
+/* Canonical game masthead: identical DOM and layout for all four games.
+   Source of truth is Trivia Tuesday's approved header, now shared. */
+.crew-game-heading {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: end;
+  gap: 36px;
+  margin-bottom: 16px;
+}
+
+.crew-game-heading .v19-trivia-heading-copy { min-width: 0; }
+.crew-game-heading .crew-game-context {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  column-gap: 15px;
-  row-gap: 8px;
+  gap: 8px 15px;
   margin-bottom: 10px;
 }
-.crew-game-context > a { flex: 0 0 auto; }
+.crew-game-heading .v19-back-link,
+.crew-game-heading .v19-trivia-date {
+  font: 750 .60rem/1 Inter,sans-serif;
+}
+.crew-game-heading .v19-back-link {
+  color: rgba(229,237,245,.50);
+  text-decoration: none;
+}
+.crew-game-heading .v19-back-link:hover { color:#fff; }
+.crew-game-heading .v19-trivia-date {
+  color: var(--tt-gold, var(--game-accent, #ffbd45));
+  letter-spacing: .16em;
+}
+.crew-game-heading h1 {
+  margin: 0;
+  color: #fff;
+  font: 850 var(--crew-type-game-title, clamp(1.75rem,2.5vw,2.45rem))/1.13 Manrope,Inter,sans-serif;
+  letter-spacing: -.046em;
+  text-wrap: balance;
+}
+.crew-game-heading p {
+  margin: 10px 0 0;
+  color: var(--tt-muted, var(--crew-color-muted));
+  font: 500 .82rem/1.55 Inter,sans-serif;
+}
+.crew-game-heading .v19-trivia-heading-mark {
+  min-width: 112px;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  padding-bottom: 5px;
+}
+.crew-game-heading .v19-trivia-heading-mark span {
+  color: #fff;
+  font: 850 2.1rem/1 Manrope,Inter,sans-serif;
+  letter-spacing: -.05em;
+}
+.crew-game-heading .v19-trivia-heading-mark small {
+  color: var(--tt-soft, var(--crew-color-soft));
+  font: 800 .43rem/1 Inter,sans-serif;
+  letter-spacing: .15em;
+}
+
 .game-two-column { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(270px,.6fr); gap:18px; align-items:start; }
 .game-stage,.game-side-panel,.timer-stage { border-radius:var(--crew-radius-xl); }
 .game-stage { min-height:620px; padding:32px; }
@@ -85,7 +137,7 @@
 }
 
 @media (max-width: 720px) {
-.game-title-row{align-items:flex-start}.game-title-row>.glass-stat{display:none}.game-stage,.timer-stage{padding:22px}.answer-entry{grid-template-columns:1fr}.timer-ring{width:180px;height:180px}.single-game-main{padding-top:34px}
+.game-stage,.timer-stage{padding:22px}.answer-entry{grid-template-columns:1fr}.timer-ring{width:180px;height:180px}
 }
 
 /* Gameplay refinement */
@@ -140,46 +192,6 @@
   width: min(1280px, calc(100% - 64px));
   margin: 0 auto;
   padding: var(--crew-game-main-top) 0 90px;
-}
-
-.game-page .game-title-row{
-  display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
-  align-items: end;
-  gap: 36px;
-  margin-bottom: 16px;
-  padding: 4px 4px 12px;
-}
-
-.game-page .game-title-row > div:first-child { display: block; }
-
-.game-page .back-link{
-  display: inline-flex;
-  margin: 0;
-  color: rgba(229,237,245,.50);
-  font: 750 .60rem/1 Inter,sans-serif;
-  text-decoration: none;
-}
-
-.game-page .game-title-row .eyebrow{
-  display: block;
-  color: color-mix(in srgb,var(--game-accent) 76%,white);
-  font: 750 .60rem/1 Inter,sans-serif;
-  letter-spacing: .16em;
-}
-
-.game-page .game-title-row h1{
-  margin: 0;
-  color: #fff;
-  font: 850 var(--crew-type-game-title, clamp(1.75rem,2.5vw,2.45rem))/1.13 Manrope,Inter,sans-serif;
-  letter-spacing: -.046em;
-}
-
-.game-page .game-title-row p{
-  max-width: 680px;
-  margin: 14px 0 0;
-  color: var(--crew-color-muted);
-  font: 500 .82rem/1.55 Inter,sans-serif;
 }
 
 .game-page .glass-stat{
@@ -351,6 +363,17 @@
 }
 
 @media (max-width: 760px) {
+  .crew-game-heading {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: 14px;
+  }
+  .crew-game-heading .crew-game-context {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .crew-game-heading .v19-trivia-heading-mark { display: none; }
+
 .game-page .single-game-main{
     width: calc(100% - 28px);
     padding: 16px 0 96px;
@@ -358,13 +381,6 @@
 
   .game-page::before, .game-page::after{
     inset:64px 0 68px;
-  }
-
-  .game-page .game-title-row{
-    grid-template-columns:1fr;
-    gap:18px;
-    padding:4px 4px 10px;
-    margin-bottom:14px;
   }
 
   .mystery-page .game-two-column{

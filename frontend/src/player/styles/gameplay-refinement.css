@@ -23,12 +23,10 @@ body.crew-gameplay-preview .v19-trivia-main{
   margin-inline:auto;
 }
 
-/* Shared navigation / title strip */
-body.crew-gameplay-preview.game-page .game-title-row,
-body.crew-gameplay-preview.word-page .word-heading,
-body.crew-gameplay-preview .v19-trivia-heading{
+/* Staff preview modifies the single, shared GamePageHeader surface.
+   Never reintroduce separate game-specific heading layouts. */
+body.crew-gameplay-preview .crew-game-heading {
   position:relative;
-  display:grid;
   grid-template-columns:minmax(0,1fr) auto;
   align-items:center;
   gap:10px 22px;
@@ -37,10 +35,7 @@ body.crew-gameplay-preview .v19-trivia-heading{
   padding:10px 8px 19px;
   border-bottom:1px solid var(--crew-play-border);
 }
-
-body.crew-gameplay-preview.game-page .game-title-row::after,
-body.crew-gameplay-preview.word-page .word-heading::after,
-body.crew-gameplay-preview .v19-trivia-heading::after{
+body.crew-gameplay-preview .crew-game-heading::after {
   position:absolute;
   bottom:-1px;
   left:0;
@@ -51,22 +46,11 @@ body.crew-gameplay-preview .v19-trivia-heading::after{
   box-shadow:0 0 14px var(--crew-play-soft);
   pointer-events:none;
 }
-
-body.crew-gameplay-preview.game-page .game-title-row>div:first-child,
-body.crew-gameplay-preview.word-page .word-heading>div:first-child{
-  display:block;
-  min-width:0;
-}
-body.crew-gameplay-preview .crew-game-context{
-  display:flex;
-  align-items:center;
-  flex-wrap:wrap;
+body.crew-gameplay-preview .crew-game-heading .crew-game-context {
   gap:8px 15px;
   margin:0 0 7px;
 }
-body.crew-gameplay-preview.game-page .game-title-row .back-link,
-body.crew-gameplay-preview.word-page .word-heading .back-link,
-body.crew-gameplay-preview .v19-trivia-context .v19-back-link{
+body.crew-gameplay-preview .crew-game-heading .v19-back-link {
   display:inline-flex;
   align-items:center;
   width:max-content;
@@ -81,76 +65,38 @@ body.crew-gameplay-preview .v19-trivia-context .v19-back-link{
   text-decoration:none;
   transition:color .16s,border-color .16s,background .16s;
 }
-body.crew-gameplay-preview.game-page .game-title-row .back-link:hover,
-body.crew-gameplay-preview.word-page .word-heading .back-link:hover,
-body.crew-gameplay-preview .v19-trivia-context .v19-back-link:hover{
-  transform:none;
+body.crew-gameplay-preview .crew-game-heading .v19-back-link:hover {
   color:#fff;
   background:rgba(28,48,69,.86);
   border-color:var(--crew-play-accent);
 }
-body.crew-gameplay-preview.game-page .game-title-row .eyebrow,
-body.crew-gameplay-preview.word-page .word-heading .eyebrow{
-  grid-column:2;
-  align-self:center;
-  margin:0;
+body.crew-gameplay-preview .crew-game-heading .v19-trivia-date {
   color:var(--crew-play-accent);
   font:800 .62rem/1.3 Inter,system-ui,sans-serif;
   letter-spacing:.16em;
   text-transform:uppercase;
 }
-body.crew-gameplay-preview.game-page .game-title-row h1,
-body.crew-gameplay-preview.word-page .word-heading h1,
-body.crew-gameplay-preview .v19-trivia-heading h1{
-  grid-column:1 / -1;
-  margin:2px 0 0;
+body.crew-gameplay-preview .crew-game-heading h1 {
+  margin:2px 0 5px;
   color:#f5f9ff;
-  font:850 clamp(1.75rem,2.5vw,2.45rem)/1.12 Manrope,Inter,system-ui,sans-serif;
-  letter-spacing:-.045em;
-  text-wrap:balance;
+  font:850 var(--crew-type-game-title)/1.13 Manrope,Inter,system-ui,sans-serif;
+  letter-spacing:-.046em;
 }
-body.crew-gameplay-preview.game-page .game-title-row p,
-body.crew-gameplay-preview.word-page .word-heading p,
-body.crew-gameplay-preview .v19-trivia-heading-copy>p{
-  grid-column:1 / -1;
+body.crew-gameplay-preview .crew-game-heading p {
   margin:0;
   max-width:660px;
   color:#8ea7c2;
   font:500 .77rem/1.42 Inter,system-ui,sans-serif;
 }
-
-/* Score/value pill: single focal number and short label rather than another card. */
-body.crew-gameplay-preview.game-page .game-title-row .glass-stat,
-body.crew-gameplay-preview.word-page .word-heading .glass-stat{
-  min-width:128px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  padding:11px 16px;
-  border:1px solid var(--crew-play-border);
-  border-radius:12px;
-  background:linear-gradient(145deg,rgba(26,43,65,.75),rgba(8,16,28,.86));
-  box-shadow:inset 0 1px rgba(255,255,255,.045);
-  backdrop-filter:blur(10px);
+body.crew-gameplay-preview .crew-game-heading .v19-trivia-heading-mark {
+  min-width:76px;
+  justify-items:center;
+  padding:10px 14px;
+  border:1px solid rgba(255,189,69,.25);
+  border-radius:10px;
+  background:rgba(255,189,69,.04);
 }
-body.crew-gameplay-preview .game-title-row .glass-stat .stat-icon,
-body.crew-gameplay-preview.word-page .word-score .stat-icon{
-  color:var(--crew-play-accent);
-  font-size:1.1rem;
-}
-body.crew-gameplay-preview .game-title-row .glass-stat strong,
-body.crew-gameplay-preview.word-page .word-score strong{
-  color:#f7fbff;
-  font:900 1.38rem/1 Manrope,system-ui,sans-serif;
-  letter-spacing:-.035em;
-}
-body.crew-gameplay-preview .game-title-row .glass-stat span:last-child,
-body.crew-gameplay-preview.word-page .word-score span:last-child{
-  color:#9baec6;
-  font-size:.58rem;
-  letter-spacing:.02em;
-}
+body.crew-gameplay-preview .crew-game-heading .v19-trivia-heading-mark span { font-size:1.65rem; }
 
 /* Common play-stage material language: purposeful artwork and subtle edge energy. */
 body.crew-gameplay-preview.game-page .game-stage,

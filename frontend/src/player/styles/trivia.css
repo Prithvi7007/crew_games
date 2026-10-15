@@ -51,74 +51,6 @@
   padding: var(--crew-game-main-top) 0 88px;
 }
 
-.v19-trivia-heading {
-  display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
-  align-items: end;
-  gap: 36px;
-  margin-bottom: 16px;
-}
-
-.v19-trivia-context {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 10px;
-}
-
-.v19-back-link,
-.v19-trivia-date {
-  font: 750 .60rem/1 Inter,sans-serif;
-}
-
-.v19-back-link {
-  color: rgba(229,237,245,.50);
-  text-decoration: none;
-}
-
-.v19-back-link:hover {
-  color: #fff;
-}
-
-.v19-trivia-date {
-  color: var(--tt-gold);
-  letter-spacing: .16em;
-}
-
-.v19-trivia-heading h1 {
-  margin: 0;
-  color: #fff;
-  font: 850 var(--crew-type-game-title, clamp(1.75rem,2.5vw,2.45rem))/1.13 Manrope,Inter,sans-serif;
-  letter-spacing: -.046em;
-}
-
-.v19-trivia-heading p {
-  margin: 10px 0 0;
-  color: var(--tt-muted);
-  font: 500 .82rem/1.55 Inter,sans-serif;
-}
-
-.v19-trivia-heading-mark {
-  min-width: 112px;
-  display: grid;
-  justify-items: end;
-  gap: 4px;
-  padding-bottom: 5px;
-}
-
-.v19-trivia-heading-mark span {
-  color: #fff;
-  font: 850 2.1rem/1 Manrope,Inter,sans-serif;
-  letter-spacing: -.05em;
-}
-
-.v19-trivia-heading-mark small {
-  color: var(--tt-soft);
-  font: 800 .43rem/1 Inter,sans-serif;
-  letter-spacing: .15em;
-}
-
-
 /* Gameplay stage ------------------------------------------------ */
 
 .v19-trivia-page .react-trivia-stage {
@@ -472,21 +404,6 @@
   .v19-trivia-main {
     width: calc(100% - 28px);
     padding: 16px 0 30px;
-  }
-
-  .v19-trivia-heading {
-    grid-template-columns: 1fr;
-    gap: 0;
-    margin-bottom: 14px;
-  }
-
-  .v19-trivia-context {
-    flex-wrap: wrap;
-    row-gap: 8px;
-  }
-
-  .v19-trivia-heading-mark {
-    display: none;
   }
 
   .v19-trivia-page .react-trivia-stage {
