@@ -52,16 +52,20 @@ def test_rarity_is_distinct_without_changing_mobile_card_dimensions():
     assert ".trophy-badge-card {min-height:302px;padding:12px 10px;}" in css
 
 
-def test_game_result_celebrates_only_new_server_awards():
+def test_game_result_uses_only_real_cinematic_unlocks():
     source = APP.read_text(encoding="utf-8")
     css = CSS.read_text(encoding="utf-8")
-    assert "function BadgeUnlockCelebration({ codes=[], cinematic=false, gameKey=null })" in source
+    cinematic = (ROOT / "frontend/src/player/BadgeUnlockPreview.jsx").read_text(encoding="utf-8")
+    cinema_css = (ROOT / "frontend/src/player/styles/badge-unlock-preview.css").read_text(encoding="utf-8")
+    assert "function BadgeUnlockCelebration({ codes=[], gameKey=null })" in source
     assert "const medals = [...new Set(codes)].map(badgeFromAwardCode).filter(Boolean)" in source
-    assert "<BadgeUnlockCelebration codes={badges} cinematic={cinematic} gameKey={game}/>" in source
-    assert "if (cinematic) return createPortal(" in source
-    assert "<BadgeMedallion badge={featured} size=\"victory\"/>" in source
-    assert "onClick={() => setDismissed(true)}" in source
-    assert "href=\"/trophies\"" in source
-    assert "aria-label=\"Newly earned badges\"" in source
-    assert "@keyframes crew-trophy-reveal" in css
-    assert "@media (prefers-reduced-motion:reduce)" in css
+    assert "<BadgeUnlockCelebration codes={badges} gameKey={game}/>" in source
+    assert "return createPortal(" in source
+    assert "<CinematicReveal preset={{ codes: medals.map(badge => badge.code) }}" in source
+    assert "if (!medals.length || dismissed) return null;" in source
+    assert "<BadgeMedallion badge={badge} size=\"victory\"/>" in cinematic
+    assert "onDismiss || skip" in cinematic
+    assert "aria-label={onDismiss ? 'New badges unlocked'" in cinematic
+    assert ".cul-cinema.cul-live" in cinema_css
+    assert "@media(prefers-reduced-motion:reduce)" in cinema_css
+    assert "crew-badge-celebration" not in css

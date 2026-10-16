@@ -100,14 +100,17 @@ def test_preview_css_is_isolated_to_staff_body_class():
     assert "prefers-reduced-motion:reduce" in css
 
 
-def test_results_recenter_when_game_completes_and_show_legacy_badges_in_frame():
+def test_results_recenter_and_cinematic_reveal_is_separate_overlay():
     source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
     result_css = (ROOT / "frontend/src/player/styles/results.css").read_text(encoding="utf-8")
+    cinema_css = (ROOT / "frontend/src/player/styles/badge-unlock-preview.css").read_text(encoding="utf-8")
     assert "function useCompletionViewport(completed)" in source
     assert "window.scrollTo(0, 0)" in source
     assert source.count("useCompletionViewport(state.completed)") == 4
     assert 'className="crew-result-presentation"' in source
     assert 'className="v19-trivia-main crew-result-presentation"' in source
-    assert ".crew-result-presentation > .crew-badge-celebration" in result_css
-    assert "position:absolute;" in result_css
-    assert "@media (max-width:980px)" in result_css
+    # Results stay independently positioned behind the portal; no inline card.
+    assert "crew-result-presentation" in result_css
+    assert "crew-badge-celebration" not in result_css
+    assert "document.body," in source
+    assert ".cul-cinema.cul-live" in cinema_css

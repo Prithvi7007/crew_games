@@ -86,13 +86,14 @@ def test_trophy_room_opens_automatically_for_player(client, app, monkeypatch):
     assert b'"trophiesVisible": true' in response.data
 
 
-def test_hidden_nav_and_reward_reveal_respect_server_flag():
+def test_hidden_nav_and_cinematic_reveal_share_launch_gate():
     source = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
     assert 'trophiesVisible ? link(\'trophies\'' in source
     assert "trophiesVisible={trophiesVisible}" in source
-    assert "showBadges ? <BadgeUnlockCelebration codes={badges} cinematic={cinematic} gameKey={game}/> : null" in source
-    assert source.count("showBadges={data.shell?.trophiesVisible !== false} cinematic={data.shell?.cinematicBadgeUnlocksEnabled === true}") == 3
-    assert 'data.shell?.trophiesVisible !== false ? <BadgeUnlockCelebration codes={badgesEarned} cinematic={data.shell?.cinematicBadgeUnlocksEnabled === true} gameKey="trivia"/>' in source
+    assert "showBadges ? <BadgeUnlockCelebration codes={badges} gameKey={game}/> : null" in source
+    assert source.count("showBadges={data.shell?.trophiesVisible !== false}") == 3
+    assert 'data.shell?.trophiesVisible !== false ? <BadgeUnlockCelebration codes={badgesEarned} gameKey="trivia"/>' in source
+    assert "cinematicBadgeUnlocksEnabled" not in source
 
 
 def test_rankings_tabs_match_crew_game_palette():
