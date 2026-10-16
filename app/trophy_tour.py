@@ -1,4 +1,4 @@
-"""October 19 trophy-launch welcome tour: server-owned eligibility and state."""
+"""Badge-launch welcome tour: server-owned eligibility and state."""
 from sqlalchemy.exc import SQLAlchemyError
 from flask import current_app, request, session
 
@@ -49,8 +49,7 @@ def tour_for_player(user, page):
     if page not in TOUR_PAGES or not current_app.config.get("TROPHY_TOUR_ENABLED", True):
         return None
     preview = _preview_allowed(user, page)
-    # Early automatic welcome is limited to admin/owner. Public launch remains Oct 19.
-    # Use the same server-side visibility gate as the Trophy Room itself.
+    # Tour availability follows the same server-side gate as the Trophy Room.
     if not preview and not trophies_visible_to(user):
         return None
     if not preview and session.get("trophy_tour_snoozed"):

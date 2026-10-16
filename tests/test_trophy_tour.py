@@ -1,4 +1,4 @@
-"""October 19 CREW trophy launch: gating, real awards, persistence and preview."""
+"""CREW trophy launch: gating, real awards, persistence and preview."""
 import json
 import re
 from datetime import date
@@ -55,13 +55,15 @@ def _send(client, csrf, action):
 
 
 def test_launch_gate_and_no_early_player_tour(app, client, monkeypatch):
-    _clock(monkeypatch, date(2026, 10, 18))
+    _clock(monkeypatch, date(2026, 10, 15))
     player = _profile(app, "TourEarly")
     token = _signin(client, app, player)
     assert _data(client.get("/home"))["shell"]["trophyTour"] is None
+    assert client.get("/trophies").status_code == 404
     assert _send(client, token, "finished").status_code == 404
-    _clock(monkeypatch, date(2026, 10, 19))
+    _clock(monkeypatch, date(2026, 10, 16))
     assert _data(client.get("/home"))["shell"]["trophyTour"]["earnedCount"] == 0
+    assert _data(client.get("/trophies"))["earnedCount"] == 0
 
 
 def test_personalized_badges_and_other_players_are_private(app, client, monkeypatch):

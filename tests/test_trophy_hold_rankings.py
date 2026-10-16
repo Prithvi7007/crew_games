@@ -1,4 +1,4 @@
-"""Trophy launch hold and Rankings color system regression coverage."""
+"""Public badge launch timing and Rankings color system regression coverage."""
 from datetime import date
 from pathlib import Path
 
@@ -13,12 +13,14 @@ ROOT = Path(__file__).resolve().parents[1]
 @pytest.mark.parametrize("day,expected", [
     (date(2026, 10, 11), False),
     (date(2026, 10, 12), False),
-    (date(2026, 10, 18), False),
+    (date(2026, 10, 15), False),
+    (date(2026, 10, 16), True),
+    (date(2026, 10, 18), True),
     (date(2026, 10, 19), True),
     (date(2026, 10, 20), True),
 ])
-def test_player_trophies_reopen_monday_october_19(day, expected):
-    assert TROPHY_PUBLIC_REVEAL_DATE == date(2026, 10, 19)
+def test_player_trophies_reopen_friday_october_16(day, expected):
+    assert TROPHY_PUBLIC_REVEAL_DATE == date(2026, 10, 16)
     assert trophies_visible_to({"role": "player"}, today=day) is expected
 
 
@@ -79,7 +81,7 @@ def test_staff_routes_can_preview_before_public_open(client, app, monkeypatch, r
 
 
 def test_trophy_room_opens_automatically_for_player(client, app, monkeypatch):
-    monkeypatch.setattr("app.trophy_access.crew_today", lambda: date(2026, 10, 19))
+    monkeypatch.setattr("app.trophy_access.crew_today", lambda: date(2026, 10, 16))
     _sign_in_test_player(client, app)
     response = client.get("/trophies")
     assert response.status_code == 200
