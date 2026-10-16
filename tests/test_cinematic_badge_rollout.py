@@ -101,3 +101,23 @@ def test_reopening_completed_result_cannot_replay_old_unlock():
     assert src.count("useState([])") >= 4
     assert "if (!medals.length || dismissed) return null;" in src
     assert "badges={badgesEarned}" in src
+
+
+def test_cinematic_handoff_has_one_entry_and_exit_with_reduced_motion_guard():
+    src = (ROOT / "frontend/src/player/main.jsx").read_text(encoding="utf-8")
+    handoff = (ROOT / "frontend/src/player/styles/badge-unlock-handoff.css").read_text(encoding="utf-8")
+    cinematic = (ROOT / "frontend/src/player/BadgeUnlockPreview.jsx").read_text(encoding="utf-8")
+
+    assert "import './styles/badge-unlock-handoff.css'" in src
+    assert "reducedMotion ? 'cinema' : 'intro'" in src
+    assert "setStage('handoff'), 520" in src
+    assert "setStage('cinema'), 960" in src
+    assert "setStage('exit')" in src
+    assert "setDismissed(true), reducedMotion ? 0 : 380" in src
+    assert 'className="cul-handoff-intro" role="status" aria-live="polite"' in src
+    assert '<CinematicReveal preset={{ codes: medals.map(badge => badge.code) }}' in src
+    assert "document.body.style.overflow = 'hidden'" in src
+    assert ".cul-handoff-exit" in handoff
+    assert ".cul-handoff-cinema .cul-cinema.cul-live" in handoff
+    assert "@media (prefers-reduced-motion: reduce)" in handoff
+    assert "onDismiss || skip" in cinematic

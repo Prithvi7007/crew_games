@@ -139,3 +139,47 @@ def test_tick_tock_start_and_stop_round_in_browser(ui):
     stop_button.wait_for(timeout=12000)
     stop_button.click()
     page.get_by_text("TIME LOCKED", exact=True).wait_for(timeout=15000)
+
+
+@pytest.mark.parametrize("viewport,reduced_motion", [
+    ({"width": 1440, "height": 900}, False),
+    ({"width": 390, "height": 844}, False),
+    ({"width": 390, "height": 844}, True),
+])
+def test_real_badge_unlock_handoff_and_results_return(ui, app, monkeypatch, viewport, reduced_motion):
+    """Complete an archive game in isolated SQLite; verify the whole cinematic handoff."""
+    from app.mystery import routes as mystery_routes
+
+    monkeypatch.setattr(
+        mystery_routes, "get_puzzle",
+        lambda day: {"theme": "Cinema test", "answer": "Cinema", "clues": ["a", "b", "c", "d"]},
+    )
+    monkeypatch.setattr(
+        mystery_routes, "is_correct_answer",
+        lambda answer, puzzle: answer.casefold() == puzzle["answer"].casefold(),
+    )
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="reduce" if reduced_motion else "no-preference")
+    page.goto(base_url + "/mystery?date=2026-09-21", wait_until="domcontentloaded")
+    page.locator(".answer-entry input").fill("Cinema")
+    page.get_by_role("button", name="Lock answer").click()
+
+    if not reduced_motion:
+        intro = page.locator(".cul-handoff-intro")
+        intro.wait_for(timeout=12000)
+        assert "ROUND COMPLETE" in intro.inner_text()
+
+    cinema = page.get_by_role("dialog", name="New badges unlocked")
+    cinema.wait_for(timeout=12000)
+    assert page.locator(".cul-handoff-cinema").count() == 1
+    assert "TRIPLE UNLOCK" in cinema.inner_text()
+    if reduced_motion:
+        assert page.locator(".cul-handoff-intro").count() == 0
+
+    cinema.get_by_role("button", name="Continue to results").click()
+    page.locator(".cul-handoff").wait_for(state="detached", timeout=5000)
+    assert "100" in page.locator(".crew-result-score").inner_text()
+    page.reload(wait_until="domcontentloaded")
+    page.locator(".crew-result-score").wait_for(timeout=12000)
+    assert page.locator(".cul-handoff").count() == 0

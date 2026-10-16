@@ -1,0 +1,100 @@
+/* A single entry/exit bridge around the existing cinematic medal reveal.
+   Game results mount underneath, but never flash before the unlock moment. */
+.cul-handoff {
+  position: fixed;
+  inset: 0;
+  z-index: 2999;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 52% 45% at 50% 46%, rgba(32, 58, 97, .26), transparent 80%),
+    #050a14;
+  opacity: 1;
+  transition: opacity .38s cubic-bezier(.25, .8, .25, 1);
+}
+.cul-handoff::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(155, 209, 255, .12), transparent 34%);
+  opacity: .85;
+  transform: scale(.72);
+  animation: culHandoffAtmosphere .96s ease-out both;
+}
+.cul-handoff-intro {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  width: min(100% - 32px, 680px);
+  padding: 28px 16px;
+  animation: culHandoffTitleIn .42s cubic-bezier(.16, .8, .22, 1) both;
+}
+.cul-handoff-intro::before {
+  content: "";
+  display: block;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 8px;
+  border: 2px solid rgba(142, 205, 255, .7);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(145, 212, 255, .3), transparent 60%);
+  box-shadow: 0 0 32px rgba(99, 181, 255, .22), inset 0 0 24px rgba(141, 207, 255, .14);
+}
+.cul-handoff-kicker,
+.cul-handoff-subtitle {
+  color: #91b5d9;
+  font: 800 .66rem/1.4 Inter, sans-serif;
+  letter-spacing: .27em;
+}
+.cul-handoff-intro strong {
+  color: #f5faff;
+  font: 900 clamp(2.4rem, 8vw, 5rem)/1.02 var(--crew-font-display, Manrope, sans-serif);
+  letter-spacing: -.035em;
+  text-shadow: 0 0 34px rgba(115, 197, 255, .26);
+}
+.cul-handoff-subtitle {
+  color: #c7e9ff;
+  letter-spacing: .18em;
+}
+.cul-handoff-handoff .cul-handoff-intro {
+  animation: culHandoffTitleOut .44s ease-in both;
+}
+.cul-handoff-cinema .cul-cinema.cul-live {
+  animation: culHandoffCinemaIn .4s cubic-bezier(.16, .8, .22, 1) both;
+}
+.cul-handoff-exit {
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes culHandoffAtmosphere {
+  from { opacity: .25; transform: scale(.72); }
+  to { opacity: .85; transform: scale(1); }
+}
+@keyframes culHandoffTitleIn {
+  from { opacity: 0; filter: blur(8px); transform: translateY(20px) scale(.96); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
+}
+@keyframes culHandoffTitleOut {
+  from { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
+  to { opacity: 0; filter: blur(10px); transform: translateY(-16px) scale(1.04); }
+}
+@keyframes culHandoffCinemaIn {
+  from { opacity: 0; filter: brightness(.7); transform: translateY(12px) scale(.985); }
+  to { opacity: 1; filter: brightness(1); transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cul-handoff,
+  .cul-handoff::before,
+  .cul-handoff-intro,
+  .cul-handoff-cinema .cul-cinema.cul-live {
+    animation: none !important;
+    transition: none !important;
+  }
+}
