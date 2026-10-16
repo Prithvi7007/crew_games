@@ -248,7 +248,7 @@ def test_unranked_badge_row_is_view_only_not_fictional_rank():
 def test_prelaunch_player_cannot_leak_admin_preview_into_public_rankings(
     app, client, monkeypatch,
 ):
-    _clock(monkeypatch, date(2026, 10, 18))
+    _clock(monkeypatch, date(2026, 10, 15))
     admin = _user(app, "PreviewPrelaunchAdmin", "admin")
     player = _user(app, "PreviewPrelaunchPlayer", "player")
     _give_and_equip(app, admin, "case_closed")

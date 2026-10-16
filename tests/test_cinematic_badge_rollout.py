@@ -1,4 +1,4 @@
-"""The sole live achievement transition is the October 19-gated cinematic.
+"""The sole live achievement transition is the public-launch-gated cinematic.
 
 Admin's simulation lab is independent; no old inline result card or secondary
 environment flag can silently select an unintended reveal.
@@ -42,7 +42,9 @@ def _shell(client, response_url="/home"):
 
 @pytest.mark.parametrize("day,expected", [
     (date(2026, 10, 14), False),
-    (date(2026, 10, 18), False),
+    (date(2026, 10, 15), False),
+    (date(2026, 10, 16), True),
+    (date(2026, 10, 18), True),
     (date(2026, 10, 19), True),
     (date(2026, 10, 20), True),
 ])

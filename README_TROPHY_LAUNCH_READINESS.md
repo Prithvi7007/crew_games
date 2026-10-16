@@ -1,11 +1,16 @@
-# October 19, 2026 — CREW badge launch readiness
+# October 16, 2026 — CREW early public badge launch readiness
 
 This document is an evidence-led **launch checklist**, not permission to change
 live player records. Keep the CREW Games homepage and scoring logic unchanged.
 
+**Early release decision:** The badge visibility code and tests have been advanced
+to October 16, but live award reconciliation and normal-player smoke testing
+remain manual sign-offs. Do not treat passing CI alone as proof of historical
+badge completeness; never run a production backfill as part of this release.
+
 ## Verified in source and isolated tests
 
-- [x] Public unlock is gated to **October 19, 2026, CREW America/New_York date**
+- [x] Public unlock is gated to **October 16, 2026, CREW America/New_York date**
   by `app/trophy_access.py`. Players cannot open the collection or
   change showcases before that date; admin/owner previews remain possible.
 - [x] The 21-badge catalog and rarity/game identity artwork are implemented.
@@ -37,13 +42,13 @@ live player records. Keep the CREW Games homepage and scoring logic unchanged.
 - [ ] If historical entitlements are missing, perform a separate reviewed,
   **explicitly authorized** `--apply` only after a fresh verified backup
   and dry-run review. Never run on merge or as a side effect of this PR.
-- [ ] Before Oct 19, sign in with an admin/owner: verify genuine counts in
+- [ ] Before public activation, sign in with an admin/owner: verify genuine counts in
   `/trophies?trophy_tour_preview=1`; try every badge, clear preview,
   confirm only the viewer sees the private preview on Rankings (including
   when unranked), and confirm actual showcase choices are unchanged.
 - [ ] Visually test mobile portrait, narrow desktop, keyboard navigation,
   Escape/focus return, reduced motion, and 0/earned-badge states.
-- [ ] On Oct 19, with a consenting normal test player, confirm the tour
+- [ ] On public activation, with a consenting normal test player, confirm the tour
   appears on their first eligible page, showcases **only earned** badges,
   finishes exactly once across login sessions, and permits equipping in
   Trophy Room. Confirm an account with zero earned badges sees no fake
@@ -52,7 +57,7 @@ live player records. Keep the CREW Games homepage and scoring logic unchanged.
   optional tour fails, `TROPHY_TOUR_ENABLED=false` disables the tour
   independently of badges; do not downgrade the v16 database routinely.
 
-## Follow-on (not part of the October 19 visibility launch)
+## Follow-on (not part of the October 16 visibility launch)
 
 The five season championship awards have catalog definitions and a
 finalization storage table, but **no proven frozen end-of-season

@@ -1,14 +1,13 @@
-"""Temporary public trophy-room hold for the October 12-18 CREW week.
+"""Server-controlled public badge availability, opened October 16, 2026.
 
-Players keep earning badges in the database while the collection is hidden.
-It becomes visible automatically on Monday, October 19 in CREW's timezone.
-Owner/admin accounts retain preview access.
+Saved seasonal awards remain authoritative. Admin/owner visual previews
+continue to work independently of the public reveal date.
 """
 from datetime import date
 
 from app.schedule import crew_today
 
-TROPHY_PUBLIC_REVEAL_DATE = date(2026, 10, 19)
+TROPHY_PUBLIC_REVEAL_DATE = date(2026, 10, 16)
 
 
 def trophy_preview_enabled(user):
