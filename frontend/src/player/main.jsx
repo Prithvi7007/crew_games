@@ -15,6 +15,7 @@ import './styles/trivia.css';
 import './styles/trophies.css';
 import './styles/trophy-tour.css';
 import './styles/badge-unlock-preview.css';
+import './styles/badge-unlock-handoff.css';
 import './styles/gameplay-refinement.css';
 import './styles/typography.css';
 import TrophyRoom, { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
@@ -323,13 +324,44 @@ function TrophyPage({data}) { return data.unlockPreviewEnabled && data.trophyPre
 
 function BadgeUnlockCelebration({ codes=[], gameKey=null }) {
   const [dismissed, setDismissed] = useState(false);
-  const closeCinema = React.useCallback(() => setDismissed(true), []);
+  const reducedMotion = useMemo(
+    () => window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false, [],
+  );
+  const [stage, setStage] = useState(reducedMotion ? 'cinema' : 'intro');
+  const closeCinema = React.useCallback(() => setStage('exit'), []);
   // Badges come only from the saved completion response, never client predictions.
   // Returning to an existing result cannot replay a previously earned award.
   const medals = [...new Set(codes)].map(badgeFromAwardCode).filter(Boolean);
+
+  useLayoutEffect(() => {
+    if (!medals.length || dismissed) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [medals.length, dismissed]);
+  useEffect(() => {
+    if (!medals.length || reducedMotion) return undefined;
+    const intro = window.setTimeout(() => setStage('handoff'), 520);
+    const reveal = window.setTimeout(() => setStage('cinema'), 960);
+    return () => { window.clearTimeout(intro); window.clearTimeout(reveal); };
+  }, [medals.length, reducedMotion]);
+  useEffect(() => {
+    if (stage !== 'exit') return undefined;
+    const done = window.setTimeout(() => setDismissed(true), reducedMotion ? 0 : 380);
+    return () => window.clearTimeout(done);
+  }, [stage, reducedMotion]);
+
   if (!medals.length || dismissed) return null;
   return createPortal(
-    <CinematicReveal preset={{ codes: medals.map(badge => badge.code) }} gameKey={gameKey} onDismiss={closeCinema}/>,
+    <div className={'cul-handoff cul-handoff-' + stage}>
+      {stage === 'intro' || stage === 'handoff'
+        ? <div className="cul-handoff-intro" role="status" aria-live="polite">
+            <span className="cul-handoff-kicker">CREW GAMES</span>
+            <strong>ROUND COMPLETE</strong>
+            <span className="cul-handoff-subtitle">ACHIEVEMENT UNLOCKED</span>
+          </div>
+        : <CinematicReveal preset={{ codes: medals.map(badge => badge.code) }} gameKey={gameKey} onDismiss={closeCinema}/>}
+    </div>,
     document.body,
   );
 }
