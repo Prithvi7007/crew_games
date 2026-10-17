@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ definition.title }} · CREW Admin{% endblock %}
-{% block body_class %}admin-page{% endblock %}
+{% block body_class %}admin-page studio-editor-page{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v22-admin-studio.css', v='22.0.0') }}">{% endblock %}
 {% block body %}
 <div class="admin-shell">
   <header class="glass-nav admin-nav">
@@ -16,7 +17,7 @@
         <a class="back-link" href="{{ dashboard_url }}">← Back to weekly schedule</a>
         <span class="eyebrow">{{ game_day.strftime('%A · %B %d, %Y')|upper }}</span>
         <h1>{{ definition.title }}</h1>
-        <p>Prepare the content players will receive on this date.</p>
+        <p>Shape the challenge, check every detail, and review before it goes live.</p>
       </div>
       <div class="admin-editor-state glass-card">
         <span>STATUS</span>
@@ -53,11 +54,24 @@
 
       {% elif definition.key == 'trivia' %}
       <section class="glass-card admin-form-section">
-        <div class="admin-form-heading"><div><span class="eyebrow">TRIVIA</span><h2>Ten questions</h2></div><p>Each correct answer is worth 10 points.</p></div>
-        <div class="admin-question-stack">
+        <div class="admin-form-heading"><div><span class="eyebrow">TRIVIA WORKSPACE</span><h2>Ten questions, one great round.</h2></div><p>Each correct answer is worth 10 points. Navigate, check and review all ten.</p></div>
+        <div class="studio-trivia-workspace">
+          <nav class="studio-trivia-index" aria-label="Trivia question navigator">
+            <span class="eyebrow">QUESTION INDEX</span>
+            <strong data-studio-ready-count aria-live="polite">Review all 10 questions</strong>
+            <ol>
+              {% for question in payload.content.questions %}
+              <li><a class="studio-question-jump" href="#studio-question-{{ loop.index }}" data-studio-jump="{{ loop.index }}">
+                <span>{{ "%02d"|format(loop.index) }}</span><small>Question {{ loop.index }}</small><i aria-hidden="true"></i>
+              </a></li>
+              {% endfor %}
+            </ol>
+            <p>Every question stays in this form. Jump directly to the one you want to edit.</p>
+          </nav>
+          <div class="admin-question-stack studio-trivia-questions" data-studio-questions>
           {% for question in payload.content.questions %}
           {% set q = loop.index %}
-          <article class="admin-question-card">
+          <article class="admin-question-card" id="studio-question-{{ q }}" data-studio-question="{{ q }}" tabindex="-1">
             <div class="admin-question-number">{{ "%02d"|format(q) }}</div>
             <div class="admin-question-fields">
               <label class="admin-field wide"><span>Question</span><input name="q{{ q }}_prompt" value="{{ question.prompt }}" required {% if locked %}disabled{% endif %}></label>
@@ -65,9 +79,11 @@
                 {% for option in question.options %}{% set letter = ['a','b','c','d'][loop.index0] %}<label class="admin-field"><span>{{ letter|upper }}</span><input name="q{{ q }}_{{ letter }}" value="{{ option }}" required {% if locked %}disabled{% endif %}></label>{% endfor %}
               </div>
               <label class="admin-field answer-select"><span>Correct answer</span><select name="q{{ q }}_answer" {% if locked %}disabled{% endif %}>{% for i in range(4) %}<option value="{{ i }}" {% if question.answer == i %}selected{% endif %}>{{ ['A','B','C','D'][i] }}</option>{% endfor %}</select></label>
+              <p class="studio-question-note" data-studio-question-note>Check the question and all four answer choices.</p>
             </div>
           </article>
           {% endfor %}
+          </div>
         </div>
       </section>
 
@@ -100,3 +116,4 @@
   </main>
 </div>
 {% endblock %}
+{% block scripts %}{% if definition.key == 'trivia' %}<script src="{{ url_for('static', filename='js/v22-admin-editor.js', v='22.0.0') }}"></script>{% endif %}{% endblock %}

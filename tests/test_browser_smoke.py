@@ -252,3 +252,37 @@ def test_season_stamp_is_crisp_across_nav_profile_rankings_and_badges(ui, viewpo
     if menu_trigger.is_visible():
         menu_trigger.click()
         inspect_stamp(page.locator(".crew-menu-avatar .crew-equipped-season"), 8, 16)
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900},
+    {"width": 390, "height": 844},
+])
+def test_admin_studio_calendar_and_trivia_navigator_in_chromium(ui, viewport):
+    """Future Admin content views remain navigable without saving a game attempt."""
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+    page.goto(base_url + "/admin?week=2027-02-22", wait_until="domcontentloaded")
+    progress = page.locator(".studio-readiness-progress")
+    progress.wait_for(timeout=12000)
+    assert progress.get_attribute("max") == "4"
+    assert page.locator(".studio-schedule-card").count() == 4
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+
+    page.goto(base_url + "/admin/game/trivia/2027-02-23", wait_until="domcontentloaded")
+    links = page.locator(".studio-question-jump")
+    assert links.count() == 10
+    assert page.locator("[data-studio-question]").count() == 10
+
+    links.nth(9).click()
+    assert page.locator("#studio-question-10").evaluate(
+        "(card) => card === document.activeElement"
+    )
+    assert links.nth(9).get_attribute("aria-current") == "location"
+
+    # Live warnings are advisory: never hide the native required inputs.
+    first = page.locator('input[name="q1_a"]').input_value()
+    page.locator('input[name="q1_b"]').fill(first)
+    assert "duplicate" in page.locator("#studio-question-1 .studio-question-note").inner_text().lower()
+    assert page.locator('input[name="q10_prompt"]').is_visible()
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
