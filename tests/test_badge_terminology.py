@@ -19,7 +19,8 @@ def test_sitewide_navigation_and_unlock_copy_says_badges():
     assert "'A new badge for your CREW collection.'" in CINEMA
     assert "BADGES UNLOCKED" in CINEMA
     assert "NEW AWARDS SAVED TO YOUR COLLECTION" in CINEMA
-    assert "Continue to results" in CINEMA
+    assert "View Results" in CINEMA
+    assert "View My Badges" in CINEMA
     assert "My trophies" not in MAIN
     assert "link('trophies','Trophies'" not in MAIN
     assert "new trophy" not in MAIN.lower()

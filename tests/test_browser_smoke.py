@@ -180,11 +180,14 @@ def test_real_badge_unlock_handoff_and_results_return(ui, app, monkeypatch, view
     layout = cinema.evaluate("""el => {
       const stage = el.getBoundingClientRect();
       const action = el.querySelector('.cul-cinema-footer button').getBoundingClientRect();
+      const badges = el.querySelector('a.cul-view-badges').getBoundingClientRect();
       const heading = el.querySelector('.cul-message h2').getBoundingClientRect();
       return {
         width: stage.width, height: stage.height,
         overflow: getComputedStyle(el).overflowY,
         actionTop: action.top, actionBottom: action.bottom,
+        badgesTop: badges.top, badgesBottom: badges.bottom,
+        badgesLeft: badges.left, badgesRight: badges.right,
         headingTop: heading.top, headingBottom: heading.bottom
       };
     }""")
@@ -192,11 +195,14 @@ def test_real_badge_unlock_handoff_and_results_return(ui, app, monkeypatch, view
     assert abs(layout["height"] - viewport["height"]) < 2
     assert layout["overflow"] == "hidden"
     assert 0 <= layout["actionTop"] < layout["actionBottom"] <= viewport["height"]
+    assert 0 <= layout["badgesTop"] < layout["badgesBottom"] <= viewport["height"]
+    assert 0 <= layout["badgesLeft"] < layout["badgesRight"] <= viewport["width"]
+    assert cinema.get_by_role("link", name="View My Badges").get_attribute("href") == "/trophies"
     assert 0 <= layout["headingTop"] < layout["headingBottom"] <= viewport["height"]
     if reduced_motion:
         assert page.locator(".cul-handoff-intro").count() == 0
 
-    cinema.get_by_role("button", name="Continue to results").click()
+    cinema.get_by_role("button", name="View Results").click()
     page.locator(".cul-handoff").wait_for(state="detached", timeout=5000)
     assert "100" in page.locator(".crew-result-score").inner_text()
     page.reload(wait_until="domcontentloaded")
