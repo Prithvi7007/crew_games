@@ -55,6 +55,7 @@
       </section>
 
       <aside class="admin-account-controls">
+        {% if can_manage_credentials %}
         <section class="glass-card admin-account-card">
           <span class="eyebrow">ACCESS</span><h2>Force sign-out</h2><p>Invalidates every existing login session for this player. Their password does not change.</p>
           <form method="post" action="{{ url_for('admin.player_force_sign_out', profile_id=player.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-account-button" type="submit">Sign out everywhere</button></form>
@@ -68,7 +69,11 @@
           <form method="post" action="{{ url_for('admin.player_reset_recovery', profile_id=player.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-account-button" type="submit">Generate recovery code</button></form>
         </section>
 
-        {% if player.role != 'owner' and admin_actor.profile_id != player.id %}
+        {% else %}
+        <section class="glass-card admin-account-card"><span class="eyebrow">PROTECTED ACCOUNT</span><h2>Restricted credentials</h2><p>Only an appropriately authorized Owner can reset credentials or revoke sessions for this privileged account.</p></section>
+        {% endif %}
+
+        {% if player.role != 'owner' and admin_actor.profile_id != player.id and can_manage_role %}
         <section class="glass-card admin-account-card v2-role-control">
           <span class="eyebrow">ROLE</span>
           <h2>{% if player.role == 'admin' %}Revoke Admin access{% else %}Grant Admin access{% endif %}</h2>
