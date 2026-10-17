@@ -208,3 +208,47 @@ def test_real_badge_unlock_handoff_and_results_return(ui, app, monkeypatch, view
     page.reload(wait_until="domcontentloaded")
     page.locator(".crew-result-score").wait_for(timeout=12000)
     assert page.locator(".cul-handoff").count() == 0
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900},
+    {"width": 390, "height": 844},
+])
+def test_season_stamp_is_crisp_across_nav_profile_rankings_and_badges(ui, viewport):
+    """Owner's harmless try-on uses the same season stamp in every player view."""
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+    page.goto(base_url + "/trophies", wait_until="domcontentloaded")
+    tour = page.locator(".crew-tour-dialog")
+    if tour.count():
+        tour.get_by_role("button", name="Maybe later").click()
+
+    # Staff try-on is private, changes no score and issues no new badge award.
+    page.locator(".trophy-badge-card button").first.click()
+    navigation = page.locator(".crew-nav-avatar .crew-equipped-season")
+    navigation.wait_for(timeout=12000)
+
+    def inspect_stamp(locator, minimum_font, minimum_width):
+        locator.wait_for(timeout=12000)
+        assert locator.inner_text().startswith("S")
+        style = locator.evaluate("""el => ({
+            font: parseFloat(getComputedStyle(el).fontSize),
+            width: el.getBoundingClientRect().width,
+            background: getComputedStyle(el).backgroundColor
+        })""")
+        assert style["font"] >= minimum_font
+        assert style["width"] >= minimum_width
+        assert style["background"] == "rgb(7, 19, 33)"
+
+    inspect_stamp(navigation, 8, 16)
+    page.goto(base_url + "/profile", wait_until="domcontentloaded")
+    inspect_stamp(page.locator(".v20-profile-identity .crew-equipped-season"), 11, 27)
+    inspect_stamp(page.locator(".crew-nav-avatar .crew-equipped-season"), 8, 16)
+
+    page.goto(base_url + "/leaderboard", wait_until="domcontentloaded")
+    inspect_stamp(page.locator(".rankings-player-medal .crew-equipped-season").first, 8, 16)
+    inspect_stamp(page.locator(".crew-nav-avatar .crew-equipped-season"), 8, 16)
+    menu_trigger = page.locator(".crew-nav-account .account-trigger")
+    if menu_trigger.is_visible():
+        menu_trigger.click()
+        inspect_stamp(page.locator(".crew-menu-avatar .crew-equipped-season"), 8, 16)

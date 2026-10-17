@@ -220,7 +220,19 @@
 .crew-equipped-achievement { top:0; }
 .crew-equipped-achievement svg { width:75%; height:75%; }
 .crew-equipped-achievement svg path { stroke:currentColor; stroke-width:6; stroke-linecap:round; stroke-linejoin:round; }
-.crew-equipped-season { bottom:0; font:800 9px/1 Inter,sans-serif; color:#fff; }
+.crew-equipped-season {
+  bottom:0;
+  /* Season is an identifier, not another glowing insignia: keep S01 crisp. */
+  border-color:color-mix(in srgb,var(--rarity-ring) 85%,#eaf6ff);
+  background:#071321;
+  box-shadow:0 0 0 1px rgba(2,7,14,.9),0 2px 4px rgba(0,0,0,.65);
+  color:#fff;
+  font:900 11px/1 Inter,system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.07em;
+  text-shadow:0 1px 1px #01060e;
+  -webkit-font-smoothing:antialiased;
+}
 
 /* Collectible medal system: rarity outside, game identity inside, one frame for all. */
 .trophy-medallion .medallion-outer {stroke:var(--rarity-ring);stroke-width:3.2;fill:none;filter:drop-shadow(0 0 2px var(--rarity-glow));}
@@ -382,7 +394,8 @@
   border-width:1px;right:-4%;top:-2%;
 }
 .crew-equipped-badge.is-compact .crew-equipped-season{
-  bottom:-2%;right:-5%;border-width:1px;font-size:6px;
+  bottom:-3%;right:-5%;width:39%;border-width:1px;font-size:8px;
+  letter-spacing:-.08em;
 }
 .crew-nav-avatar.has-trophy,.crew-menu-avatar.has-trophy{
   display:grid;place-items:center;overflow:visible;
