@@ -286,3 +286,37 @@ def test_admin_studio_calendar_and_trivia_navigator_in_chromium(ui, viewport):
     assert "duplicate" in page.locator("#studio-question-1 .studio-question-note").inner_text().lower()
     assert page.locator('input[name="q10_prompt"]').is_visible()
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900},
+    {"width": 390, "height": 844},
+])
+def test_admin_mystery_word_and_timer_editor_feedback_in_browser(ui, viewport):
+    """Editor previews react locally and never create a player game attempt."""
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+
+    page.goto(base_url + "/admin/game/mystery/2027-02-22", wait_until="domcontentloaded")
+    mystery = page.locator('[data-studio-editor="mystery"]')
+    mystery.locator('[name="answer"]').fill("STARDUST")
+    mystery.locator('[name="clue_1"]').fill("The answer is STARDUST")
+    assert "contains the answer" in mystery.locator('[data-studio-clue="1"] [data-studio-clue-feedback]').inner_text()
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+
+    page.goto(base_url + "/admin/game/word/2027-02-24", wait_until="domcontentloaded")
+    word = page.locator('[data-studio-editor="word"]')
+    word.locator('[name="solution"]').fill("MOVIE")
+    assert word.locator("[data-studio-tile]").all_inner_texts() == list("MOVIE")
+    assert "ready" in word.locator("[data-studio-status]").inner_text().lower()
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+
+    page.goto(base_url + "/admin/game/tick_tock/2027-02-25", wait_until="domcontentloaded")
+    clock = page.locator('[data-studio-editor="tick_tock"]')
+    clock.locator('[name="target_seconds"]').fill("12.35")
+    assert clock.locator("[data-studio-timer-label]").inner_text() == "12.35 SEC"
+    assert clock.locator("[data-studio-timer-fill]").evaluate(
+        "(el) => parseFloat(el.style.width) > 0"
+    )
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+    assert page.get_by_role("button", name="Review & publish").is_visible()

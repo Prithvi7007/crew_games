@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ definition.title }} · CREW Admin{% endblock %}
 {% block body_class %}admin-page studio-editor-page{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v22-admin-studio.css', v='22.0.0') }}">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v22-admin-studio.css', v='22.1.0') }}">{% endblock %}
 {% block body %}
 <div class="admin-shell">
   <header class="glass-nav admin-nav">
@@ -40,15 +40,26 @@
       </section>
 
       {% if definition.key == 'mystery' %}
-      <section class="glass-card admin-form-section">
+      <section class="glass-card admin-form-section studio-game-editor studio-mystery-editor" data-studio-editor="mystery" data-studio-locked="{{ 'true' if locked else 'false' }}">
         {% set mystery_scores = [100,75,50,25] %}
-        <div class="admin-form-heading"><div><span class="eyebrow">MYSTERY</span><h2>Answer &amp; clues</h2></div><p>Clue one should be hardest. The final clue should make the answer approachable.</p></div>
+        <div class="admin-form-heading"><div><span class="eyebrow">MYSTERY WORKSPACE</span><h2>Build the reveal, clue by clue.</h2></div><p>Start cryptic at 100 points, then make each clue progressively easier.</p></div>
+        <div class="studio-editor-insight">
+          <div><span class="eyebrow">EDITORIAL READINESS</span><strong data-studio-status aria-live="polite">Checking clues…</strong></div>
+          <p>Advisory checks only. The Review &amp; Publish step remains your final check.</p>
+        </div>
         <div class="admin-form-grid two">
           <label class="admin-field"><span>Answer</span><input name="answer" maxlength="80" value="{{ payload.content.answer }}" required {% if locked %}disabled{% endif %}></label>
           <label class="admin-field"><span>Accepted answers</span><input name="accepted" value="{{ payload.content.accepted|join(', ') }}" placeholder="Comma-separated variants" {% if locked %}disabled{% endif %}></label>
         </div>
-        <div class="admin-clue-stack">
-          {% for clue in payload.content.clues %}<label class="admin-field clue-field"><span>Clue {{ loop.index }} <em>{{ mystery_scores[loop.index0] }} pts</em></span><textarea name="clue_{{ loop.index }}" rows="2" required {% if locked %}disabled{% endif %}>{{ clue }}</textarea></label>{% endfor %}
+        <p class="studio-field-guidance">Accepted answers are optional aliases. CREW includes the main answer automatically.</p>
+        <div class="admin-clue-stack studio-clue-timeline">
+          {% for clue in payload.content.clues %}
+          <label class="admin-field clue-field studio-clue" data-studio-clue="{{ loop.index }}">
+            <span class="studio-clue-heading"><span>CLUE {{ "%02d"|format(loop.index) }} <small>{% if loop.index == 1 %}HARDEST{% elif loop.index == 4 %}MOST REVEALING{% else %}PROGRESSIVE HINT{% endif %}</small></span><em>{{ mystery_scores[loop.index0] }} PTS</em></span>
+            <textarea name="clue_{{ loop.index }}" maxlength="280" rows="2" required {% if locked %}disabled{% endif %}>{{ clue }}</textarea>
+            <small class="studio-field-feedback" data-studio-clue-feedback>Up to 280 characters</small>
+          </label>
+          {% endfor %}
         </div>
       </section>
 
@@ -88,16 +99,39 @@
       </section>
 
       {% elif definition.key == 'word' %}
-      <section class="glass-card admin-form-section admin-word-editor">
-        <div class="admin-form-heading"><div><span class="eyebrow">WORDLE WEDNESDAY</span><h2>Five-letter answer</h2></div><p>The solution stays server-side during play.</p></div>
-        <label class="admin-field word-answer-field"><span>Solution</span><input name="solution" maxlength="5" value="{{ payload.content.solution }}" pattern="[A-Za-z]{5}" required {% if locked %}disabled{% endif %}></label>
-        <p class="admin-helper">CREW accepts a broad English guess dictionary. A scheduled five-letter answer is always accepted as the solution even if it is not in that dictionary.</p>
+      <section class="glass-card admin-form-section admin-word-editor studio-game-editor studio-word-editor" data-studio-editor="word" data-studio-locked="{{ 'true' if locked else 'false' }}">
+        <div class="admin-form-heading"><div><span class="eyebrow">WORDLE WORKSPACE</span><h2>One word. Five letters.</h2></div><p>Check the answer before publication. The solution stays on the server during player games.</p></div>
+        <div class="studio-word-layout">
+          <div>
+            <label class="admin-field word-answer-field"><span>Solution</span><input name="solution" maxlength="5" value="{{ payload.content.solution }}" pattern="[A-Za-z]{5}" required autocomplete="off" spellcheck="false" {% if locked %}disabled{% endif %}></label>
+            <p class="studio-field-guidance">Only A–Z letters, exactly five characters. CREW always accepts the scheduled answer, even if it's outside the guess dictionary.</p>
+            <p class="studio-editor-feedback" data-studio-status aria-live="polite">Checking answer…</p>
+          </div>
+          <div class="studio-answer-preview" aria-label="Admin-only answer preview">
+            <span class="eyebrow">SOLUTION PREVIEW · ADMIN ONLY</span>
+            <div class="studio-word-tiles" aria-hidden="true">{% for i in range(5) %}<span data-studio-tile="{{ i }}">·</span>{% endfor %}</div>
+            <small>Displayed here only for editors—not exposed to players.</small>
+          </div>
+        </div>
       </section>
 
       {% elif definition.key == 'tick_tock' %}
-      <section class="glass-card admin-form-section admin-timer-editor">
-        <div class="admin-form-heading"><div><span class="eyebrow">TICK-TOCK</span><h2>Hidden timer target</h2></div><p>Players see the target before the timer starts, then rely on their internal clock.</p></div>
-        <label class="admin-field timer-target-field"><span>Target seconds</span><div class="admin-unit-input"><input type="number" name="target_seconds" min="2" max="30" step="0.01" value="{{ payload.content.target_seconds }}" required {% if locked %}disabled{% endif %}><b>SEC</b></div></label>
+      <section class="glass-card admin-form-section admin-timer-editor studio-game-editor studio-timer-editor" data-studio-editor="tick_tock" data-studio-locked="{{ 'true' if locked else 'false' }}">
+        <div class="admin-form-heading"><div><span class="eyebrow">TICK-TOCK WORKSPACE</span><h2>Set the timing challenge.</h2></div><p>The player sees the target, starts the timer, then tries to stop at precisely the right moment.</p></div>
+        <div class="studio-timer-layout">
+          <div>
+            <label class="admin-field timer-target-field"><span>Target seconds</span><div class="admin-unit-input"><input type="number" name="target_seconds" min="2" max="30" step="0.01" value="{{ payload.content.target_seconds }}" required {% if locked %}disabled{% endif %}><b>SEC</b></div></label>
+            <p class="studio-field-guidance">Choose between 2.00 and 30.00 seconds, in hundredths of a second.</p>
+            <p class="studio-editor-feedback" data-studio-status aria-live="polite">Checking timer target…</p>
+          </div>
+          <div class="studio-timer-visual" aria-label="Target duration preview">
+            <span class="eyebrow">TARGET PREVIEW</span>
+            <strong data-studio-timer-label>—</strong>
+            <div class="studio-timer-track" aria-hidden="true"><span data-studio-timer-fill></span></div>
+            <div class="studio-timer-scale" aria-hidden="true"><span>2 SEC</span><span>30 SEC</span></div>
+            <small>Illustration only. This does not start a player timer.</small>
+          </div>
+        </div>
       </section>
       {% endif %}
 
@@ -116,4 +150,4 @@
   </main>
 </div>
 {% endblock %}
-{% block scripts %}{% if definition.key == 'trivia' %}<script src="{{ url_for('static', filename='js/v22-admin-editor.js', v='22.0.0') }}"></script>{% endif %}{% endblock %}
+{% block scripts %}{% if definition.key == 'trivia' %}<script src="{{ url_for('static', filename='js/v22-admin-editor.js', v='22.0.0') }}"></script>{% elif definition.key in ('mystery', 'word', 'tick_tock') %}<script src="{{ url_for('static', filename='js/v23-admin-game-editors.js', v='23.0.0') }}"></script>{% endif %}{% endblock %}
