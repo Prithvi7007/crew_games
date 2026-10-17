@@ -1,14 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Review & Publish · {{ definition.title }} · CREW Admin{% endblock %}
 {% block body_class %}admin-page admin-preview-page{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v24-admin-shell.css', v='24.0.0') }}">
+{% endblock %}
 {% block body %}
 <div class="admin-shell">
-  <header class="glass-nav admin-nav">
-    <a class="nav-brand" href="{{ edit_url }}"><span class="brand-parent">CREW CONTENT STUDIO</span><span class="crew-mark small">PUBLICATION REVIEW</span></a>
-    <span class="admin-preview-badge">NOT YET PUBLISHED</span>
-    <a class="admin-quiet-button" href="{{ edit_url }}">Cancel review</a>
-  </header>
-  {% include "admin/_mobile_nav.html" %}
+  {% include "admin/_studio_header.html" %}
   <main class="admin-main preview-main">
     <section class="preview-title">
       <span class="eyebrow">{{ game_day.strftime('%A · %B %d, %Y')|upper }}</span>

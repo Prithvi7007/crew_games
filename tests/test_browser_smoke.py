@@ -320,3 +320,34 @@ def test_admin_mystery_word_and_timer_editor_feedback_in_browser(ui, viewport):
     )
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
     assert page.get_by_role("button", name="Review & publish").is_visible()
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900},
+    {"width": 390, "height": 844},
+])
+def test_admin_studio_shared_navigation_keeps_sections_reachable(ui, viewport):
+    """All operations pages share one active navigation with no mobile overflow."""
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+    for route, section in [
+        ("/admin", "Schedule"),
+        ("/admin/players", "Players"),
+        ("/admin/settings", "Settings"),
+        ("/admin/game/mystery/2027-02-22", "Schedule"),
+        ("/admin/preview/mystery/2027-02-22", "Schedule"),
+        ("/admin/test/mystery/2027-02-22", "Schedule"),
+    ]:
+        page.goto(base_url + route, wait_until="domcontentloaded")
+        nav = page.get_by_role("navigation", name="Studio sections")
+        active = nav.locator('[aria-current="page"]')
+        assert active.count() == 1
+        assert active.inner_text() == section
+        assert page.get_by_role("navigation", name="Admin Studio sections").count() == 1
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+    page.goto(base_url + "/admin/settings#studio-seasons", wait_until="domcontentloaded")
+    assert page.locator("#studio-seasons").count() == 1
+    assert page.locator("#studio-access").count() == 1
+    page.get_by_role("navigation", name="Admin Studio sections").get_by_role("link", name="Players").click()
+    page.wait_for_url("**/admin/players", timeout=12000)
+    assert page.locator(".admin-player-directory").is_visible()
