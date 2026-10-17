@@ -453,9 +453,11 @@
   position:absolute;right:9%;bottom:10%;
   width:23%;aspect-ratio:1;display:grid;place-items:center;
   border:2px solid #b7c3d6;border-radius:50%;
-  background:linear-gradient(145deg,#223451,#08111f);
-  color:#fff;font:850 clamp(12px,2.4vw,18px)/1 Inter,sans-serif;
-  box-shadow:0 0 18px rgba(117,201,248,.25);
+  background:#071321;
+  color:#fff;font:900 clamp(12px,2.4vw,18px)/1 Inter,system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;letter-spacing:-.07em;
+  text-shadow:0 1px 1px #01060e;-webkit-font-smoothing:antialiased;
+  box-shadow:0 0 0 1px rgba(2,7,14,.9),0 3px 8px rgba(0,0,0,.65);
   opacity:0;transform:scale(.3);
   transition:opacity .45s ease,transform .55s cubic-bezier(.16,1.35,.3,1)
 }

@@ -44,8 +44,16 @@ export function CinematicReveal({ preset, seasonNumber, gameKey, onDismiss }) {
     function onKeyDown(event) {
       if (event.key === 'Escape') { event.preventDefault(); onDismiss(); }
       if (event.key === 'Tab') {
-        const action = dialogRef.current?.querySelector('button:not([disabled])');
-        if (action) { event.preventDefault(); action.focus(); }
+        const controls = [...(dialogRef.current?.querySelectorAll('button:not([disabled]), a[href]') || [])];
+        if (!controls.length) return;
+        const first = controls[0], last = controls[controls.length - 1];
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     }
     document.addEventListener('keydown', onKeyDown);
@@ -147,7 +155,10 @@ export function CinematicReveal({ preset, seasonNumber, gameKey, onDismiss }) {
     </div>
     <div className="cul-cinema-footer">
       <span>{onDismiss ? 'NEW AWARDS SAVED TO YOUR COLLECTION' : 'SIMULATION · NO AWARDS ISSUED'}</span>
-      <button type="button" onClick={onDismiss || skip} disabled={!onDismiss && skipped}>{onDismiss ? 'Continue to results' : 'Skip animation'} <span aria-hidden="true">→</span></button>
+      <div className="cul-cinema-actions">
+        <button type="button" onClick={onDismiss || skip} disabled={!onDismiss && skipped}>{onDismiss ? 'View Results' : 'Skip animation'} <span aria-hidden="true">→</span></button>
+        {onDismiss ? <a className="cul-view-badges" href="/trophies">View My Badges <span aria-hidden="true">↗</span></a> : null}
+      </div>
     </div>
   </section>;
 }
