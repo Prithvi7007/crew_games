@@ -62,7 +62,7 @@ def test_admin_profile_can_open_admin_and_player_cannot(app):
     assert response.headers["Location"].endswith("/home")
 
 
-def test_admin_can_promote_and_revoke_player(app):
+def test_admin_can_promote_but_only_owner_can_revoke_admin_access(app):
     admin_id = _profile(app, "PromotingAdmin", "admin")
     target_id = _profile(app, "PromotionTarget")
     client = app.test_client()
@@ -78,9 +78,20 @@ def test_admin_can_promote_and_revoke_player(app):
         assert target["role"] == "admin"
         promoted_version = int(target["session_version"])
 
-    client.post(
+    denied = client.post(
         f"/admin/players/{target_id}/role",
         data={"csrf_token": token, "role": "player"},
+    )
+    assert denied.status_code == 302
+    with app.app_context():
+        assert get_profile_by_id(target_id)["role"] == "admin"
+
+    owner_id = _profile(app, "RevokingOwner", "owner")
+    owner_client = app.test_client()
+    owner_csrf = _sign_in(owner_client, app, owner_id)
+    owner_client.post(
+        f"/admin/players/{target_id}/role",
+        data={"csrf_token": owner_csrf, "role": "player"},
     )
     with app.app_context():
         target = get_profile_by_id(target_id)

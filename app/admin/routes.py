@@ -1,10 +1,13 @@
 import hmac
+import hashlib
+import json
 import re
 import secrets
 import time
 from datetime import date, timedelta
 from functools import wraps
 
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from werkzeug.security import generate_password_hash
 
 from flask import (
@@ -126,6 +129,43 @@ def admin_required(view):
 @admin_bp.context_processor
 def admin_template_context():
     return {"admin_actor": getattr(g, "admin_actor", None)}
+
+
+def _admin_actor_key(actor):
+    return f"{actor['kind']}:{actor['profile_id']}:{actor['username']}"
+
+
+def _publish_serializer():
+    # Signed, ten-minute review: no unsaved questions stored in session cookies.
+    return URLSafeTimedSerializer(current_app.secret_key, salt="crew-admin-publish-review-v1")
+
+
+def _content_fingerprint(payload):
+    snapshot = {
+        key: payload[key] for key in ("status", "updated_at", "theme_label", "content")
+    }
+    encoded = json.dumps(snapshot, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _may_manage_credentials(actor, target):
+    role = str(target["role"] or "player").lower()
+    if role == "owner":
+        return actor["kind"] == "breakglass"
+    if role == "admin":
+        return actor["role"] == "owner"
+    return True
+
+
+def _deny_sensitive_action(actor, target, action):
+    audit_security_event(
+        "admin_player_sensitive_action_denied", target["username"],
+        {"action": action, "profile_id": int(target["id"]),
+         "target_role": target["role"], "actor_role": actor["role"],
+         "actor_profile_id": actor["profile_id"]},
+    )
+    flash("This account requires higher-level Owner authorization.", "error")
+    return redirect(url_for("admin.player_detail", profile_id=target["id"]))
 
 
 def _parse_day(value):
@@ -380,7 +420,7 @@ def edit_game(game_key, game_date):
         if locked:
             flash("This game is locked because at least one player has started it.", "error")
         else:
-            action = request.form.get("action", "draft")
+            action = request.form.get("action", "")
             if action == "unpublish":
                 if set_game_content_status(game_key, game_date, "draft"):
                     audit_security_event("admin_content_unpublished", f"{game_key}:{game_date}")
@@ -389,18 +429,63 @@ def edit_game(game_key, game_date):
                     flash("There isn't scheduled content to unpublish yet.", "error")
                 return redirect(url_for("admin.edit_game", game_key=game_key, game_date=game_date))
 
-            theme_label, content, error = _parse_content_form(game_key)
-            if error:
-                flash(error, "error")
-            else:
-                status = "published" if action == "publish" else "draft"
-                save_game_content(game_key, game_date, theme_label, content, status=status)
-                audit_security_event(f"admin_content_{status}", f"{game_key}:{game_date}")
-                if status == "published":
-                    flash("Published. This content is now live for that CREW game date.", "success")
+            if action == "confirm_publish":
+                try:
+                    reviewed = _publish_serializer().loads(
+                        request.form.get("publish_token", ""), max_age=600
+                    )
+                except (BadSignature, SignatureExpired):
+                    flash("Publishing review expired or was invalid. Review the content again.", "error")
                 else:
-                    flash("Draft saved. Preview it before publishing when you're ready.", "success")
-                return redirect(url_for("admin.edit_game", game_key=game_key, game_date=game_date))
+                    latest = _editor_payload(game_key, game_day)
+                    if (
+                        not isinstance(reviewed, dict)
+                        or reviewed.get("slot") != f"{game_key}:{game_date}"
+                        or reviewed.get("actor") != _admin_actor_key(g.admin_actor)
+                        or reviewed.get("source_version") != _content_fingerprint(latest)
+                        or not isinstance(reviewed.get("content"), dict)
+                        or not isinstance(reviewed.get("theme_label"), str)
+                    ):
+                        flash("Publishing review no longer matches this content. Review again.", "error")
+                    elif count_game_attempts(game_key, game_date) > 0:
+                        flash("This game is now locked because a player started it.", "error")
+                    else:
+                        save_game_content(
+                            game_key, game_date, reviewed["theme_label"],
+                            reviewed["content"], status="published"
+                        )
+                        audit_security_event("admin_content_published", f"{game_key}:{game_date}")
+                        flash("Published. This content is now live for that CREW game date.", "success")
+                        return redirect(url_for("admin.edit_game", game_key=game_key, game_date=game_date))
+            elif action in {"draft", "review"}:
+                theme_label, content, error = _parse_content_form(game_key)
+                if error:
+                    flash(error, "error")
+                elif action == "draft":
+                    save_game_content(game_key, game_date, theme_label, content, status="draft")
+                    audit_security_event("admin_content_draft", f"{game_key}:{game_date}")
+                    flash("Draft saved. Review it before publishing when you're ready.", "success")
+                    return redirect(url_for("admin.edit_game", game_key=game_key, game_date=game_date))
+                else:
+                    latest = _editor_payload(game_key, game_day)
+                    token = _publish_serializer().dumps({
+                        "slot": f"{game_key}:{game_date}",
+                        "actor": _admin_actor_key(g.admin_actor),
+                        "source_version": _content_fingerprint(latest),
+                        "theme_label": theme_label,
+                        "content": content,
+                    })
+                    audit_security_event("admin_content_reviewed", f"{game_key}:{game_date}")
+                    return render_template(
+                        "admin/publish_review.html",
+                        definition=definition, game_day=game_day,
+                        payload={"status": "review", "theme_label": theme_label, "content": content},
+                        edit_url=url_for("admin.edit_game", game_key=game_key, game_date=game_date),
+                        review_mode=True, publish_token=token,
+                        current_status=latest["status"],
+                    )
+            else:
+                flash("Choose Save draft or Review & publish.", "error")
 
     payload = _editor_payload(game_key, game_day)
     return render_template(
@@ -526,11 +611,14 @@ def _render_player_detail(profile_id, credential_result=None):
     if not player:
         flash("That player account no longer exists.", "error")
         return redirect(url_for("admin.players"))
+    actor = g.admin_actor
     return render_template(
         "admin/player_detail.html",
         player=player,
         recent_games=_player_recent_games(profile_id),
         credential_result=credential_result,
+        can_manage_credentials=_may_manage_credentials(actor, player),
+        can_manage_role=player["role"] != "admin" or actor["role"] == "owner",
     )
 
 
@@ -580,6 +668,8 @@ def player_force_sign_out(profile_id):
     if not player:
         flash("That player account no longer exists.", "error")
         return redirect(url_for("admin.players"))
+    if not _may_manage_credentials(g.admin_actor, player):
+        return _deny_sensitive_action(g.admin_actor, player, "force_sign_out")
     _invalidate_player_sessions(profile_id)
     audit_security_event("admin_player_force_sign_out", player["username"], {"profile_id": profile_id})
     flash(f"{player['username']} will be signed out on their next authenticated request.", "success")
@@ -593,6 +683,8 @@ def player_reset_password(profile_id):
     if not player:
         flash("That player account no longer exists.", "error")
         return redirect(url_for("admin.players"))
+    if not _may_manage_credentials(g.admin_actor, player):
+        return _deny_sensitive_action(g.admin_actor, player, "reset_password")
     temporary_password = secrets.token_urlsafe(14)
     update_profile_password(profile_id, generate_password_hash(temporary_password))
     audit_security_event("admin_player_password_reset", player["username"], {"profile_id": profile_id})
@@ -611,6 +703,8 @@ def player_reset_recovery(profile_id):
     if not player:
         flash("That player account no longer exists.", "error")
         return redirect(url_for("admin.players"))
+    if not _may_manage_credentials(g.admin_actor, player):
+        return _deny_sensitive_action(g.admin_actor, player, "reset_recovery")
     recovery_code = "CREW-" + "-".join(secrets.token_hex(3).upper() for _ in range(3))
     update_profile_recovery_code(profile_id, generate_password_hash(recovery_code))
     audit_security_event("admin_player_recovery_reset", player["username"], {"profile_id": profile_id})
@@ -641,6 +735,8 @@ def player_role(profile_id):
     if current_role == "owner":
         flash("The Owner profile is protected.", "error")
         return redirect(url_for("admin.player_detail", profile_id=profile_id))
+    if current_role == "admin" and actor["role"] != "owner":
+        return _deny_sensitive_action(actor, player, "change_admin_role")
 
     if requested == "owner":
         if actor["kind"] != "breakglass":

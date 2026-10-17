@@ -86,12 +86,12 @@
       {% endif %}
 
       <div class="admin-editor-actions glass-card">
-        <div><strong>{% if payload.status == 'published' %}Published content{% elif payload.status == 'draft' %}Draft saved{% else %}Not scheduled yet{% endif %}</strong><span>Preview uses your last saved version.</span></div>
+        <div><strong>{% if payload.status == 'published' %}Published content{% elif payload.status == 'draft' %}Draft saved{% else %}Not scheduled yet{% endif %}</strong><span>Preview shows saved content. Review &amp; publish checks current edits without saving first.</span></div>
         <div class="admin-action-buttons">
           <a class="admin-card-button" href="{{ preview_url }}">Preview</a>
           {% if not locked %}
             <button class="admin-card-button" type="submit" name="action" value="draft">Save draft</button>
-            <button class="admin-card-button primary" type="submit" name="action" value="publish">Publish →</button>
+            <button class="admin-card-button primary" type="submit" name="action" value="review">Review &amp; publish →</button>
             {% if payload.status == 'published' %}<button class="admin-card-button danger" type="submit" name="action" value="unpublish">Unpublish</button>{% endif %}
           {% endif %}
         </div>
