@@ -1,0 +1,35 @@
+{% set studio_endpoint = request.endpoint or '' %}
+{% set studio_schedule = studio_endpoint in ['admin.dashboard', 'admin.edit_game', 'admin.preview_game', 'admin.test_game'] %}
+{% set studio_players = studio_endpoint in ['admin.players', 'admin.player_detail', 'admin.player_force_sign_out', 'admin.player_reset_password', 'admin.player_reset_recovery', 'admin.player_role', 'admin.player_delete'] %}
+{% set studio_seasons = studio_endpoint == 'admin.review_championships' %}
+{% set studio_settings = studio_endpoint == 'admin.settings' %}
+<header class="glass-nav admin-nav studio-shell-nav">
+  <a class="nav-brand studio-shell-brand" href="{{ url_for('admin.dashboard') }}" aria-label="CREW Admin Studio home">
+    <span class="brand-parent">CREW GAMES · CONTROL ROOM</span>
+    <span class="crew-mark small">CREW <em>ADMIN STUDIO</em></span>
+    <span class="studio-brand-context">{% if definition is defined and definition %}{{ definition.title }}{% elif studio_seasons %}Season championships{% elif studio_players %}Player operations{% elif studio_settings %}Settings &amp; seasons{% else %}Content operations{% endif %}</span>
+  </a>
+  <nav class="desktop-nav studio-shell-links" aria-label="Studio sections">
+    <a{% if studio_schedule %} class="active" aria-current="page"{% endif %} href="{{ url_for('admin.dashboard') }}">Schedule</a>
+    <a{% if studio_players %} class="active" aria-current="page"{% endif %} href="{{ url_for('admin.players') }}">Players</a>
+    <a{% if studio_seasons %} class="active" aria-current="page"{% endif %} href="{{ url_for('admin.settings') }}#studio-seasons">Seasons</a>
+    <a{% if studio_settings %} class="active" aria-current="page"{% endif %} href="{{ url_for('admin.settings') }}#studio-access">Settings</a>
+  </nav>
+  <div class="studio-shell-actions">
+    {% if review_mode is defined and review_mode and edit_url is defined %}
+    <a class="studio-shell-context-action" href="{{ edit_url }}">Cancel review</a>
+    {% elif studio_endpoint in ['admin.preview_game', 'admin.test_game'] and edit_url is defined %}
+    <a class="studio-shell-context-action" href="{{ edit_url }}">Back to editor</a>
+    {% elif studio_endpoint == 'admin.edit_game' and dashboard_url is defined %}
+    <a class="studio-shell-context-action" href="{{ dashboard_url }}">Schedule</a>
+    {% elif studio_seasons %}
+    <a class="studio-shell-context-action" href="{{ url_for('admin.settings') }}#studio-seasons">All seasons</a>
+    {% endif %}
+    <a class="studio-shell-player-view" href="{{ url_for('main.home') }}">Player view <span aria-hidden="true">↗</span></a>
+    <form class="studio-shell-logout" method="post" action="{{ url_for('admin.logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" aria-label="Sign out of Admin Studio">Exit</button>
+    </form>
+  </div>
+</header>
+{% include "admin/_mobile_nav.html" %}

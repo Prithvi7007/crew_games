@@ -1,15 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ definition.title }} · CREW Admin{% endblock %}
 {% block body_class %}admin-page studio-editor-page{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v22-admin-studio.css', v='22.1.0') }}">{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v22-admin-studio.css', v='22.1.0') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v24-admin-shell.css', v='24.0.0') }}">
+{% endblock %}
 {% block body %}
 <div class="admin-shell">
-  <header class="glass-nav admin-nav">
-    <a class="nav-brand" href="{{ dashboard_url }}"><span class="brand-parent">CREW CONTENT STUDIO</span><span class="crew-mark small">{{ definition.title }}</span></a>
-    <nav class="desktop-nav"><a href="{{ dashboard_url }}">Schedule</a><a href="{{ url_for('admin.players') }}">Players</a><a class="active" href="#">Editor</a><a href="{{ preview_url }}">Preview</a></nav>
-    <a class="admin-quiet-button" href="{{ dashboard_url }}">Done</a>
-  </header>
-  {% include "admin/_mobile_nav.html" %}
+  {% include "admin/_studio_header.html" %}
 
   <main class="admin-main admin-editor-main">
     <section class="admin-editor-heading">

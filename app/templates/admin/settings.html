@@ -1,15 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Settings · CREW Admin{% endblock %}
 {% block body_class %}admin-page{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.1') }}">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/v24-admin-shell.css', v='24.0.0') }}">
+{% endblock %}
 {% block body %}
 <div class="admin-shell">
-  <header class="glass-nav admin-nav">
-    <a class="nav-brand" href="{{ url_for('admin.dashboard') }}"><span class="brand-parent">UNIVERSAL DESTINATIONS &amp; EXPERIENCES</span><span class="crew-mark small">CREW <em>ADMIN</em></span></a>
-    <nav class="desktop-nav"><a href="{{ url_for('admin.dashboard') }}">Schedule</a><a href="{{ url_for('admin.players') }}">Players</a><a class="active" href="{{ url_for('admin.settings') }}">Settings</a><a href="{{ url_for('main.home') }}">Player view</a></nav>
-    <form method="post" action="{{ url_for('admin.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="admin-quiet-button" type="submit">Exit admin ↗</button></form>
-  </header>
-  {% include "admin/_mobile_nav.html" %}
+  {% include "admin/_studio_header.html" %}
 
   <main class="admin-main v2-settings-main">
     <section class="admin-title-row">
@@ -21,7 +17,7 @@
       {% for category, message in messages %}<div class="admin-flash {{ category }}">{{ message }}</div>{% endfor %}
     {% endwith %}
 
-    <section class="glass-card v2-settings-card v2-season-settings-card">
+    <section id="studio-seasons" class="glass-card v2-settings-card v2-season-settings-card">
       <div class="v2-settings-copy">
         <span class="eyebrow">SEASON MANAGEMENT</span>
         <h2>Run the CREW competition.</h2>
@@ -130,7 +126,7 @@
       </div>
     </section>
 
-    <section class="glass-card v2-settings-card">
+    <section id="studio-access" class="glass-card v2-settings-card">
       <div class="v2-settings-copy">
         <span class="eyebrow">PLAYER INVITE CODE</span>
         <h2>Change the invite code.</h2>
