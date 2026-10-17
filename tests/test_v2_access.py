@@ -62,42 +62,50 @@ def test_admin_profile_can_open_admin_and_player_cannot(app):
     assert response.headers["Location"].endswith("/home")
 
 
-def test_admin_can_promote_but_only_owner_can_revoke_admin_access(app):
+def test_only_owner_can_grant_or_revoke_admin_access(app):
     admin_id = _profile(app, "PromotingAdmin", "admin")
     target_id = _profile(app, "PromotionTarget")
     client = app.test_client()
     token = _sign_in(client, app, admin_id)
 
-    response = client.post(
+    with app.app_context():
+        original_version = int(get_profile_by_id(target_id)["session_version"])
+    denied_promotion = client.post(
         f"/admin/players/{target_id}/role",
         data={"csrf_token": token, "role": "admin"},
     )
-    assert response.status_code == 302
+    assert denied_promotion.status_code == 302
     with app.app_context():
-        target = get_profile_by_id(target_id)
-        assert target["role"] == "admin"
-        promoted_version = int(target["session_version"])
-
-    denied = client.post(
-        f"/admin/players/{target_id}/role",
-        data={"csrf_token": token, "role": "player"},
-    )
-    assert denied.status_code == 302
-    with app.app_context():
-        assert get_profile_by_id(target_id)["role"] == "admin"
+        assert get_profile_by_id(target_id)["role"] == "player"
 
     owner_id = _profile(app, "RevokingOwner", "owner")
     owner_client = app.test_client()
     owner_csrf = _sign_in(owner_client, app, owner_id)
     owner_client.post(
         f"/admin/players/{target_id}/role",
+        data={"csrf_token": owner_csrf, "role": "admin"},
+    )
+    with app.app_context():
+        promoted = get_profile_by_id(target_id)
+        assert promoted["role"] == "admin"
+        assert int(promoted["session_version"]) == original_version + 1
+
+    denied_revoke = client.post(
+        f"/admin/players/{target_id}/role",
+        data={"csrf_token": token, "role": "player"},
+    )
+    assert denied_revoke.status_code == 302
+    with app.app_context():
+        assert get_profile_by_id(target_id)["role"] == "admin"
+
+    owner_client.post(
+        f"/admin/players/{target_id}/role",
         data={"csrf_token": owner_csrf, "role": "player"},
     )
     with app.app_context():
-        target = get_profile_by_id(target_id)
-        assert target["role"] == "player"
-        assert int(target["session_version"]) == promoted_version + 1
-
+        revoked = get_profile_by_id(target_id)
+        assert revoked["role"] == "player"
+        assert int(revoked["session_version"]) == original_version + 2
 
 def test_admin_delete_requires_player_role(app):
     admin_id = _profile(app, "DeletingAdmin", "admin")

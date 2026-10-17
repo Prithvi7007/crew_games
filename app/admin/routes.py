@@ -618,7 +618,7 @@ def _render_player_detail(profile_id, credential_result=None):
         recent_games=_player_recent_games(profile_id),
         credential_result=credential_result,
         can_manage_credentials=_may_manage_credentials(actor, player),
-        can_manage_role=player["role"] != "admin" or actor["role"] == "owner",
+        can_manage_role=actor["role"] == "owner",
     )
 
 
@@ -735,7 +735,7 @@ def player_role(profile_id):
     if current_role == "owner":
         flash("The Owner profile is protected.", "error")
         return redirect(url_for("admin.player_detail", profile_id=profile_id))
-    if current_role == "admin" and actor["role"] != "owner":
+    if (current_role == "admin" or requested == "admin") and actor["role"] != "owner":
         return _deny_sensitive_action(actor, player, "change_admin_role")
 
     if requested == "owner":
