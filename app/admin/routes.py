@@ -376,6 +376,7 @@ def logout():
 @admin_required
 def dashboard():
     week_start = _week_from_query()
+    today = crew_today()
     items = []
     for definition in GAME_DEFINITIONS:
         game_day = week_start + timedelta(days=definition["weekday"])
@@ -389,6 +390,7 @@ def dashboard():
             "summary": _content_summary(definition["key"], payload),
             "attempts": attempts,
             "locked": attempts > 0,
+            "is_today": game_day == today,
             "edit_url": url_for("admin.edit_game", game_key=definition["key"], game_date=game_day.isoformat()),
             "preview_url": url_for("admin.preview_game", game_key=definition["key"], game_date=game_day.isoformat()),
             "test_url": url_for("admin.test_game", game_key=definition["key"], game_date=game_day.isoformat()),
@@ -398,6 +400,11 @@ def dashboard():
         "admin/dashboard.html",
         week_start=week_start,
         week_end=week_start + timedelta(days=3),
+        is_current_week=week_start == get_week_start(today),
+        published_count=sum(item["status"] == "published" for item in items),
+        draft_count=sum(item["status"] == "draft" for item in items),
+        fallback_count=sum(item["status"] == "fallback" for item in items),
+        locked_count=sum(item["locked"] for item in items),
         previous_week=week_start - timedelta(days=7),
         next_week=week_start + timedelta(days=7),
         items=items,

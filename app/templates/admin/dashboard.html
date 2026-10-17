@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block title %}CREW Content Studio{% endblock %}
 {% block body_class %}admin-page{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v22-admin-studio.css', v='22.0.0') }}">
+{% endblock %}
 {% block body %}
 <div class="admin-shell">
   <header class="glass-nav admin-nav">
@@ -19,11 +22,11 @@
       <div>
         <span class="eyebrow">WEEKLY CONTENT</span>
         <h1>Build the CREW week.</h1>
-        <p>Draft first, preview it, then publish when each challenge is ready.</p>
+        <p>Four challenges. One clear view of what’s custom, what’s live, and what players can open.</p>
       </div>
       <div class="admin-week-controls glass-card">
         <a href="{{ url_for('admin.dashboard', week=previous_week.isoformat()) }}" aria-label="Previous week">←</a>
-        <div><span>WEEK OF</span><strong>{{ week_start.strftime('%B %d') }} – {{ week_end.strftime('%B %d, %Y') }}</strong></div>
+        <div><span>{% if is_current_week %}CURRENT WEEK{% else %}SELECTED WEEK{% endif %}</span><strong>{{ week_start.strftime('%B %d') }} – {{ week_end.strftime('%B %d, %Y') }}</strong>{% if not is_current_week %}<a class="studio-week-now" href="{{ url_for('admin.dashboard') }}">Back to this week ↗</a>{% endif %}</div>
         <a href="{{ url_for('admin.dashboard', week=next_week.isoformat()) }}" aria-label="Next week">→</a>
       </div>
     </section>
@@ -32,26 +35,37 @@
       {% for category, message in messages %}<div class="admin-flash {{ category }}">{{ message }}</div>{% endfor %}
     {% endwith %}
 
-    <section class="admin-status-strip glass-card">
-      <div><span class="status-dot published"></span><strong>Published</strong><small>Live for players</small></div>
-      <div><span class="status-dot draft"></span><strong>Draft</strong><small>Saved, not live</small></div>
-      <div><span class="status-dot fallback"></span><strong>Fallback</strong><small>Prototype content</small></div>
-      <div><span class="status-dot locked"></span><strong>Locked</strong><small>A player has started</small></div>
+    <section class="glass-card studio-week-overview" aria-labelledby="studio-week-readiness">
+      <div class="studio-readiness">
+        <div class="studio-readiness-heading">
+          <span class="eyebrow">CUSTOM CONTENT READINESS</span>
+          <strong id="studio-week-readiness">{{ published_count }} <small>/ {{ items|length }}</small></strong>
+        </div>
+        <progress class="studio-readiness-progress" value="{{ published_count }}" max="{{ items|length }}" aria-label="Custom challenges published"></progress>
+        <p>Published custom content is live. Drafts are not. Unpublished dates use built-in fallback content when players open them.</p>
+      </div>
+      <div class="studio-week-metrics" aria-label="Week content status">
+        <div><span class="status-dot published"></span><strong>{{ published_count }}</strong><small>Published</small></div>
+        <div><span class="status-dot draft"></span><strong>{{ draft_count }}</strong><small>Drafts</small></div>
+        <div><span class="status-dot fallback"></span><strong>{{ fallback_count }}</strong><small>Using fallback</small></div>
+        <div><span class="status-dot locked"></span><strong>{{ locked_count }}</strong><small>Locked after play</small></div>
+      </div>
     </section>
 
     <section class="admin-schedule-grid">
       {% for item in items %}
-      <article class="glass-card admin-game-card game-tone-{{ item.key }} {% if item.locked %}is-locked{% endif %}">
+      <article class="glass-card admin-game-card studio-schedule-card game-tone-{{ item.key }} {% if item.locked %}is-locked{% endif %}{% if item.is_today %} studio-is-today{% endif %}">
         <div class="admin-game-top">
-          <div><span class="admin-day">{{ item.day|upper }}</span><strong>{{ item.date.strftime('%b %d')|upper }}</strong></div>
+          <div><span class="admin-day">{{ item.day|upper }}{% if item.is_today %} <em class="studio-today-label">TODAY</em>{% endif %}</span><strong>{{ item.date.strftime('%b %d')|upper }}</strong></div>
           <span class="admin-status {{ item.status }}">{{ item.status|upper }}</span>
         </div>
         <div class="admin-game-glyph">{{ item.glyph }}</div>
         <h2>{{ item.title }}</h2>
         {% if item.theme_label %}<span class="admin-theme">{{ item.theme_label }}</span>{% endif %}
         <p>{{ item.summary }}</p>
+        <p class="studio-card-source">{% if item.status == 'published' %}Custom content is live{% elif item.status == 'draft' %}Saved draft · players use fallback{% else %}Built-in fallback is playable{% endif %}</p>
         <div class="admin-card-meta">
-          {% if item.locked %}<span>🔒 {{ item.attempts }} player{% if item.attempts != 1 %}s{% endif %} started</span>{% else %}<span>Ready to edit</span>{% endif %}
+          {% if item.locked %}<span>🔒 Locked · {{ item.attempts }} player{% if item.attempts != 1 %}s{% endif %} started</span>{% else %}<span>Editable until first play</span>{% endif %}
         </div>
         <div class="admin-card-actions">
           <a class="admin-card-button primary" href="{{ item.edit_url }}">{% if item.locked %}View content{% else %}Edit content{% endif %} →</a>
@@ -64,7 +78,7 @@
 
     <section class="glass-card admin-note">
       <span class="eyebrow">PUBLISHING RULE</span>
-      <h2>Content locks when play begins.</h2>
+      <h2>A fair competition starts with consistent content.</h2>
       <p>As soon as the first player starts a scheduled challenge, CREW prevents edits and unpublishing for that game date. That keeps every player on the same content and scoring rules.</p>
     </section>
   </main>
