@@ -144,6 +144,8 @@ def test_tick_tock_start_and_stop_round_in_browser(ui):
 @pytest.mark.parametrize("viewport,reduced_motion", [
     ({"width": 1440, "height": 900}, False),
     ({"width": 390, "height": 844}, False),
+    ({"width": 320, "height": 568}, False),
+    ({"width": 844, "height": 390}, False),
     ({"width": 390, "height": 844}, True),
 ])
 def test_real_badge_unlock_handoff_and_results_return(ui, app, monkeypatch, viewport, reduced_motion):
@@ -174,6 +176,23 @@ def test_real_badge_unlock_handoff_and_results_return(ui, app, monkeypatch, view
     cinema.wait_for(timeout=12000)
     assert page.locator(".cul-handoff-cinema").count() == 1
     assert "TRIPLE UNLOCK" in cinema.inner_text()
+    # The live stage is full-bleed; it must not become a scrollable popup.
+    layout = cinema.evaluate("""el => {
+      const stage = el.getBoundingClientRect();
+      const action = el.querySelector('.cul-cinema-footer button').getBoundingClientRect();
+      const heading = el.querySelector('.cul-message h2').getBoundingClientRect();
+      return {
+        width: stage.width, height: stage.height,
+        overflow: getComputedStyle(el).overflowY,
+        actionTop: action.top, actionBottom: action.bottom,
+        headingTop: heading.top, headingBottom: heading.bottom
+      };
+    }""")
+    assert abs(layout["width"] - viewport["width"]) < 2
+    assert abs(layout["height"] - viewport["height"]) < 2
+    assert layout["overflow"] == "hidden"
+    assert 0 <= layout["actionTop"] < layout["actionBottom"] <= viewport["height"]
+    assert 0 <= layout["headingTop"] < layout["headingBottom"] <= viewport["height"]
     if reduced_motion:
         assert page.locator(".cul-handoff-intro").count() == 0
 
