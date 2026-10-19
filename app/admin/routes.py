@@ -22,6 +22,7 @@ from flask import (
     url_for,
 )
 
+from app.admin.player_insights import directory_badge_insights, player_season_insights
 from app.db import (
     count_game_attempts,
     create_season,
@@ -563,10 +564,14 @@ def _player_admin_rows(search=""):
     ).fetchall()
 
     players = []
+    badge_map = directory_badge_insights([row["id"] for row in rows])
     for row in rows:
         item = dict(row)
         activity = [value for value in (item.get("last_login_at"), item.get("last_played_at")) if value]
         item["last_activity"] = max(activity) if activity else None
+        insight = badge_map.get(int(item["id"]), {"badge_count": 0, "equipped_badge": None})
+        item["badge_count"] = insight["badge_count"]
+        item["equipped_badge"] = insight["equipped_badge"]
         players.append(item)
     return players
 
@@ -623,6 +628,7 @@ def _render_player_detail(profile_id, credential_result=None):
         "admin/player_detail.html",
         player=player,
         recent_games=_player_recent_games(profile_id),
+        badge_insights=player_season_insights(profile_id, request.args.get("season")),
         credential_result=credential_result,
         can_manage_credentials=_may_manage_credentials(actor, player),
         can_manage_role=actor["role"] == "owner",

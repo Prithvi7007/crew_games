@@ -1,0 +1,127 @@
+/* CREW Admin Studio v25 — read-only, verified player season insights. */
+.admin-directory-badges { min-width: 164px; }
+.admin-directory-badges > strong {
+  display:block; color:#f0fbff; font:850 1.02rem/1.2 Manrope,Inter,sans-serif;
+  font-variant-numeric:tabular-nums;
+}
+.admin-directory-badges > small {
+  display:block; margin-top:5px; max-width:190px; color:#bad1df;
+  font:600 .68rem/1.45 Inter,sans-serif;
+}
+.admin-players-page .admin-player-table { min-width:1020px; }
+.admin-players-page .admin-player-table th { color:#bacbd9; font-size:.62rem; }
+.admin-players-page .admin-player-table td { color:#dfebf5; }
+.admin-player-badge-insights {
+  padding:clamp(20px,2.4vw,30px);
+  margin-bottom:16px;
+  border:1px solid rgba(142,207,245,.17);
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 86% 0%,rgba(117,166,236,.10),transparent 44%),
+    rgba(11,24,39,.86);
+}
+.admin-badge-insights-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:22px; }
+.admin-badge-insights-heading h2 {
+  margin:10px 0 12px; color:#f0faff;
+  font:800 clamp(1.45rem,2.7vw,2.2rem)/1.12 Manrope,Inter,sans-serif;
+  letter-spacing:-.03em;
+}
+.admin-badge-insights-heading p {
+  margin:0; max-width:70ch; color:#b1c9d8;
+  font:550 .78rem/1.58 Inter,sans-serif;
+}
+.admin-badge-season-picker {
+  display:grid; grid-template-columns:minmax(135px,1fr) auto;
+  gap:8px; align-items:end; flex:0 1 295px; min-width:0;
+}
+.admin-badge-season-picker label {
+  grid-column:1/-1; color:#bcd4e4; font:800 .7rem/1.2 Inter,sans-serif;
+}
+.admin-badge-season-picker select {
+  min-width:0; min-height:42px; border-radius:10px;
+  border:1px solid rgba(160,216,244,.28); background:#0b2032;
+  color:#e9f6ff; padding:0 10px; font:700 .74rem/1.2 Inter,sans-serif;
+}
+.admin-badge-season-picker button {
+  min-height:42px; padding:0 14px; border:1px solid rgba(157,217,245,.32);
+  border-radius:10px; background:rgba(111,194,233,.12);
+  color:#e8f7ff; font:800 .74rem/1 Inter,sans-serif; cursor:pointer;
+}
+.admin-badge-season-caption {
+  display:flex; justify-content:space-between; align-items:baseline;
+  gap:10px; flex-wrap:wrap; margin:25px 0 12px;
+}
+.admin-badge-season-caption strong { color:#e9f9ff; font:800 .88rem/1.3 Inter,sans-serif; }
+.admin-badge-season-caption span { color:#aac5d6; font:600 .7rem/1.4 Inter,sans-serif; }
+.admin-badge-season-stats {
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+.admin-badge-season-stats > div {
+  min-width:0; display:grid; align-content:center; gap:10px;
+  padding:15px 18px;
+  border:1px solid rgba(166,213,240,.12);
+  border-radius:13px; background:rgba(3,16,29,.57);
+}
+.admin-badge-season-stats span { color:#adcadb; font:800 .62rem/1.35 Inter,sans-serif; letter-spacing:.06em; }
+.admin-badge-season-stats strong {
+  color:#f0fbff; font:850 clamp(1.6rem,2.4vw,2rem)/1 Manrope,Inter,sans-serif;
+  font-variant-numeric:tabular-nums;
+}
+.admin-badge-insights-grid {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px; margin-top:14px;
+}
+.admin-badge-insights-grid > div {
+  min-width:0; padding:18px 19px;
+  border:1px solid rgba(179,215,243,.11);
+  border-radius:15px; background:rgba(1,13,24,.33);
+}
+.admin-badge-insights-grid h3 { margin:0 0 16px; color:#eaf9ff; font:800 .9rem/1.35 Inter,sans-serif; }
+.admin-badge-game-breakdown { display:grid; gap:0; }
+.admin-badge-game-row {
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:5px 12px;
+  align-items:baseline; padding:11px 0; border-bottom:1px solid rgba(195,225,249,.08);
+}
+.admin-badge-game-row:last-child { border-bottom:0; }
+.admin-badge-game-row strong { color:#eef7ff; font:750 .77rem/1.3 Inter,sans-serif; }
+.admin-badge-game-row span { color:#d6eefd; font:800 .78rem/1.2 Inter,sans-serif; font-variant-numeric:tabular-nums; }
+.admin-badge-game-row small { grid-column:1/-1; color:#aec7d7; font:600 .68rem/1.35 Inter,sans-serif; }
+.admin-earned-badges { list-style:none; padding:0; margin:0; display:grid; max-height:330px; overflow-y:auto; }
+.admin-earned-badges li {
+  display:flex; justify-content:space-between; align-items:center;
+  gap:10px; padding:11px 0; border-bottom:1px solid rgba(195,225,249,.08);
+}
+.admin-earned-badges li:last-child { border-bottom:0; }
+.admin-earned-badges strong { display:block; color:#eef9ff; font:750 .79rem/1.35 Inter,sans-serif; }
+.admin-earned-badges small { display:block; margin-top:4px; color:#afc5d5; font:600 .66rem/1.35 Inter,sans-serif; }
+.admin-badge-equipped {
+  flex:0 0 auto; padding:6px 9px; border:1px solid rgba(127,218,190,.33);
+  border-radius:999px; background:rgba(115,216,176,.12); color:#aaf0d4;
+  font:800 .62rem/1 Inter,sans-serif;
+}
+.admin-badge-current {
+  margin:19px 0 0; padding:12px 14px;
+  border:1px solid rgba(148,210,249,.13); border-radius:11px;
+  color:#aecbdb; background:rgba(4,19,32,.45);
+  font:600 .74rem/1.5 Inter,sans-serif;
+}
+.admin-badge-current strong { color:#e4f8ff; font-weight:800; }
+.admin-badge-empty { margin:0; color:#b3cad9; font:600 .78rem/1.55 Inter,sans-serif; }
+.admin-players-page :where(.admin-badge-season-picker select,.admin-badge-season-picker button):focus-visible {
+  outline:3px solid #96dfff; outline-offset:3px;
+}
+@media(max-width:1000px) {
+  .admin-badge-insights-heading { flex-direction:column; }
+  .admin-badge-season-picker { flex:0 1 auto; width:min(100%,420px); }
+}
+@media(max-width:760px) {
+  .admin-badge-season-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .admin-badge-insights-grid { grid-template-columns:1fr; }
+  .admin-badge-season-stats > div { padding:14px; }
+  .admin-badge-insights-grid > div { padding:15px; }
+}
+@media(max-width:390px) {
+  .admin-badge-season-picker { grid-template-columns:minmax(0,1fr); }
+  .admin-badge-season-picker button { width:100%; }
+}
