@@ -207,7 +207,7 @@ def test_successful_eligible_release_uses_reviewed_engine(monkeypatch, tmp_path)
     assert auto.maint.RELEASE_MANIFEST == original_manifest
     manifest = json.loads(auto.MANIFEST.read_text())
     assert manifest == {"format": 1, "kind": "code_only", "base": BASE,
-                        "release": RELEASE, "db_revision": "v15_badges", "reviewed_pr": 24}
+                        "release": RELEASE, "db_revision": "v16_trophy_tour", "reviewed_pr": 24}
     assert stat.S_IMODE(auto.MANIFEST.stat().st_mode) == 0o400
 
 
