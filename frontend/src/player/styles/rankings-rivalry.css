@@ -1,0 +1,124 @@
+/* Rivalry Radar — scoped to the rankings experience, no scoring changes. */
+.rankings-rivalry {
+  margin: 0 0 22px;
+  padding: 22px;
+  border: 1px solid rgba(79,187,216,.28);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 5% 5%,rgba(33,148,171,.13),transparent 53%),
+    radial-gradient(ellipse at 95% 95%,rgba(247,177,79,.09),transparent 51%),
+    #09121b;
+  box-shadow: 0 14px 34px rgba(0,0,0,.12);
+  scroll-margin-top: 24px;
+}
+.rankings-rivalry-top {
+  display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  margin-bottom:17px;
+}
+.rankings-rivalry-kicker {
+  color:#6fdff3;font:800 .58rem/1.2 Inter,sans-serif;
+  letter-spacing:.16em;
+}
+.rankings-rivalry-kicker>span {color:#ffc970}
+.rankings-rivalry-top h2 {
+  margin:7px 0 5px;color:#f2f8fd;
+  font:800 clamp(1.05rem,2.4vw,1.35rem)/1.2 Manrope,sans-serif;
+}
+.rankings-rivalry-top p {
+  margin:0;color:#a6bacb;font:500 .72rem/1.5 Inter,sans-serif;
+}
+.rankings-rivalry-top p strong {color:#dceaf5}
+.rankings-rivalry-fun {
+  flex:0 0 auto;margin-top:3px;
+  border:1px solid rgba(135,166,190,.25);border-radius:100px;
+  padding:8px 10px;color:#bacbd8;
+  font:800 .51rem/1 Inter,sans-serif;letter-spacing:.11em;
+}
+.rankings-rivalry-stage {
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,.65fr) minmax(0,1fr);
+  align-items:stretch;gap:13px;
+}
+.rankings-rival-player {
+  min-width:0;padding:16px;border-radius:12px;
+  border:1px solid rgba(135,168,193,.19);background:rgba(14,26,37,.86);
+}
+.rankings-rival-player-me {border-color:rgba(66,209,238,.35);background:rgba(19,64,77,.36)}
+.rankings-rival-player-rival {border-color:rgba(255,191,97,.25);background:rgba(71,47,26,.29)}
+.rankings-rival-player-top {
+  display:flex;justify-content:space-between;gap:8px;
+  color:#a9c3d6;font:800 .52rem/1.2 Inter,sans-serif;letter-spacing:.1em;
+}
+.rankings-rival-player-me .rankings-rival-player-top>span:first-child {color:#74e3f3}
+.rankings-rival-player-rival .rankings-rival-player-top>span:first-child {color:#ffc879}
+.rankings-rival-identity {
+  display:flex;align-items:center;gap:12px;min-width:0;margin:18px 0 14px;
+}
+.rankings-rival-avatar {
+  width:48px;height:48px;flex:0 0 48px;
+  display:grid;place-items:center;border:1px solid rgba(255,255,255,.12);
+  border-radius:50%;background:rgba(255,255,255,.05);
+  font-size:1.6rem;
+}
+.rankings-rival-avatar .crew-equipped-badge {max-width:none}
+.rankings-rival-identity>strong {
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#f2f7fc;font:800 clamp(.82rem,1.7vw,1rem)/1.3 Manrope,sans-serif;
+}
+.rankings-rival-stats {display:flex;gap:24px}
+.rankings-rival-stats>div {display:flex;align-items:baseline;gap:7px}
+.rankings-rival-stats strong {color:#f4f8fc;font:800 1.18rem/1 Manrope,sans-serif;font-variant-numeric:tabular-nums}
+.rankings-rival-stats span {color:#a6bbcb;font:800 .48rem/1 Inter,sans-serif;letter-spacing:.11em}
+.rankings-rivalry-center {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:13px;min-width:0;text-align:center;
+}
+.rankings-rivalry-vs {
+  width:50px;height:50px;display:grid;place-items:center;
+  border-radius:50%;border:1px solid rgba(255,226,175,.4);
+  background:rgba(255,195,108,.08);box-shadow:0 0 25px rgba(255,195,108,.06);
+  color:#ffd49a;font:900 .80rem/1 Manrope,sans-serif;letter-spacing:.09em;
+}
+.rankings-rivalry-gap {display:flex;flex-direction:column;gap:5px;max-width:100%}
+.rankings-rivalry-gap strong {color:#f3f8fc;font:800 .86rem/1.2 Manrope,sans-serif}
+.rankings-rivalry-gap span {color:#8faabc;font:550 .60rem/1.4 Inter,sans-serif}
+.rankings-rivalry-foot {
+  margin:15px 0 0;color:#93abba;font:500 .61rem/1.45 Inter,sans-serif;
+}
+.rankings-player-line {display:flex;gap:9px;align-items:center;min-width:0}
+.rankings-player-line>strong {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rankings-player-line .rankings-compare {
+  flex:0 0 auto;padding:4px 7px;border:1px solid rgba(124,163,186,.3);
+  border-radius:5px;background:rgba(12,35,51,.8);
+  color:#b9dbe9;font:800 .51rem/1 Inter,sans-serif;
+  letter-spacing:.055em;cursor:pointer;
+}
+.rankings-compare:hover,.rankings-compare:focus-visible {
+  border-color:#67dced;color:#fff;background:rgba(34,149,170,.22);
+}
+.rankings-compare:focus-visible {outline:2px solid #8deaff;outline-offset:2px}
+.rankings-compare[aria-pressed="true"] {
+  color:#09212b;background:#77e6f5;border-color:#77e6f5;
+}
+@media (max-width:850px) {
+  .rankings-rivalry-stage {grid-template-columns:minmax(0,1fr) minmax(110px,.6fr) minmax(0,1fr);gap:8px}
+  .rankings-rival-player {padding:12px}
+  .rankings-rival-identity {gap:8px}
+  .rankings-rival-stats {flex-wrap:wrap;gap:8px 15px}
+  .rankings-rival-stats>div {gap:5px}
+}
+@media (max-width:620px) {
+  .rankings-rivalry {padding:15px}
+  .rankings-rivalry-top {flex-direction:column;gap:8px}
+  .rankings-rivalry-fun {margin:0}
+  .rankings-rivalry-stage {grid-template-columns:1fr;gap:8px}
+  .rankings-rivalry-center {gap:7px;padding:3px}
+  .rankings-rivalry-vs {width:36px;height:36px}
+  .rankings-rivalry-gap strong {font-size:.82rem}
+  .rankings-rivalry-gap span {font-size:.60rem}
+  .rankings-rival-identity {margin:9px 0}
+  .rankings-rival-stats {gap:16px}
+  .rankings-rival-player-top {font-size:.52rem}
+}
+@media (prefers-reduced-motion:reduce) {
+  .rankings-rivalry,.rankings-compare {transition:none!important;animation:none!important}
+}
