@@ -10,7 +10,6 @@ import './styles/coverflow.css';
 import './styles/theater-arc.css';
 import './styles/games.css';
 import './styles/rankings.css';
-import './styles/rankings-rivalry.css';
 import './styles/profile.css';
 import './styles/trivia.css';
 import './styles/trophies.css';
@@ -25,8 +24,6 @@ import BadgeUnlockPreview, { CinematicReveal } from './BadgeUnlockPreview';
 import HomeCoverflow from './HomeCoverflow';
 import HomeTheaterArc from './HomeTheaterArc';
 import GamePageHeader from './GamePageHeader';
-import RankingsRivalry from './RankingsRivalry';
-import { rivalryModel } from './rankingsRivalry';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -423,8 +420,6 @@ function RankingsPage({ data }) {
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const requestRef=useRef(0);
-  const rivalryRef=useRef(null);
-  const [rivalId,setRivalId]=useState(null);
 
   const selected=(data.filters?.seasons||[]).find(item=>String(item.id)===season);
   const weeks=Array.from({length:selected?.weeks_total||0},(_,i)=>i+1);
@@ -434,13 +429,6 @@ function RankingsPage({ data }) {
   const unrankedMe=board.me?.equippedBadge && !rankedPlayers.some(player=>player.profile_id===board.me.profile_id)
     ? {...board.me,unranked:true} : null;
   const visiblePlayers=unrankedMe ? [...rankedPlayers,unrankedMe] : rankedPlayers;
-  const matchup=rivalryModel(board,rivalId);
-
-  function compareWith(playerId){
-    setRivalId(playerId);
-    const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    window.requestAnimationFrame(()=>rivalryRef.current?.scrollIntoView({behavior:reduced?'auto':'smooth',block:'center'}));
-  }
 
   async function load(next={}) {
     const requestId=++requestRef.current;
@@ -467,7 +455,6 @@ function RankingsPage({ data }) {
       if(requestId!==requestRef.current) return;
 
       setBoard(payload);
-      setRivalId(null);
       history.replaceState(null,'',`/leaderboard?${params}`);
     } catch (err) {
       if(requestId===requestRef.current) {
@@ -569,8 +556,6 @@ function RankingsPage({ data }) {
           </div>
         : null}
 
-      <RankingsRivalry matchup={matchup} panelRef={rivalryRef}/>
-
       <section
         className="rankings-leaderboard-card"
         aria-label="Rankings table"
@@ -598,15 +583,7 @@ function RankingsPage({ data }) {
                   ? <span className="rankings-player-medal" aria-label={player.equippedBadge.name + (player.equippedBadge.preview ? ' private preview' : ' equipped')}><EquippedProfileBadge badge={player.equippedBadge} avatar={player.avatar} size="compact"/></span>
                   : <i aria-hidden="true">{player.avatar}</i>}
                 <span>
-                  <span className="rankings-player-line">
-                    <strong>{player.username}</strong>
-                    {!player.me && !player.unranked && board.me
-                      ? <button type="button" className="rankings-compare"
-                          aria-label={`Compare scores with ${player.username}`}
-                          aria-pressed={String(matchup?.rival.profile_id)===String(player.profile_id)}
-                          onClick={()=>compareWith(player.profile_id)}>VS</button>
-                      : null}
-                  </span>
+                  <strong>{player.username}</strong>
                   <small>{player.unranked ? 'Unranked in this filter' : player.detail}{player.equippedBadge?.preview ? ' · PRIVATE PREVIEW' : ''}</small>
                 </span>
               </span>

@@ -12,3 +12,6 @@ frontend/node_modules/
 
 # Databricks temporary notebooks
 New Notebook*.ipynb
+
+# Do not commit the scratch path used by reversible patch tooling.
+/dev/null
