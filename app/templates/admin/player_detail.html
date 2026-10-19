@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/v21-admin-players.css', v='21.0.0') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/v24-admin-shell.css', v='24.0.0') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v25-admin-badge-insights.css', v='25.0.0') }}">
 {% endblock %}
 {% block body %}
 <div class="admin-shell admin-players-shell">
@@ -36,6 +37,75 @@
       <article class="glass-card"><span>GAMES</span><strong>{{ player.games_completed }}</strong><small>Completed</small></article>
       <article class="glass-card"><span>CURRENT STREAK</span><strong>{{ player.current_streak }}</strong><small>Scheduled games</small></article>
       <article class="glass-card"><span>LONGEST STREAK</span><strong>{{ player.longest_streak }}</strong><small>Personal best</small></article>
+    </section>
+
+    <section class="glass-card admin-player-badge-insights" aria-labelledby="admin-badge-insights-title">
+      <div class="admin-badge-insights-heading">
+        <div>
+          <span class="eyebrow">VERIFIED ACHIEVEMENTS</span>
+          <h2 id="admin-badge-insights-title">Season performance &amp; badges</h2>
+          <p>Read-only record of competitive scores and confirmed server-awarded badges. Admin badge try-ons never count as awards.</p>
+        </div>
+        {% if badge_insights.seasons %}
+        <form class="admin-badge-season-picker" method="get" action="{{ url_for('admin.player_detail', profile_id=player.id) }}">
+          <label for="admin-badge-season">View season</label>
+          <select id="admin-badge-season" name="season">
+            {% for season in badge_insights.seasons %}
+            <option value="{{ season.id }}"{% if badge_insights.season.id == season.id %} selected{% endif %}>S{{ "%02d"|format(season.number) }} · {{ season.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">View</button>
+        </form>
+        {% endif %}
+      </div>
+      {% if badge_insights.season %}
+      <div class="admin-badge-season-caption">
+        <strong>S{{ "%02d"|format(badge_insights.season.number) }} · {{ badge_insights.season.name }}</strong>
+        <span>{{ badge_insights.season.start_date }} – {{ badge_insights.season.end_date }} · {{ badge_insights.season.status|capitalize }}</span>
+      </div>
+      <div class="admin-badge-season-stats" aria-label="Selected season summary">
+        <div><span>COMPETITIVE POINTS</span><strong>{{ badge_insights.performance.points }}</strong></div>
+        <div><span>COMPETITIVE GAMES</span><strong>{{ badge_insights.performance.competitive_games }}</strong></div>
+        <div><span>PRACTICE GAMES</span><strong>{{ badge_insights.performance.practice_games }}</strong></div>
+        <div><span>BADGES EARNED</span><strong>{{ badge_insights.awards|length }}</strong></div>
+      </div>
+      <div class="admin-badge-insights-grid">
+        <div>
+          <h3>Game-by-game performance</h3>
+          <div class="admin-badge-game-breakdown">
+            {% for game in badge_insights.performance.games %}
+            <div class="admin-badge-game-row">
+              <strong>{{ game.name }}</strong>
+              <span>{{ game.points }} pts</span>
+              <small>{{ game.competitive_games }} competitive{% if game.practice_games %} · {{ game.practice_games }} practice{% endif %}</small>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <h3>Earned collection</h3>
+          {% if badge_insights.awards %}
+          <ul class="admin-earned-badges">
+            {% for badge in badge_insights.awards %}
+            <li>
+              <div><strong>{{ badge.name }}</strong><small>{{ badge.rarity|capitalize }} · {{ badge.awarded_at[:10] }}</small></div>
+              {% if badge.equipped %}<span class="admin-badge-equipped">Equipped</span>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="admin-badge-empty">No badges earned in this season yet.</p>
+          {% endif %}
+        </div>
+      </div>
+      {% if badge_insights.equipped_badge %}
+      <p class="admin-badge-current">Currently displayed on the player's profile: <strong>{{ badge_insights.equipped_badge.name }} · S{{ "%02d"|format(badge_insights.equipped_badge.season_number) }}</strong></p>
+      {% else %}
+      <p class="admin-badge-current">No badge currently equipped on this player's profile.</p>
+      {% endif %}
+      {% else %}
+      <p class="admin-badge-empty">No CREW seasons are configured yet.</p>
+      {% endif %}
     </section>
 
     <div class="admin-player-detail-grid">

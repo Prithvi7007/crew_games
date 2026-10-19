@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/v21-admin-players.css', v='21.0.0') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.0') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/v24-admin-shell.css', v='24.0.0') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/v25-admin-badge-insights.css', v='25.0.0') }}">
 {% endblock %}
 {% block body %}
 <div class="admin-shell admin-players-shell">
@@ -12,7 +13,7 @@
 
   <main class="admin-main admin-players-main">
     <section class="admin-players-heading">
-      <div><span class="eyebrow">PLAYER ACCOUNTS</span><h1>Manage the CREW.</h1><p>Find players, review activity, recover access, and revoke sessions.</p></div>
+      <div><span class="eyebrow">PLAYER ACCOUNTS</span><h1>Manage the CREW.</h1><p>Review verified badge collections, season performance, and player activity in one place.</p></div>
     </section>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -38,7 +39,7 @@
       {% if players %}
       <div class="admin-player-table-wrap">
         <table class="admin-player-table">
-          <thead><tr><th>Player</th><th>Role</th><th>Last activity</th><th>Games</th><th>Points</th><th>Streak</th><th></th></tr></thead>
+          <thead><tr><th>Player</th><th>Role</th><th>Last activity</th><th>Games</th><th>Points</th><th>Streak</th><th>Badges</th><th></th></tr></thead>
           <tbody>
             {% for player in players %}
             <tr>
@@ -48,6 +49,7 @@
               <td>{{ player.games_completed }}</td>
               <td>{{ player.total_points }}</td>
               <td>{{ player.current_streak }}</td>
+              <td class="admin-directory-badges"><strong>{{ player.badge_count }}</strong>{% if player.equipped_badge %}<small>Equipped: {{ player.equipped_badge.name }} · S{{ "%02d"|format(player.equipped_badge.season_number) }}</small>{% else %}<small>None equipped</small>{% endif %}</td>
               <td><a class="admin-player-open" href="{{ url_for('admin.player_detail', profile_id=player.id) }}">Manage →</a></td>
             </tr>
             {% endfor %}

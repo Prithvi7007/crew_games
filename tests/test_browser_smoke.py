@@ -351,3 +351,25 @@ def test_admin_studio_shared_navigation_keeps_sections_reachable(ui, viewport):
     page.get_by_role("navigation", name="Admin Studio sections").get_by_role("link", name="Players").click()
     page.wait_for_url("**/admin/players", timeout=12000)
     assert page.locator(".admin-player-directory").is_visible()
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900},
+    {"width": 390, "height": 844},
+])
+def test_admin_badge_insights_directory_and_player_season_ui(ui, viewport):
+    """Persisted badge insights stay accessible across desktop and mobile."""
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+    page.goto(base_url + "/admin/players", wait_until="domcontentloaded")
+    page.locator(".admin-player-directory").wait_for(timeout=12000)
+    assert page.locator("th").filter(has_text="Badges").count() == 1
+    assert page.locator(".admin-directory-badges").count() >= 1
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+
+    page.locator(".admin-player-identity").first.click()
+    page.locator("#admin-badge-insights-title").wait_for(timeout=12000)
+    assert page.locator(".admin-badge-game-row").count() == 4
+    assert page.locator(".admin-badge-season-stats > div").count() == 4
+    assert page.locator('select[name="season"] option').count() >= 1
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
