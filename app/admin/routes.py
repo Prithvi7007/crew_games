@@ -23,6 +23,7 @@ from flask import (
 )
 
 from app.admin.player_insights import directory_badge_insights, player_season_insights
+from app.admin.email_insights import weekly_delivery_insights
 from app.db import (
     count_game_attempts,
     create_season,
@@ -966,6 +967,7 @@ def settings():
         weekly_email_enabled=_admin_weekly_email_enabled(),
         weekly_email_to=weekly_email_to,
         weekly_email_database_managed=weekly_email_database_managed,
+        weekly_delivery=weekly_delivery_insights(today),
         seasons=seasons,
         current_season=current_season,
     )
