@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Settings · CREW Admin{% endblock %}
 {% block body_class %}admin-page{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/v24-admin-shell.css', v='24.0.0') }}">
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/v2-admin-access.css', v='2.0.1') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/v24-admin-shell.css', v='24.0.0') }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/v26-admin-email-insights.css', v='26.0.0') }}">
 {% endblock %}
 {% block body %}
 <div class="admin-shell">
@@ -183,6 +183,45 @@
 
         <button class="admin-card-button primary" type="submit">Save weekly email settings →</button>
       </form>
+    </section>
+
+    <section id="studio-email-delivery" class="glass-card studio-email-insights" aria-labelledby="studio-email-title">
+      <div class="studio-email-heading">
+        <div>
+          <span class="eyebrow">DELIVERY OPERATIONS · READ ONLY</span>
+          <h2 id="studio-email-title">Monday newsletter status.</h2>
+          <p>Check recipient readiness and the last six weeks of recorded Resend handoffs.</p>
+        </div>
+        <span class="studio-email-state is-{{ weekly_delivery.state }}">
+          {% if weekly_delivery.state == 'accepted' %}Resend accepted this week
+          {% elif weekly_delivery.state == 'paused' %}Sending paused
+          {% elif weekly_delivery.state == 'setup_needed' %}Setup needs attention
+          {% else %}No handoff recorded this week{% endif %}
+        </span>
+      </div>
+      <div class="studio-email-metrics">
+        <div><span>SENDING</span><strong>{{ 'Enabled' if weekly_delivery.enabled else 'Disabled' }}</strong></div>
+        <div><span>RECIPIENTS</span><strong>{{ weekly_delivery.recipient_count }}</strong></div>
+        <div><span>PROVIDER CONFIG</span><strong>{{ 'Present' if weekly_delivery.provider_configured else 'Incomplete' }}</strong></div>
+      </div>
+      {% if weekly_delivery.missing and weekly_delivery.enabled %}
+      <p class="studio-email-warning" role="status">Before the next send, configure: {{ weekly_delivery.missing|join(', ') }}.</p>
+      {% endif %}
+      <div class="studio-email-history">
+        <h3>Recent weekly handoffs</h3>
+        <ul>
+          {% for record in weekly_delivery.history %}
+          <li>
+            <div><strong>Week of {{ record.week_start.strftime('%b %d, %Y') }}</strong>{% if record.is_current %}<small>Current week</small>{% endif %}</div>
+            <span class="studio-email-receipt {{ 'is-accepted' if record.accepted else 'is-unrecorded' }}">{{ 'Accepted by Resend' if record.accepted else 'No handoff recorded' }}</span>
+            {% if record.accepted and record.recipient_count is not none %}<small>{{ record.recipient_count }} recipient{% if record.recipient_count != 1 %}s{% endif %}</small>{% endif %}
+          </li>
+          {% else %}
+          <li class="studio-email-empty">No CREW weeks have started yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <p class="studio-email-caveat">“Accepted by Resend” means CREW saved a successful provider API response, not that the message reached an inbox. Missing receipts do not prove a send failed. Host scheduler status and bounce/delivery events are not available in this view.</p>
     </section>
 
     <section class="glass-card admin-note">
