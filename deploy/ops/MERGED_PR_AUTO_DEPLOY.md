@@ -25,7 +25,7 @@ CREW application user, not root.
 - A successful **push event** on the exact main SHA for the fixed CREW quality
   gate workflow ID, with all five named required steps successful.
   PR checks alone are not sufficient.
-- DB revision remains v15_badges. No changed Alembic migrations, requirements,
+- DB revision matches the explicitly reviewed v16_trophy_tour guard. No changed Alembic migrations, requirements,
   app migrations, or protected Nginx/systemd configuration.
 - No pending manually staged approval or simultaneous maintenance action,
   no previous failed/interrupted automatic release, and no unknown/manual release manifest already installed. The auto-deploy
@@ -36,7 +36,7 @@ CREW application user, not root.
   readability, application restart, readiness and non-decreasing data counts.
 
 **Not a migration deployer.** Dependency changes, infrastructure changes and
-DB revisions other than v15_badges halt the path. No database migration or
+DB revisions other than v16_trophy_tour halt the path. No database migration or
 restore is attempted. There is **no unattended rollback**. A failure after
 code switch stays failed and blocks future automatic releases until reviewed.
 Existing v15 deployment status remains untouched.
@@ -52,6 +52,72 @@ separate reviewed release plan. Disable as root at any time:
 
 The service needs outbound HTTPS to the fixed GitHub API hostname. It does not
 write GitHub, receive GitHub tokens, or merge PRs.
+
+## Upgrading an existing v15 watcher after production reaches v16
+
+The separately installed root-owned watcher does **not** automatically change
+when application code is merged or deployed. A stale watcher pinned to
+`v15_badges` rejects a healthy `v16_trophy_tour` production database with
+`schema_release_requires_manual_plan`. This release only changes the
+watcher's **fixed allowlisted database revision**, not migration permissions.
+
+First inspect the actual incident; exit code 1 alone does not prove its cause:
+
+```bash
+sudo journalctl -u crew-auto-release.service -n 40 --no-pager -o cat
+sudo cat /var/lib/crew-maint/merge_auto_state.json
+sudo systemctl show crew-auto-release.service -p Result -p ExecMainStatus
+```
+
+If the failure is compatible with the schema guard, after this fix PR is
+**owner-merged** and its push-triggered main quality gate is green, stop the
+timer and confirm the oneshot is not active. Use that exact **merge SHA**,
+not the feature branch SHA:
+
+```bash
+sudo systemctl stop crew-auto-release.timer
+sudo systemctl is-active crew-auto-release.service || true
+
+# Execute the following in a root terminal, substituting the reviewed merge SHA:
+REVIEWED_SHA="<EXACT_REVIEWED_FIX_MERGE_SHA>"
+sudo -i
+# Re-enter REVIEWED_SHA in the root shell to avoid relying on sudo's environment.
+REVIEWED_SHA="<EXACT_REVIEWED_FIX_MERGE_SHA>"
+runuser -u crew -g www-data -- git -C /opt/crew fetch --no-tags origin main
+runuser -u crew -g www-data -- git -C /opt/crew show \
+  "$REVIEWED_SHA:deploy/ops/upgrade_merge_auto_deploy.py" \
+  > /root/crew-watcher-v16-upgrade.py
+chmod 0400 /root/crew-watcher-v16-upgrade.py
+python3 -I -B /root/crew-watcher-v16-upgrade.py "$REVIEWED_SHA"
+```
+
+The interactive installer verifies GitHub main ancestry, the owner's exact
+merged PR, successful CI on that merge, the existing root-owned watcher,
+**only** the single revision change, production's v16 schema and app health,
+a clean checkout, stopped watcher/timer, and no pending manual approval.
+It requires the confirmation phrase `UPGRADE CREW WATCHER V16`. It keeps
+an immutable root-only backup and atomically replaces the watcher, without
+deploying CREW, resetting state, restarting the application, or re-enabling
+the timer. A mismatch or unknown installed watcher version **stops** the
+upgrade; never force-overwrite an unfamiliar root-owned script.
+
+**Before re-enabling:** inspect the prior `merge_auto_state.json` phase and
+the journal. If `phase` is `failed`, `running` or `blocked`, leave the timer
+stopped and perform a separate human-reviewed incident reconciliation. Do
+not delete the state or manifest: the watcher intentionally fails closed.
+If the durable watcher state is safe, start the timer and verify another
+fixed watcher tick:
+
+```bash
+sudo systemctl reset-failed crew-auto-release.service
+sudo systemctl start crew-auto-release.timer
+sudo systemctl list-timers crew-auto-release.timer --no-pager
+sudo journalctl -u crew-auto-release.service -n 25 --no-pager -o cat
+```
+
+A root-controlled code upgrade is a **distinct** step from a guarded
+application release. The bridge's trigger can start only the previously
+installed watcher; it cannot upgrade root-owned policy.
 
 ## One-time installation after this PR merges and CI passes
 

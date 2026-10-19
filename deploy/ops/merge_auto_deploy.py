@@ -49,7 +49,7 @@ REQUIRED_STEPS = frozenset((
     "Frontend build", "Verify committed frontend build", "Python tests",
     "Migration smoke test", "Dependency audit",
 ))
-DB_REVISION = "v15_badges"
+DB_REVISION = "v16_trophy_tour"
 MAX_MERGES = 32
 SHA = re.compile(r"^[0-9a-f]{40}$")
 STATE = Path("/var/lib/crew-maint/merge_auto_state.json")
