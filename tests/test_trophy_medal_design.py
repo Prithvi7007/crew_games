@@ -70,3 +70,15 @@ def test_compact_avatar_emphasizes_real_achievement_without_changing_badge_ident
     assert compact is not None
     width = re.search(r"width:\s*(\d+)%", compact.group(1))
     assert width is not None and int(width.group(1)) >= 40
+
+
+def test_equipped_badge_hover_identifies_the_real_award():
+    text = source()
+    component = text.split('export function EquippedProfileBadge(', 1)[1].split('function BadgeCard(', 1)[0]
+    # The same badge payload identifies a profile or leaderboard badge on hover.
+    assert 'title={tooltipLabel}' in component
+    assert "[badge.name, rarityLabel, seasonStamp, badge.preview ? 'Private preview' : null]" in component
+    assert "badge.rarity.charAt(0).toUpperCase()" in component
+    assert "String(badge.seasonNumber).padStart(2, '0')" in component
+    assert 'role="img" aria-label={badge.name' in component
+    assert '<Insignia badge={badge} compact/>' in component
