@@ -51,3 +51,22 @@ def test_one_art_system_in_collection_and_avatar():
     assert "GameIdentityRing badge={badge}" in text
     assert "crew-insignia-jewel" not in text
     assert "trophy-aura-flare trophy-aura-flare-left" not in text
+
+
+def test_compact_avatar_emphasizes_real_achievement_without_changing_badge_identity():
+    text = source()
+    css = STYLES.read_text(encoding="utf-8")
+
+    # The same 21 vector motifs belong to medals and equipped avatar satellites.
+    assert "<Insignia badge={badge} compact/>" in text
+    assert "viewBox={size === 'compact' ? '16 16 68 68' : '0 0 100 100'}" in text
+    assert '<GameIdentityRing badge={badge} radius={39} className="crew-equipped-game-ring"/>' in text
+    assert "S{String(badge.seasonNumber).padStart(2, '0')}" in text
+
+    # The small satellite must be large enough to show its real line-art emblem.
+    compact = re.search(
+        r"\.crew-equipped-badge\.is-compact \.crew-equipped-achievement\s*\{([^}]*)\}", css
+    )
+    assert compact is not None
+    width = re.search(r"width:\s*(\d+)%", compact.group(1))
+    assert width is not None and int(width.group(1)) >= 40

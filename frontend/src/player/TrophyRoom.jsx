@@ -164,7 +164,8 @@ export function EquippedProfileBadge({ badge, avatar, size = 'full' }) {
       <GameIdentityRing badge={badge} radius={39} className="crew-equipped-game-ring"/>
     </svg>
     <span className="crew-equipped-achievement" aria-hidden="true">
-      <svg viewBox="0 0 100 100" fill="none" focusable="false">
+      {/* Crop only the compact satellite's empty SVG margins; reuse the exact earned badge insignia. */}
+      <svg viewBox={size === 'compact' ? '16 16 68 68' : '0 0 100 100'} fill="none" focusable="false">
         <Insignia badge={badge} compact/>
       </svg>
     </span>
