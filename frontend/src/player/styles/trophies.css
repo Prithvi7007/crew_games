@@ -390,8 +390,12 @@
 .crew-equipped-badge.is-compact .crew-equipped-avatar{
   font-size:18px;
 }
+/* Make the original achievement artwork readable in 42px rows/nav, without
+   replacing the insignia or changing the rarity/game rings or season stamp. */
 .crew-equipped-badge.is-compact .crew-equipped-achievement{
-  border-width:1px;right:-4%;top:-2%;
+  width:43%;border-width:1.5px;right:-5%;top:-4%;
+  background:#091626;
+  box-shadow:0 0 0 1px #07101c,0 0 7px var(--rarity-glow);
 }
 .crew-equipped-badge.is-compact .crew-equipped-season{
   bottom:-3%;right:-5%;width:39%;border-width:1px;font-size:8px;
