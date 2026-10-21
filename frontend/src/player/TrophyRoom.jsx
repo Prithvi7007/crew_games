@@ -157,7 +157,18 @@ export function BadgeMedallion({ badge, size = 'normal', concealed = false, seas
 
 export function EquippedProfileBadge({ badge, avatar, size = 'full' }) {
   if (!badge) return <div className="v20-profile-avatar" aria-hidden="true">{avatar}</div>;
-  return <div style={{ '--insignia-color': insigniaColor(badge) }} className={'crew-equipped-badge trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (size === 'compact' ? ' is-compact' : '')} role="img" aria-label={badge.name + (badge.preview ? ' preview' : ' equipped') + ', season ' + (badge.seasonNumber ?? 'unknown')}>
+  // Native tooltips stay visible even when leaderboard cards clip overflow.
+  // Read the identity from the same verified badge payload as the original artwork.
+  const seasonStamp = badge.seasonNumber == null ? null : `S${String(badge.seasonNumber).padStart(2, '0')}`;
+  const rarityLabel = badge.rarity ? badge.rarity.charAt(0).toUpperCase() + badge.rarity.slice(1) : null;
+  const tooltipLabel = [badge.name, rarityLabel, seasonStamp, badge.preview ? 'Private preview' : null]
+    .filter(Boolean).join(' · ');
+  return <div
+    style={{ '--insignia-color': insigniaColor(badge) }}
+    className={'crew-equipped-badge trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (size === 'compact' ? ' is-compact' : '')}
+    role="img" aria-label={badge.name + (badge.preview ? ' preview' : ' equipped') + ', season ' + (badge.seasonNumber ?? 'unknown')}
+    title={tooltipLabel}
+  >
     <span className="crew-equipped-avatar" aria-hidden="true">{avatar}</span>
     <svg className="crew-equipped-rings" viewBox="0 0 100 100" focusable="false" aria-hidden="true" fill="none">
       <circle className="crew-equipped-outer" cx="50" cy="50" r="46"/>
