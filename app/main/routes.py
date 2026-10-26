@@ -1,9 +1,10 @@
 from datetime import timedelta
 
-from flask import Blueprint, current_app, jsonify, redirect, request, session, url_for
+from flask import Blueprint, abort, current_app, jsonify, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
+from app.season_rewind import build_season_rewind, rewind_url
 from app.badge_display import with_public_equipped_badges
 from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.trophy_tour import complete_tour, earned_tour_payload
@@ -36,6 +37,27 @@ def _week_label(monday):
         return f"{monday.strftime('%b')} {monday.day}–{thursday.day}, {monday.year}"
     return f"{monday.strftime('%b %d')}–{thursday.strftime('%b %d')}, {monday.year}"
 
+
+
+@main_bp.get("/rewind")
+@login_required
+def season_one_rewind():
+    user = session["user"]
+    season = next((item for item in list_seasons(crew_today())
+                   if item["number"] == 1), None)
+    if not season:
+        abort(404)
+    preview = (
+        user.get("role") in ("admin", "owner")
+        and request.args.get("preview") == "1"
+    )
+    story = build_season_rewind(user["profile_id"], season, admin_preview=preview)
+    if not story:
+        abort(404)
+    return render_player(
+        "rewind", "Season One Rewind", "crew-rewind-page",
+        {"rewind": story}, user,
+    )
 
 
 @main_bp.get("/")
@@ -81,6 +103,9 @@ def home():
             "today": today,
             "games": games,
             "todaysGame": todays_game,
+            "rewindUrl": rewind_url(
+                next((item for item in list_seasons(today) if item["number"] == 1), None),
+                role=user.get("role", "player")),
             "weekNumber": get_crew_week_number(today),
             "season": season,
         },
