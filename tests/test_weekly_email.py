@@ -212,6 +212,8 @@ def test_season_one_finale_week_announces_both_gift_cards(app):
     assert "October 30, 2026" in rendered["html"]
     assert "highest cumulative Season One score" in rendered["html"]
     assert "one randomly selected participant" in rendered["html"]
+    assert "winners will be finalized next week" in rendered["html"]
+    assert "winners will be finalized next week" in rendered["text"]
     assert "Week 05 Final Standings" in rendered["html"]
     assert "Season Standings" in rendered["html"]
     assert "the final four games" in rendered["text"].lower()
@@ -255,9 +257,11 @@ def test_weekly_email_avatar_and_equipped_badge_in_podium_and_season_rows(app):
     assert rendered["context"]["season_leaders"][0]["equippedBadge"]["seasonNumber"] == 1
     assert rendered["html"].count("Word Wizard") >= 2
     assert rendered["html"].count("S01") >= 2
-    assert "#55b9ff" in rendered["html"]
+    assert "#9dafbe" in rendered["html"]
     assert "🚀" in rendered["html"] and "🐻" in rendered["html"]
     assert "Word Wizard" not in rendered["text"]
+    assert '>✦</td>' not in rendered["html"]
+    assert 'title="Word Wizard"' not in rendered["html"]
 
 
 def test_weekly_email_never_shows_unpublished_or_unequipped_badges(app):
@@ -274,3 +278,25 @@ def test_weekly_email_never_shows_unpublished_or_unequipped_badges(app):
     assert after["context"]["season_leaders"][0]["equippedBadge"] is None
     assert "Case Closed" not in before["html"]
     assert "Case Closed" not in after["html"]
+
+
+def test_email_uses_real_badge_label_not_detached_icon_or_duplicate_rank(app):
+    alpha = _profile(app, "CompactWinner")
+    with app.app_context():
+        from app.db import get_season_for_date
+        season = get_season_for_date(date(2026, 10, 19))
+        award_badges(alpha, season["id"], ["word_wizard"])
+        award_id = next(int(a["id"]) for a in get_badge_awards(alpha, season["id"])
+                        if a["badge_code"] == "word_wizard")
+        set_showcase_slot(alpha, 1, award_id)
+        finalize_game_stats(profile_user_key(alpha), "word", "2026-10-21", 100, True)
+        rendered = render_weekly_kickoff(date(2026, 10, 26))
+
+    html = rendered["html"]
+    assert "🥇" in html
+    assert "CompactWinner" in html
+    assert "Word Wizard" in html
+    assert "S01" in html
+    assert ">✦</td>" not in html
+    assert "#{{ player.podium_rank }}" not in html
+    assert "email_avatar" not in html
