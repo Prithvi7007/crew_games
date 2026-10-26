@@ -106,3 +106,9 @@ def with_public_equipped_badges(board, viewer):
     for player in top:
         player["equippedBadge"] = visible_badge(player)
     return board
+
+def verified_equipped_badges_for_email(profile_ids, reference_day=None):
+    """Publicly revealed, persisted showcases only; never private try-ons."""
+    if not trophies_visible_to(None, today=reference_day):
+        return {}
+    return _equipped_rows(profile_ids)

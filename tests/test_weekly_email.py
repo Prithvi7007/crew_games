@@ -12,6 +12,7 @@ from app.db import (
     profile_user_key,
     set_setting,
 )
+from app.badge_store import award_badges, get_badge_awards, set_showcase_slot
 from app.weekly_email import (
     build_weekly_kickoff_context,
     render_weekly_kickoff,
@@ -195,3 +196,81 @@ def test_email_includes_late_previous_week_catchup_at_generation(app):
     assert "CORRECTION" not in rendered["html"]
 
 
+
+def test_season_one_finale_week_announces_both_gift_cards(app):
+    with app.app_context():
+        rendered = render_weekly_kickoff(date(2026, 10, 26))
+
+    context = rendered["context"]
+    assert context["current_week_number"] == 6
+    assert context["is_season_one_final_week"] is True
+    assert context["previous_week_range"] == "Oct 19–25, 2026"
+    assert rendered["subject"] == "CREW Games Weekly | Season One Finale — Week 06"
+    assert "Season One" in rendered["html"]
+    assert "Finale</span>" in rendered["html"]
+    assert "Season One: Final Week" in rendered["html"]
+    assert "October 30, 2026" in rendered["html"]
+    assert "highest cumulative Season One score" in rendered["html"]
+    assert "one randomly selected participant" in rendered["html"]
+    assert "Week 05 Final Standings" in rendered["html"]
+    assert "Season Standings" in rendered["html"]
+    assert "the final four games" in rendered["text"].lower()
+    assert "OCTOBER PRIZE UPDATE" not in rendered["text"]
+    assert "randomly selected participant" in rendered["text"]
+
+
+def test_finale_announcement_does_not_repeat_after_season(app):
+    with app.app_context():
+        before = render_weekly_kickoff(date(2026, 10, 19))
+        after = render_weekly_kickoff(date(2026, 11, 2))
+
+    assert before["context"]["prize_heading"] == "October Prize Update"
+    assert "October Prize Update" in before["html"]
+    assert after["context"]["is_season_one_final_week"] is False
+    assert after["context"]["prize_heading"] is None
+    assert "Season One: Final Week" not in after["html"]
+    assert "October Prize Update" not in after["html"]
+    assert "randomly selected participant" not in after["text"]
+
+def test_weekly_email_avatar_and_equipped_badge_in_podium_and_season_rows(app):
+    alpha = _profile(app, "AwardedAlpha")
+    beta = _profile(app, "PlainBeta")
+    with app.app_context():
+        from app.db import get_season_for_date, update_profile_avatar
+        season = get_season_for_date(date(2026, 10, 19))
+        update_profile_avatar(alpha, "🚀")
+        update_profile_avatar(beta, "🐻")
+        award_badges(alpha, season["id"], ["word_wizard"])
+        award_id = next(int(a["id"]) for a in get_badge_awards(alpha, season["id"])
+                        if a["badge_code"] == "word_wizard")
+        set_showcase_slot(alpha, 1, award_id)
+        finalize_game_stats(profile_user_key(alpha), "word", "2026-10-21", 100, True)
+        finalize_game_stats(profile_user_key(beta), "word", "2026-10-21", 80, True)
+        rendered = render_weekly_kickoff(date(2026, 10, 26))
+
+    previous = rendered["context"]["previous_leaders"]
+    assert previous[0]["avatar"] == "🚀"
+    assert previous[0]["equippedBadge"]["code"] == "word_wizard"
+    assert previous[1]["equippedBadge"] is None
+    assert rendered["context"]["season_leaders"][0]["equippedBadge"]["seasonNumber"] == 1
+    assert rendered["html"].count("Word Wizard") >= 2
+    assert rendered["html"].count("S01") >= 2
+    assert "#55b9ff" in rendered["html"]
+    assert "🚀" in rendered["html"] and "🐻" in rendered["html"]
+    assert "Word Wizard" not in rendered["text"]
+
+
+def test_weekly_email_never_shows_unpublished_or_unequipped_badges(app):
+    alpha = _profile(app, "QuietAward")
+    with app.app_context():
+        from app.db import get_season_for_date
+        season = get_season_for_date(date(2026, 10, 12))
+        award_badges(alpha, season["id"], ["case_closed"])
+        finalize_game_stats(profile_user_key(alpha), "mystery", "2026-10-08", 75, True)
+        before = render_weekly_kickoff(date(2026, 10, 12))
+        after = render_weekly_kickoff(date(2026, 10, 19))
+
+    assert before["context"]["previous_leaders"][0]["equippedBadge"] is None
+    assert after["context"]["season_leaders"][0]["equippedBadge"] is None
+    assert "Case Closed" not in before["html"]
+    assert "Case Closed" not in after["html"]
