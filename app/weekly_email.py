@@ -7,6 +7,7 @@ from uuid import uuid4
 import click
 from flask import current_app
 
+from app.badge_display import verified_equipped_badges_for_email
 from app.db import get_rankings_between, get_season_for_date, get_setting, set_setting
 from app.schedule import (
     CREW_WEEK_ONE_DATE,
@@ -101,6 +102,14 @@ def build_weekly_kickoff_context(reference_day=None):
         season_leaders = get_rankings_between(
             CREW_WEEK_ONE_DATE, previous_week_end, limit=10
         )
+
+    # The email has no logged-in viewer: fetch only verified, saved showcases.
+    equipped = verified_equipped_badges_for_email(
+        [player["profile_id"] for player in previous_leaders + season_leaders],
+        reference_day=reference_day,
+    )
+    for player in previous_leaders + season_leaders:
+        player["equippedBadge"] = equipped.get(player["profile_id"])
 
     public_url = current_app.config.get("CREW_PUBLIC_URL", "https://cadacrew.fun").rstrip("/")
     games = []

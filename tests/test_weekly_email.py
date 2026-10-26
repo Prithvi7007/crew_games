@@ -12,6 +12,7 @@ from app.db import (
     profile_user_key,
     set_setting,
 )
+from app.badge_store import award_badges, get_badge_awards, set_showcase_slot
 from app.weekly_email import (
     build_weekly_kickoff_context,
     render_weekly_kickoff,
@@ -230,3 +231,46 @@ def test_finale_announcement_does_not_repeat_after_season(app):
     assert "Season One: Final Week" not in after["html"]
     assert "October Prize Update" not in after["html"]
     assert "randomly selected participant" not in after["text"]
+
+def test_weekly_email_avatar_and_equipped_badge_in_podium_and_season_rows(app):
+    alpha = _profile(app, "AwardedAlpha")
+    beta = _profile(app, "PlainBeta")
+    with app.app_context():
+        from app.db import get_season_for_date, update_profile_avatar
+        season = get_season_for_date(date(2026, 10, 19))
+        update_profile_avatar(alpha, "🚀")
+        update_profile_avatar(beta, "🐻")
+        award_badges(alpha, season["id"], ["word_wizard"])
+        award_id = next(int(a["id"]) for a in get_badge_awards(alpha, season["id"])
+                        if a["badge_code"] == "word_wizard")
+        set_showcase_slot(alpha, 1, award_id)
+        finalize_game_stats(profile_user_key(alpha), "word", "2026-10-21", 100, True)
+        finalize_game_stats(profile_user_key(beta), "word", "2026-10-21", 80, True)
+        rendered = render_weekly_kickoff(date(2026, 10, 26))
+
+    previous = rendered["context"]["previous_leaders"]
+    assert previous[0]["avatar"] == "🚀"
+    assert previous[0]["equippedBadge"]["code"] == "word_wizard"
+    assert previous[1]["equippedBadge"] is None
+    assert rendered["context"]["season_leaders"][0]["equippedBadge"]["seasonNumber"] == 1
+    assert rendered["html"].count("Word Wizard") >= 2
+    assert rendered["html"].count("S01") >= 2
+    assert "#55b9ff" in rendered["html"]
+    assert "🚀" in rendered["html"] and "🐻" in rendered["html"]
+    assert "Word Wizard" not in rendered["text"]
+
+
+def test_weekly_email_never_shows_unpublished_or_unequipped_badges(app):
+    alpha = _profile(app, "QuietAward")
+    with app.app_context():
+        from app.db import get_season_for_date
+        season = get_season_for_date(date(2026, 10, 12))
+        award_badges(alpha, season["id"], ["case_closed"])
+        finalize_game_stats(profile_user_key(alpha), "mystery", "2026-10-08", 75, True)
+        before = render_weekly_kickoff(date(2026, 10, 12))
+        after = render_weekly_kickoff(date(2026, 10, 19))
+
+    assert before["context"]["previous_leaders"][0]["equippedBadge"] is None
+    assert after["context"]["season_leaders"][0]["equippedBadge"] is None
+    assert "Case Closed" not in before["html"]
+    assert "Case Closed" not in after["html"]
