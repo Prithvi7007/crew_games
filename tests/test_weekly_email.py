@@ -115,6 +115,9 @@ def test_weekly_email_renders_outlook_safe_html(app):
     assert "randomly selected participant" in rendered["html"]
     assert "Season Standings" in rendered["html"]
     assert "OPEN CREW GAMES" in rendered["html"]
+    assert "border:1px solid #4cc4ff" not in rendered["html"]
+    assert "border:1px solid #2aa8ff" not in rendered["html"]
+    assert rendered["html"].count("outline:0;box-shadow:none") == 2
 
 
 def test_weekly_email_can_be_disabled_from_admin_setting(app):
@@ -209,16 +212,16 @@ def test_season_one_finale_week_announces_both_gift_cards(app):
     assert "Season One" in rendered["html"]
     assert "Finale</span>" in rendered["html"]
     assert "Season One: Final Week" in rendered["html"]
-    assert "October 30, 2026" in rendered["html"]
-    assert "highest cumulative Season One score" in rendered["html"]
-    assert "one randomly selected participant" in rendered["html"]
-    assert "winners will be finalized next week" in rendered["html"]
-    assert "winners will be finalized next week" in rendered["text"]
+    assert "Friday, Oct 30" in rendered["html"]
+    assert "Four games left, two gift cards up for grabs!" in rendered["html"]
+    assert "One for the top cumulative scorer, one by random draw." in rendered["html"]
+    assert "Winners confirmed next week." in rendered["html"]
+    assert "Winners confirmed next week." in rendered["text"]
     assert "Week 05 Final Standings" in rendered["html"]
     assert "Season Standings" in rendered["html"]
     assert "the final four games" in rendered["text"].lower()
     assert "OCTOBER PRIZE UPDATE" not in rendered["text"]
-    assert "randomly selected participant" in rendered["text"]
+    assert "one by random draw" in rendered["text"]
 
 
 def test_finale_announcement_does_not_repeat_after_season(app):
