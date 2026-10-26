@@ -7,7 +7,7 @@ from uuid import uuid4
 import click
 from flask import current_app
 
-from app.db import get_rankings_between, get_setting, set_setting
+from app.db import get_rankings_between, get_season_for_date, get_setting, set_setting
 from app.schedule import (
     CREW_WEEK_ONE_DATE,
     GAME_DEFINITIONS,
@@ -67,6 +67,31 @@ def build_weekly_kickoff_context(reference_day=None):
     current_week_number = get_crew_week_number(current_week_start)
     previous_week_number = get_crew_week_number(previous_week_start)
 
+    active_season = get_season_for_date(current_week_start)
+    is_season_one_final_week = bool(
+        active_season
+        and active_season["number"] == 1
+        and get_week_start(active_season["end_date"]) == current_week_start
+    )
+    if is_season_one_final_week:
+        prize_heading = "Season One: Final Week"
+        prize_body = (
+            "This is it, CREW! Season One ends "
+            f"{_long_date_label(active_season['end_date'])}. "
+            "The player with the highest cumulative Season One score wins a gift card, "
+            "and one randomly selected participant wins another. "
+            "Four games left. Let's finish strong!"
+        )
+    elif CREW_WEEK_ONE_DATE <= current_week_start <= date(2026, 10, 19):
+        prize_heading = "October Prize Update"
+        prize_body = (
+            "At the end of October, we'll award a gift card to the monthly CREW Games winner "
+            "and another gift card to one randomly selected participant."
+        )
+    else:
+        prize_heading = None
+        prize_body = None
+
     previous_leaders = []
     season_leaders = []
     if previous_week_number > 0:
@@ -110,6 +135,9 @@ def build_weekly_kickoff_context(reference_day=None):
         "current_week_number_label": _week_number_label(current_week_number),
         "previous_week_number": previous_week_number,
         "previous_week_number_label": _week_number_label(previous_week_number),
+        "is_season_one_final_week": is_season_one_final_week,
+        "prize_heading": prize_heading,
+        "prize_body": prize_body,
         "previous_week_range": _week_range_label(previous_week_start),
         "previous_leaders": previous_leaders,
         "previous_rows": previous_leaders[3:],
@@ -123,6 +151,8 @@ def build_weekly_kickoff_context(reference_day=None):
 
 
 def _subject(context):
+    if context["is_season_one_final_week"]:
+        return f"CREW Games Weekly | Season One Finale — Week {context['current_week_number_label']}"
     return f"CREW Games Weekly | Week {context['current_week_number_label']} is Live"
 
 
@@ -131,15 +161,25 @@ def _plain_text(context):
         "CREW GAMES WEEKLY",
         context["reference_date_label"],
         "",
-        f"Week {context['current_week_number_label']} is Live",
-        f"Week {context['previous_week_number_label']} results, season standings, and this week's games.",
+        (
+            f"Season One Finale — Week {context['current_week_number_label']}"
+            if context["is_season_one_final_week"]
+            else f"Week {context['current_week_number_label']} is Live"
+        ),
+        (
+            "The final four games, two gift cards, and the Season One finish line."
+            if context["is_season_one_final_week"]
+            else f"Week {context['previous_week_number_label']} results, season standings, and this week's games."
+        ),
         "",
-        "OCTOBER PRIZE UPDATE",
-        "At the end of October, we'll award a gift card to the monthly CREW Games winner and another gift card to one randomly selected participant.",
-        "",
+    ]
+    if context["prize_heading"]:
+        lines.extend([context["prize_heading"].upper(), context["prize_body"], ""])
+
+    lines.extend([
         f"WEEK {context['previous_week_number_label']} FINAL STANDINGS",
         context["previous_week_range"],
-    ]
+    ])
 
     if context["previous_leaders"]:
         for player in context["previous_leaders"]:

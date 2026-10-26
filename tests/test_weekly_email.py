@@ -195,3 +195,38 @@ def test_email_includes_late_previous_week_catchup_at_generation(app):
     assert "CORRECTION" not in rendered["html"]
 
 
+
+def test_season_one_finale_week_announces_both_gift_cards(app):
+    with app.app_context():
+        rendered = render_weekly_kickoff(date(2026, 10, 26))
+
+    context = rendered["context"]
+    assert context["current_week_number"] == 6
+    assert context["is_season_one_final_week"] is True
+    assert context["previous_week_range"] == "Oct 19–25, 2026"
+    assert rendered["subject"] == "CREW Games Weekly | Season One Finale — Week 06"
+    assert "Season One" in rendered["html"]
+    assert "Finale</span>" in rendered["html"]
+    assert "Season One: Final Week" in rendered["html"]
+    assert "October 30, 2026" in rendered["html"]
+    assert "highest cumulative Season One score" in rendered["html"]
+    assert "one randomly selected participant" in rendered["html"]
+    assert "Week 05 Final Standings" in rendered["html"]
+    assert "Season Standings" in rendered["html"]
+    assert "the final four games" in rendered["text"].lower()
+    assert "OCTOBER PRIZE UPDATE" not in rendered["text"]
+    assert "randomly selected participant" in rendered["text"]
+
+
+def test_finale_announcement_does_not_repeat_after_season(app):
+    with app.app_context():
+        before = render_weekly_kickoff(date(2026, 10, 19))
+        after = render_weekly_kickoff(date(2026, 11, 2))
+
+    assert before["context"]["prize_heading"] == "October Prize Update"
+    assert "October Prize Update" in before["html"]
+    assert after["context"]["is_season_one_final_week"] is False
+    assert after["context"]["prize_heading"] is None
+    assert "Season One: Final Week" not in after["html"]
+    assert "October Prize Update" not in after["html"]
+    assert "randomly selected participant" not in after["text"]
