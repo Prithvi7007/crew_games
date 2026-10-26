@@ -77,12 +77,11 @@ def build_weekly_kickoff_context(reference_day=None):
     if is_season_one_final_week:
         prize_heading = "Season One: Final Week"
         prize_body = (
-            "Season One closes Friday, "
-            f"{_long_date_label(active_season['end_date'])}. "
-            "Four final games left to improve your score! "
-            "The final standings and both gift card winners will be finalized next week: "
-            "one gift card for the player with the highest cumulative Season One score, "
-            "and another for one randomly selected participant."
+            "Season One ends Friday, "
+            f"{active_season['end_date'].strftime('%b')} {active_season['end_date'].day}. "
+            "Four games left, two gift cards up for grabs! "
+            "One for the top cumulative scorer, one by random draw. "
+            "Winners confirmed next week."
         )
     elif CREW_WEEK_ONE_DATE <= current_week_start <= date(2026, 10, 19):
         prize_heading = "October Prize Update"
