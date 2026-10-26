@@ -1,0 +1,190 @@
+/* CREW REWIND · Season One: a self-contained, mobile-first story presentation. */
+.rewind-home-invite {
+  display: flex; align-items: center; justify-content: space-between; gap: 22px;
+  margin: 0 0 28px; padding: 19px 24px; border-radius: 16px;
+  color: #e8f6ff; text-decoration: none;
+  border: 1px solid rgba(154,214,255,.42);
+  background: linear-gradient(115deg, #12284a, #12304b 65%, #1d2450);
+  box-shadow: 0 12px 34px rgba(0,0,0,.14);
+  transition: border-color .2s, transform .2s;
+}
+.rewind-home-invite:hover { border-color: #99e5ff; transform: translateY(-2px); }
+.rewind-home-copy { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rewind-home-copy small { color: #8fe5ff; letter-spacing: .16em; font-weight: 900; font-size: 10px; }
+.rewind-home-copy strong { color: #fff; font-size: clamp(19px,3vw,28px); font-weight: 1000; letter-spacing: -.035em; }
+.rewind-home-copy em { font-style: normal; color: #9dffca; }
+.rewind-home-copy > span { color: #afc8e0; font-size: 13px; }
+.rewind-home-invite > b { flex-shrink: 0; color: #aef6cc; font-size: 12px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .rewind-home-invite { padding: 17px; gap: 12px; align-items: flex-start; }
+  .rewind-home-invite > b { padding-top: 3px; }
+}
+.crew-rewind {
+  --rewind-ink: #071322;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 28px 18px 32px;
+  background: #030914;
+  overflow: hidden;
+  color: #fff;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+}
+.crew-rewind *,
+.crew-rewind *::before,
+.crew-rewind *::after { box-sizing: border-box; }
+.crew-rewind a,
+.crew-rewind button { -webkit-tap-highlight-color: transparent; }
+.crew-rewind button:focus-visible,
+.crew-rewind a:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.rewind-ambient {
+  position: absolute;
+  inset: -25%;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 23% 22%, rgba(22, 116, 196, .32), transparent 31%),
+    radial-gradient(ellipse at 79% 75%, rgba(149, 60, 240, .25), transparent 37%);
+}
+.rewind-shell { width: min(100%, 510px); }
+.rewind-header { display: flex; align-items: center; justify-content: space-between; min-height: 50px; gap: 12px; }
+.rewind-brand { color: #fff; text-decoration: none; font-size: 22px; font-weight: 1000; letter-spacing: -.06em; }
+.rewind-brand span { color: #36b3ff; }
+.rewind-edition, .rewind-preview-tag { font-size: 10px; font-weight: 800; letter-spacing: .13em; color: #94aec7; }
+.rewind-preview-tag { color: #ffce73; text-align: center; font-size: 9px; }
+.rewind-exit { display: grid; place-items: center; width: 34px; height: 34px; text-decoration: none; color: #c6d8eb; border-radius: 50%; font-size: 18px; }
+.rewind-exit:hover { background: #17243a; }
+.rewind-progress { display: flex; gap: 5px; margin: 11px 0 14px; height: 4px; }
+.rewind-progress button { cursor: pointer; min-width: 0; flex: 1; border: 0; border-radius: 99px; background: #31415b; padding: 0; transition: background .2s; }
+.rewind-progress button.is-seen { background: #b7deff; }
+.rewind-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: min(700px, 70vh);
+  min-height: min(700px, 70dvh);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 22px;
+  box-shadow: 0 25px 85px rgba(0,0,0,.45);
+  background: #1a4bb1;
+  transition: background .25s;
+}
+.rewind-stage::before {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  width: 140%;
+  height: 75%;
+  top: -30%;
+  right: -45%;
+  background: radial-gradient(circle, rgba(255,255,255,.27), transparent 64%);
+  pointer-events: none;
+}
+.rewind-tone-opening { background: linear-gradient(156deg,#5a2ac4 0%,#243bc9 49%,#133e88 100%); }
+.rewind-tone-points { background: linear-gradient(145deg,#035e97 0%,#003677 53%,#051c50 100%); }
+.rewind-tone-specialty { background: linear-gradient(150deg,#094f48 0%,#073b45 50%,#052b37 100%); }
+.rewind-tone-best-week { background: linear-gradient(149deg,#8f391d 0%,#612655 48%,#221e61 100%); }
+.rewind-tone-badges { background: linear-gradient(147deg,#7b286d 0%,#38206e 57%,#131950 100%); }
+.rewind-tone-placement { background: linear-gradient(148deg,#235a7d 0%,#26338b 51%,#18245d 100%); }
+.rewind-tone-finale { background: linear-gradient(151deg,#11253a 0%,#12183b 55%,#082b3b 100%); }
+.rewind-orbit { position: absolute; z-index: -1; top: -120px; right: -65px; font-size: 500px; line-height: 1; opacity: .055; font-weight: 900; user-select: none; }
+.rewind-scene { flex: 1; display: flex; flex-direction: column; animation: rewind-appear .4s cubic-bezier(.2,.75,.3,1) both; }
+.rewind-copy { flex: 1; min-height: 490px; padding: clamp(26px,7%,44px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+.rewind-eyebrow { display: block; margin-bottom: auto; color: rgba(255,255,255,.8); font-size: 11px; font-weight: 900; letter-spacing: .18em; }
+.rewind-copy h1, .rewind-copy h2 { font-size: clamp(46px, 12vw, 75px); line-height: .93; font-weight: 1000; letter-spacing: -.065em; text-transform: uppercase; margin: 16px 0 20px; max-width: 100%; text-wrap: balance; }
+.rewind-copy h1 em, .rewind-copy h2 em { font-style: normal; color: #c3ff9b; }
+.rewind-copy p { font-size: 16px; line-height: 1.47; max-width: 330px; margin: 10px 0 18px; color: rgba(255,255,255,.9); }
+.rewind-copy p strong { color: #fff; }
+.rewind-avatar { display: grid; place-items: center; width: 126px; height: 126px; font-size: 80px; line-height: 1; border-radius: 100%; background: rgba(3,13,44,.36); border: 2px solid rgba(255,255,255,.55); box-shadow: 0 14px 55px rgba(0,0,0,.2); margin: 20px 0; transform: rotate(-9deg); }
+.rewind-opening h1 { font-size: clamp(53px, 13vw, 78px); }
+.rewind-footnote { margin-top: auto; padding-top: 24px; font-size: 10px; font-weight: 850; letter-spacing: .15em; color: rgba(255,255,255,.7); }
+.rewind-points h2 { color: #d6edff; font-size: clamp(45px, 11vw, 66px); }
+.rewind-big-number { color: #c3ff9b; font-size: clamp(92px, 23vw, 148px); line-height: 1; letter-spacing: -.09em; font-weight: 1000; margin: 10px 0 0; }
+.rewind-stat-label { font-size: 12px !important; font-weight: 900; letter-spacing: .2em; margin-top: 10px !important; }
+.rewind-big-divider { width: 90px; height: 2px; background: rgba(255,255,255,.45); margin: auto 0 15px; }
+.rewind-game-glyph { display: grid; place-items: center; margin: 12px 0 4px; width: 100px; height: 100px; background: rgba(0,0,0,.2); border: 1px solid rgba(255,255,255,.3); border-radius: 26px; color: #c3ff9b; font-size: 60px; font-weight: 1000; transform: rotate(-9deg); }
+.rewind-specialty h2 { font-size: clamp(39px, 11vw, 59px); margin-bottom: 12px; }
+.rewind-specialty-name { font-size: clamp(20px, 6vw, 29px); line-height: 1.05; letter-spacing: -.025em; }
+.rewind-specialty p { font-size: 14px; margin-bottom: auto; }
+.rewind-game-bars { width: 100%; margin-top: 20px; border-top: 1px solid rgba(255,255,255,.22); padding-top: 14px; }
+.rewind-game-row { display: grid; align-items: center; grid-template-columns: 64px 1fr 36px; gap: 10px; padding: 7px 0; font-size: 12px; }
+.rewind-game-row span { color: #e6f3ff; }
+.rewind-game-row strong { text-align: right; font-weight: 900; }
+.rewind-game-track { height: 7px; border-radius: 99px; background: rgba(0,0,0,.25); overflow: hidden; }
+.rewind-game-track i { display: block; height: 100%; border-radius: 99px; }
+.rewind-best-week h2 { font-size: clamp(42px,11vw,68px); }
+.rewind-peak-label { color: #ffe2a5; font-size: clamp(25px, 7vw, 39px); font-weight: 950; }
+.rewind-peak-points { font-size: clamp(88px,22vw,132px); line-height: 1; font-weight: 1000; letter-spacing: -.07em; }
+.rewind-peak-points small { font-size: 20px; letter-spacing: .08em; }
+.rewind-weekly-chart { display: flex; align-items: end; height: 140px; width: 100%; gap: 12px; margin-top: auto; padding-top: 15px; }
+.rewind-week-column { flex: 1; height: 100%; display: flex; flex-direction: column; gap: 7px; text-align: center; justify-content: flex-end; color: rgba(255,255,255,.7); font-size: 11px; font-weight: 800; }
+.rewind-week-bar { height: 100%; min-height: 30px; display: flex; align-items: end; border-radius: 6px 6px 0 0; background: rgba(0,0,0,.13); overflow: hidden; }
+.rewind-week-bar i { display: block; width: 100%; background: rgba(255,255,255,.5); border-radius: 6px 6px 0 0; }
+.rewind-week-column.is-peak .rewind-week-bar i { background: #ffe381; }
+.rewind-week-column.is-peak span { color: #fff; }
+.rewind-best-week p { font-size: 12px; }
+.rewind-badges h2 { font-size: clamp(45px, 11vw, 65px); }
+.rewind-badge-total { font-size: clamp(115px,27vw,170px); line-height: .95; color: #ffe79a; letter-spacing: -.07em; }
+.rewind-featured-badge { display: flex; align-items: center; gap: 18px; margin-top: auto; padding: 18px; width: 100%; border-radius: 14px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.2); }
+.rewind-featured-badge .trophy-medallion { flex: 0 0 auto; }
+.rewind-featured-badge div { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.rewind-featured-badge div span { font-size: 10px; font-weight: 900; color: #d6c5ec; letter-spacing: .12em; }
+.rewind-featured-badge div strong { font-size: 17px; line-height: 1.2; }
+.rewind-featured-badge div small { font-size: 12px; text-transform: uppercase; color: #e0b6f9; }
+.rewind-placement h2 { font-size: clamp(45px,11vw,68px); }
+.rewind-placement-rank { color: #d0ff9c; font-weight: 1000; font-size: clamp(120px,30vw,178px); letter-spacing: -.1em; line-height: .97; }
+.rewind-placement p { font-size: 13px; letter-spacing: .06em; font-weight: 850; }
+.rewind-winner-stamp, .rewind-cohort-stamp { margin-top: auto; border-top: 1px solid rgba(255,255,255,.25); width: 100%; padding-top: 18px; color: #ffe8af; font-size: 11px; font-weight: 900; letter-spacing: .12em; }
+.rewind-cohort-stamp { color: rgba(255,255,255,.76); }
+.rewind-finale { justify-content: flex-start; align-items: stretch; }
+.rewind-finale .rewind-eyebrow { margin-bottom: 23px; }
+.rewind-card-avatar { display: grid; place-items: center; margin: 0 auto; width: 108px; height: 108px; font-size: 63px; border: 2px solid #7de0ff; border-radius: 100%; background: rgba(255,255,255,.1); }
+.rewind-finale h2 { margin: 13px 0 0; text-align: center; font-size: clamp(34px, 9vw, 54px); overflow-wrap: anywhere; }
+.rewind-persona { color: #c3ff9b; font-size: clamp(15px,4.5vw,20px); text-align: center; margin: 7px 0 24px; }
+.rewind-final-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; padding: 17px 0; border-top: 1px solid rgba(255,255,255,.3); border-bottom: 1px solid rgba(255,255,255,.3); }
+.rewind-final-stats div { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.rewind-final-stats strong { font-size: clamp(24px,6vw,36px); font-weight: 1000; }
+.rewind-final-stats span { font-size: 10px; font-weight: 850; letter-spacing: .13em; color: #acc8e8; }
+.rewind-finale-title { font-size: 17px; font-weight: 900; color: #ffe4a8; text-align: center; margin-top: 22px; }
+.rewind-finale p { font-size: 12px; text-align: center; align-self: center; }
+.rewind-share-button { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: auto; padding: 16px; border: 0; border-radius: 11px; background: #c3ff9b; color: #06221c; font-size: 14px; font-weight: 1000; cursor: pointer; }
+.rewind-share-button:hover { background: #e0ffc6; }
+.rewind-share-feedback { display: block; color: #b8f4ca; text-align: center; margin-top: 5px; }
+.rewind-stage-footer { display: flex; justify-content: space-between; padding: 14px 20px 17px; font-size: 9px; letter-spacing: .18em; font-weight: 850; color: rgba(255,255,255,.55); }
+.rewind-navigation { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 15px; }
+.rewind-navigation button { min-height: 40px; border: 0; background: transparent; color: #e6f1ff; padding: 7px 9px; font-weight: 850; font-size: 13px; cursor: pointer; }
+.rewind-navigation button:disabled { opacity: .27; cursor: default; }
+.rewind-page-count { color: #8195b2; font-size: 11px; font-weight: 950; letter-spacing: .13em; }
+@keyframes rewind-appear { from { opacity: .6; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 530px) {
+  .crew-rewind { padding: 10px 10px 15px; align-items: stretch; }
+  .rewind-shell { display: flex; flex-direction: column; width: 100%; }
+  .rewind-header { min-height: 47px; padding: 0 5px; }
+  .rewind-progress { margin: 7px 0 9px; }
+  .rewind-stage { flex: 1; min-height: 0; border-radius: 15px; }
+  .rewind-copy { min-height: 0; padding: clamp(22px, 6vw, 30px); }
+  .rewind-avatar { width: 104px; height: 104px; font-size: 60px; }
+  .rewind-game-glyph { width: 76px; height: 76px; font-size: 46px; }
+  .rewind-copy p { font-size: 14px; }
+  .rewind-navigation { padding-top: 7px; }
+}
+@media (max-height: 660px) {
+  .crew-rewind { padding-top: 6px; padding-bottom: 8px; }
+  .rewind-header { min-height: 35px; }
+  .rewind-progress { margin: 5px 0; }
+  .rewind-copy h1, .rewind-copy h2 { font-size: clamp(35px, 8.8vh, 59px); }
+  .rewind-avatar { width: 70px; height: 70px; font-size: 42px; margin: 10px 0; }
+  .rewind-big-number { font-size: 90px; }
+  .rewind-badge-total { font-size: 105px; }
+  .rewind-placement-rank { font-size: 110px; }
+  .rewind-weekly-chart { height: 90px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rewind-scene { animation: none; }
+  .rewind-progress button, .rewind-stage { transition: none; }
+}

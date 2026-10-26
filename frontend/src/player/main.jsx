@@ -18,12 +18,14 @@ import './styles/badge-unlock-preview.css';
 import './styles/badge-unlock-handoff.css';
 import './styles/gameplay-refinement.css';
 import './styles/typography.css';
+import './styles/rewind.css';
 import TrophyRoom, { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
 import TrophyWelcomeTour from './TrophyWelcomeTour';
 import BadgeUnlockPreview, { CinematicReveal } from './BadgeUnlockPreview';
 import HomeCoverflow from './HomeCoverflow';
 import HomeTheaterArc from './HomeTheaterArc';
 import GamePageHeader from './GamePageHeader';
+import SeasonRewind from './SeasonRewind';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -395,7 +397,7 @@ function HomePage({ data }) {
   const first = games[0]?.date || today, last = games[games.length-1]?.date || today;
   const fp=parseYmd(first), lp=parseYmd(last);
   const weekLabel = fp.month===lp.month ? `${monthName(first)} ${fp.day}–${lp.day}` : `${monthDay(first)}–${monthDay(last)}`;
-  return <div className={`v17-today-shell v17-current-${featureKey}${coverflowPreview ? ' has-coverflow-preview' : ''}${theaterArc ? ' has-theater-arc' : ''}`} style={{'--journey-progress':progress}}><AppHeader shell={shell}/><main className="v17-today-main"><header className="v17-intro home-summary"><div className="home-week"><span className="v17-eyebrow">{weekLabel}</span><h1>{season ? `SEASON ${season.number} · WEEK ${String(season.week_number).padStart(2,'0')}` : weekNumber>0 ? `WEEK ${String(weekNumber).padStart(2,'0')}` : 'PRESEASON'}</h1><p>Four games. A week of fun.</p></div><aside className="v17-score home-score" style={{'--score-progress':`${completed.length*25}%`}} aria-label="Weekly score"><div className="v17-score-value"><strong>{points}</strong><span>/ 400 PTS</span></div><div className="v17-score-rail" aria-hidden="true"><i/></div><p>{completed.length} OF 4 COMPLETE</p></aside>{season?<a className="home-season-summary" href="/leaderboard"><span>SEASON {season.number} TOTAL</span><strong>{season.points} <small>pts</small></strong><em>{season.rank?`RANK #${season.rank}`:'UNRANKED'}</em><b aria-hidden="true">→</b></a>:null}</header><HomeDesktop games={games} featured={featured} today={today}/>{coverflowPreview ? <HomeCoverflow games={games} renderCard={(game,index) => <HomeDesktopCard game={game} index={index} featured={null} today={today}/>} /> : null}{theaterArc ? <HomeTheaterArc games={games} renderCard={(game,index) => <HomeDesktopCard game={game} index={index} featured={null} today={today}/>} /> : null}<HomeJourney games={games} featured={featured} today={today}/></main></div>;
+  return <div className={`v17-today-shell v17-current-${featureKey}${coverflowPreview ? ' has-coverflow-preview' : ''}${theaterArc ? ' has-theater-arc' : ''}`} style={{'--journey-progress':progress}}><AppHeader shell={shell}/><main className="v17-today-main"><header className="v17-intro home-summary"><div className="home-week"><span className="v17-eyebrow">{weekLabel}</span><h1>{season ? `SEASON ${season.number} · WEEK ${String(season.week_number).padStart(2,'0')}` : weekNumber>0 ? `WEEK ${String(weekNumber).padStart(2,'0')}` : 'PRESEASON'}</h1><p>Four games. A week of fun.</p></div><aside className="v17-score home-score" style={{'--score-progress':`${completed.length*25}%`}} aria-label="Weekly score"><div className="v17-score-value"><strong>{points}</strong><span>/ 400 PTS</span></div><div className="v17-score-rail" aria-hidden="true"><i/></div><p>{completed.length} OF 4 COMPLETE</p></aside>{season?<a className="home-season-summary" href="/leaderboard"><span>SEASON {season.number} TOTAL</span><strong>{season.points} <small>pts</small></strong><em>{season.rank?`RANK #${season.rank}`:'UNRANKED'}</em><b aria-hidden="true">→</b></a>:null}</header>{data.rewindUrl ? <a className="rewind-home-invite" href={data.rewindUrl}><span className="rewind-home-copy"><small>{data.rewindUrl.includes('preview=1') ? 'ADMIN PREVIEW' : 'YOUR SEASON, YOUR STORY'}</small><strong>CREW REWIND <em>· SEASON 01</em></strong><span>{data.rewindUrl.includes('preview=1') ? 'Preview your season story before finalization.' : 'Your Season One story is ready to relive.'}</span></span><b aria-hidden="true">EXPLORE ↗</b></a> : null}<HomeDesktop games={games} featured={featured} today={today}/>{coverflowPreview ? <HomeCoverflow games={games} renderCard={(game,index) => <HomeDesktopCard game={game} index={index} featured={null} today={today}/>} /> : null}{theaterArc ? <HomeTheaterArc games={games} renderCard={(game,index) => <HomeDesktopCard game={game} index={index} featured={null} today={today}/>} /> : null}<HomeJourney games={games} featured={featured} today={today}/></main></div>;
 }
 function HomeDesktop({games,featured,today}) {
   const [featureState,featureLabel] = featured ? stateFor(featured,today) : ['future','LOCKED'];
@@ -687,4 +689,4 @@ function PlayerWithTour({ Component, data }) {
 }
 
 const root=document.getElementById('crew-player-root'); const data=readState();
-if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,trophies:TrophyPage,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<PlayerWithTour Component={Component} data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
+if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,trophies:TrophyPage,rewind:SeasonRewind,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<PlayerWithTour Component={Component} data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
