@@ -18,36 +18,26 @@
   </style>
 </head>
 <body style="margin:0;padding:0;background:#edf2f7;font-family:Arial,Helvetica,sans-serif;color:#f4f8fc;">
-  {# Inline, table-based identity markup works without scripts or remote images. #}
-  {% macro email_avatar(player, dimension=34) %}
+  {# Email-safe avatar with a rarity-colored ring; no invented insignia. #}
+  {% macro email_avatar(player, dimension=28) %}
     {% set badge = player.equippedBadge %}
-    {% set ring = {'common':'#c5d1df','rare':'#35bfff','epic':'#d476ff','legendary':'#ffd05a'}.get(badge.rarity, '#416078') if badge else '#416078' %}
-    {% set accent = {'mystery':'#55e6ac','trivia':'#ffbd45','word':'#55b9ff','tick_tock':'#c55cff'}.get(badge.gameKey, '#eef4ff') if badge else '#eef4ff' %}
+    {% set ring = {'common':'#9dafbe','rare':'#35bfff','epic':'#d476ff','legendary':'#ffd05a'}.get(badge.rarity, '#526b81') if badge else '#526b81' %}
     <table role="presentation" align="center" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">
       <tr>
         <td width="{{ dimension }}" height="{{ dimension }}" align="center" valign="middle"
-            style="width:{{ dimension }}px;height:{{ dimension }}px;border:2px solid {{ ring }};border-radius:50%;background:#182b42;line-height:{{ dimension }}px;font-size:{{ (dimension * 0.5)|int }}px;text-align:center;">
+            style="width:{{ dimension }}px;height:{{ dimension }}px;border:2px solid {{ ring }};border-radius:50%;background:#182b42;line-height:{{ dimension }}px;font-size:{{ (dimension * 0.52)|int }}px;text-align:center;">
           {{ player.avatar or '🎮' }}
         </td>
-        {% if badge %}
-        <td width="23" valign="middle" style="padding-left:2px;">
-          <table role="presentation" width="21" cellspacing="0" cellpadding="0" border="0">
-            <tr>
-              <td width="19" height="19" align="center" valign="middle"
-                  style="width:19px;height:19px;border:1px solid {{ ring }};border-radius:50%;background:#091626;color:{{ accent }};font-size:13px;line-height:19px;font-weight:900;" title="{{ badge.name }}">✦</td>
-            </tr>
-            <tr>
-              <td align="center" style="padding-top:2px;color:#d9e8f4;font-size:9px;line-height:12px;font-weight:900;">S{{ '%02d'|format(badge.seasonNumber) }}</td>
-            </tr>
-          </table>
-        </td>
-        {% endif %}
       </tr>
     </table>
   {% endmacro %}
 
+  {% macro email_badge_label(player) %}
+    {% if player.equippedBadge %}{{ player.equippedBadge.name }}<span style="color:#7895ad;"> · S{{ '%02d'|format(player.equippedBadge.seasonNumber) }}</span>{% endif %}
+  {% endmacro %}
+
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    {% if is_season_one_final_week %}The Season One finale is here! Four final games and two gift cards.{% else %}Week {{ previous_week_number_label }} results, season standings, and this week's games.{% endif %}
+    {% if is_season_one_final_week %}Season One closes Friday. Gift card winners finalized next week.{% else %}Week {{ previous_week_number_label }} results, season standings, and this week's games.{% endif %}
   </div>
 
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#edf2f7;">
@@ -78,7 +68,7 @@
                 {% if is_season_one_final_week %}Season One <span style="color:#2aa8ff;">Finale</span>{% else %}Week {{ current_week_number_label }} is <span style="color:#2aa8ff;">Live</span>{% endif %}
               </div>
               <div style="padding-top:12px;font-size:16px;line-height:24px;color:#adc0d1;max-width:540px;">
-                {% if is_season_one_final_week %}The Season One finale is here! Four final games and two gift cards.{% else %}Week {{ previous_week_number_label }} results, season standings, and this week's games.{% endif %}
+                {% if is_season_one_final_week %}Final week to play. Winners will be finalized next week.{% else %}Week {{ previous_week_number_label }} results, season standings, and this week's games.{% endif %}
               </div>
             </td>
           </tr>
@@ -139,22 +129,19 @@
                       <tr>
                         {% for player in podium %}
                         <td class="podium-cell" width="33.33%" align="center" valign="top"
-                            style="padding:16px 8px;border:1px solid {% if player.podium_rank == 1 %}#b9811b{% elif player.podium_rank == 2 %}#5c7186{% else %}#865b49{% endif %};background:{% if player.podium_rank == 1 %}#211a09{% else %}#0b1723{% endif %};border-radius:8px;">
-                          <div style="font-size:23px;line-height:28px;">
+                            style="padding:14px 8px;border:1px solid {% if player.podium_rank == 1 %}#b9811b{% elif player.podium_rank == 2 %}#5c7186{% else %}#865b49{% endif %};background:{% if player.podium_rank == 1 %}#211a09{% else %}#0b1723{% endif %};border-radius:8px;">
+                          <div style="font-size:21px;line-height:24px;">
                             {% if player.podium_rank == 1 %}🥇{% elif player.podium_rank == 2 %}🥈{% else %}🥉{% endif %}
                           </div>
-                          <div style="padding-top:5px;font-size:10px;font-weight:800;letter-spacing:.7px;color:#7f98ae;">
-                            #{{ player.podium_rank }}
-                          </div>
-                          <div style="padding-top:9px;">{{ email_avatar(player, 48) }}</div>
-                          <div style="padding-top:7px;font-size:15px;font-weight:800;color:#ffffff;">
+                          <div style="padding-top:8px;">{{ email_avatar(player, 34) }}</div>
+                          <div style="padding-top:7px;font-size:15px;line-height:19px;font-weight:800;color:#ffffff;">
                             {{ player.username }}
                           </div>
-                          {% if player.equippedBadge %}
-                          <div style="padding-top:3px;font-size:9px;line-height:13px;color:#9ec7e7;">{{ player.equippedBadge.name }}</div>
-                          {% endif %}
-                          <div style="padding-top:5px;font-size:17px;font-weight:900;color:{% if player.podium_rank == 1 %}#ffc44d{% else %}#ffffff{% endif %};">
+                          <div style="padding-top:5px;font-size:17px;line-height:22px;font-weight:900;color:{% if player.podium_rank == 1 %}#ffc44d{% else %}#ffffff{% endif %};">
                             {{ player.points }} pts
+                          </div>
+                          <div style="height:17px;padding-top:5px;font-size:10px;line-height:17px;color:#a9bfd0;">
+                            {% if player.equippedBadge %}{{ email_badge_label(player) }}{% else %}&nbsp;{% endif %}
                           </div>
                         </td>
                         {% endfor %}
@@ -179,11 +166,11 @@
                         <td style="padding:8px 10px;border-bottom:1px solid #173750;">
                           <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                             <tr>
-                              <td valign="middle">{{ email_avatar(player, 30) }}</td>
+                              <td valign="middle">{{ email_avatar(player, 26) }}</td>
                               <td valign="middle" style="padding-left:9px;">
                                 <div style="font-size:13px;font-weight:700;color:#ffffff;">{{ player.username }}</div>
                                 {% if player.equippedBadge %}
-                                <div style="padding-top:2px;font-size:9px;line-height:13px;color:#91a9bf;">{{ player.equippedBadge.name }}</div>
+                                <div style="padding-top:2px;font-size:10px;line-height:14px;color:#91a9bf;">{{ email_badge_label(player) }}</div>
                                 {% endif %}
                               </td>
                             </tr>
@@ -232,11 +219,11 @@
                           <td style="padding:8px 10px;border-bottom:1px solid #173750;">
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                               <tr>
-                                <td valign="middle">{{ email_avatar(player, 30) }}</td>
+                                <td valign="middle">{{ email_avatar(player, 26) }}</td>
                                 <td valign="middle" style="padding-left:9px;">
                                   <div style="font-size:13px;font-weight:700;color:#ffffff;">{{ player.username }}</div>
                                   {% if player.equippedBadge %}
-                                  <div style="padding-top:2px;font-size:9px;line-height:13px;color:#91a9bf;">{{ player.equippedBadge.name }}</div>
+                                  <div style="padding-top:2px;font-size:10px;line-height:14px;color:#91a9bf;">{{ email_badge_label(player) }}</div>
                                   {% endif %}
                                 </td>
                               </tr>
