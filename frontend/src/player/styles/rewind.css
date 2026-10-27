@@ -4,7 +4,7 @@
   margin: 0 0 28px; padding: 19px 24px; border-radius: 16px;
   color: #e8f6ff; text-decoration: none;
   border: 1px solid rgba(154,214,255,.42);
-  background: radial-gradient(ellipse at 92% 0%, rgba(106,76,218,.28), transparent 58%), linear-gradient(115deg, #0c2540, #123653 67%, #151c3d);
+  background: radial-gradient(ellipse at 90% 4%, color-mix(in srgb, var(--crew-game-word, #55b9ff) 19%, transparent), transparent 64%), linear-gradient(115deg,#101b24,#071017);
   box-shadow: 0 12px 34px rgba(0,0,0,.14);
   transition: border-color .2s, transform .2s;
 }
@@ -12,18 +12,18 @@
 .rewind-home-copy { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .rewind-home-copy small { color: #8fe5ff; letter-spacing: .16em; font-weight: 900; font-size: 10px; }
 .rewind-home-copy strong { color: #fff; font-size: clamp(19px,3vw,28px); font-weight: 1000; letter-spacing: -.035em; }
-.rewind-home-copy em { font-style: normal; color: #9dffca; }
+.rewind-home-copy em { font-style: normal; color: var(--crew-game-mystery, #55e6ac); }
 .rewind-home-copy > span { color: #afc8e0; font-size: 13px; }
-.rewind-home-invite > b { flex-shrink: 0; color: #aef6cc; font-size: 12px; white-space: nowrap; }
+.rewind-home-invite > b { flex-shrink: 0; color: var(--crew-game-mystery, #55e6ac); font-size: 12px; white-space: nowrap; }
 @media (max-width: 600px) {
   .rewind-home-invite { padding: 17px; gap: 12px; align-items: flex-start; }
   .rewind-home-invite > b { padding-top: 3px; }
 }
 .crew-rewind {
-  /* CREW night anchors seven vibrant chapter-specific accents. */
-  --rewind-ink: #091325;
-  --rewind-blue: #6ed7ff;
-  --rewind-lime: #d6ff9f;
+  /* The official CREW design tokens own Rewind's colors. */
+  --rewind-ink: var(--crew-color-bg, #02070b);
+  --rewind-blue: var(--crew-game-word, #55b9ff);
+  --rewind-gold: var(--crew-game-trivia, #ffbd45);
   position: relative;
   isolation: isolate;
   display: flex;
@@ -32,10 +32,10 @@
   min-height: 100vh;
   min-height: 100dvh;
   padding: 28px 18px 32px;
-  background: #050b19;
+  background: var(--crew-color-bg, #02070b);
   overflow: hidden;
   color: #fff;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: var(--crew-font-body, Inter, Arial, sans-serif);
 }
 .crew-rewind *,
 .crew-rewind *::before,
@@ -49,13 +49,13 @@
   inset: -25%;
   z-index: -1;
   background:
-    radial-gradient(ellipse at 24% 16%, rgba(44, 138, 232, .28), transparent 36%),
-    radial-gradient(ellipse at 83% 81%, rgba(104, 61, 183, .22), transparent 40%);
+    radial-gradient(ellipse at 24% 16%, color-mix(in srgb, var(--crew-game-word, #55b9ff) 17%, transparent), transparent 38%),
+    radial-gradient(ellipse at 83% 81%, color-mix(in srgb, var(--crew-game-tick-tock, #c55cff) 12%, transparent), transparent 43%);
 }
 .rewind-shell { width: min(100%, 510px); }
 .rewind-header { display: flex; align-items: center; justify-content: space-between; min-height: 50px; gap: 12px; }
 .rewind-brand { color: #fff; text-decoration: none; font-size: 22px; font-weight: 1000; letter-spacing: -.06em; }
-.rewind-brand span { color: #36b3ff; }
+.rewind-brand span { color: var(--crew-game-word, #55b9ff); }
 .rewind-edition, .rewind-preview-tag { font-size: 10px; font-weight: 800; letter-spacing: .13em; color: #94aec7; }
 .rewind-preview-tag { color: #ffce73; text-align: center; font-size: 9px; }
 .rewind-exit { display: grid; place-items: center; width: 34px; height: 34px; text-decoration: none; color: #c6d8eb; border-radius: 50%; font-size: 18px; }
@@ -64,11 +64,11 @@
 .rewind-progress button { cursor: pointer; min-width: 0; flex: 1; border: 0; border-radius: 99px; background: #31415b; padding: 0; transition: background .2s; }
 .rewind-progress button.is-seen { background: var(--rewind-blue); }
 .rewind-stage {
-  --scene-start: #17335d;
-  --scene-end: #10182f;
-  --scene-glow: rgba(48,150,243,.55);
-  --scene-low-glow: rgba(110,77,216,.32);
-  --scene-accent: var(--rewind-lime);
+  --scene-start: #101d28;
+  --scene-end: #04090e;
+  --scene-glow: color-mix(in srgb, var(--crew-game-word, #55b9ff) 26%, transparent);
+  --scene-low-glow: color-mix(in srgb, var(--crew-game-mystery, #55e6ac) 13%, transparent);
+  --scene-accent: var(--crew-game-word, #55b9ff);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -76,8 +76,8 @@
   overflow: hidden;
   min-height: min(700px, 70vh);
   min-height: min(700px, 70dvh);
-  border: 1px solid rgba(255,255,255,.14);
-  border-radius: 22px;
+  border: 1px solid var(--crew-color-line, rgba(255,255,255,.10));
+  border-radius: var(--crew-radius-xl, 22px);
   box-shadow: 0 26px 85px rgba(0,0,0,.52), inset 0 1px rgba(255,255,255,.10);
   background:
     radial-gradient(ellipse 95% 75% at 105% -12%, var(--scene-glow), transparent 70%),
@@ -99,32 +99,63 @@
   pointer-events: none;
 }
 .rewind-tone-opening {
-  --scene-start:#4324a1; --scene-end:#11265d;
-  --scene-glow:rgba(173,80,255,.62); --scene-low-glow:rgba(36,123,242,.38); --scene-accent:#dcffa4;
+  --scene-start:#10212b; --scene-end:#050a10;
+  --scene-accent:var(--crew-game-word, #55b9ff);
+  --scene-glow:color-mix(in srgb, var(--crew-game-tick-tock, #c55cff) 28%, transparent);
+  --scene-low-glow:color-mix(in srgb, var(--crew-game-mystery, #55e6ac) 20%, transparent);
 }
 .rewind-tone-points {
-  --scene-start:#124b90; --scene-end:#0a1c4b;
-  --scene-glow:rgba(43,178,255,.65); --scene-low-glow:rgba(39,88,221,.32); --scene-accent:#bbf8ff;
+  --scene-start:#102333; --scene-end:#050b12;
+  --scene-accent:var(--crew-game-word, #55b9ff);
+  --scene-glow:color-mix(in srgb, var(--crew-game-word, #55b9ff) 30%, transparent);
+  --scene-low-glow:color-mix(in srgb, var(--crew-game-tick-tock, #c55cff) 9%, transparent);
 }
 .rewind-tone-specialty {
-  --scene-start:#0a4b58; --scene-end:#092940;
-  --scene-glow:rgba(35,215,179,.58); --scene-low-glow:rgba(30,108,222,.25); --scene-accent:#b3ffe7;
+  --scene-start:#0d251f; --scene-end:#050d0e;
+  --scene-accent:var(--crew-game-mystery, #55e6ac);
+  --scene-glow:color-mix(in srgb, var(--crew-game-mystery, #55e6ac) 25%, transparent);
+  --scene-low-glow:color-mix(in srgb, var(--crew-game-word, #55b9ff) 11%, transparent);
 }
 .rewind-tone-best-week {
-  --scene-start:#703d61; --scene-end:#251c51;
-  --scene-glow:rgba(243,116,77,.60); --scene-low-glow:rgba(190,71,145,.32); --scene-accent:#ffe4a3;
+  --scene-start:#10241e; --scene-end:#050e10;
+  --scene-accent:var(--crew-game-mystery, #55e6ac);
+  --scene-glow:color-mix(in srgb, var(--crew-game-mystery, #55e6ac) 23%, transparent);
+  --scene-low-glow:color-mix(in srgb, var(--crew-game-word, #55b9ff) 10%, transparent);
 }
 .rewind-tone-badges {
-  --scene-start:#602d87; --scene-end:#211b56;
-  --scene-glow:rgba(230,83,198,.62); --scene-low-glow:rgba(110,70,236,.40); --scene-accent:#ffdfa2;
+  --scene-start:#1a1627; --scene-end:#090b12;
+  --scene-accent:var(--crew-game-tick-tock, #c55cff);
+  --scene-glow:color-mix(in srgb, var(--crew-game-tick-tock, #c55cff) 24%, transparent);
+  --scene-low-glow:color-mix(in srgb, var(--crew-game-word, #55b9ff) 10%, transparent);
 }
 .rewind-tone-placement {
-  --scene-start:#194b85; --scene-end:#111f56;
-  --scene-glow:rgba(51,145,255,.65); --scene-low-glow:rgba(85,75,232,.30); --scene-accent:#c4f0ff;
+  --scene-start:#111f2a; --scene-end:#060c13;
+  --scene-accent:var(--crew-game-word, #55b9ff);
+  --scene-glow:color-mix(in srgb, var(--crew-game-word, #55b9ff) 24%, transparent);
+  --scene-low-glow:color-mix(in srgb, var(--crew-game-mystery, #55e6ac) 11%, transparent);
 }
 .rewind-tone-finale {
-  --scene-start:#14355b; --scene-end:#11162f;
-  --scene-glow:rgba(49,166,243,.54); --scene-low-glow:rgba(159,80,234,.34); --scene-accent:#d7ffa4;
+  --scene-start:#211b13; --scene-end:#090c0c;
+  --scene-accent:var(--crew-game-trivia, #ffbd45);
+  --scene-glow:color-mix(in srgb, var(--crew-game-trivia, #ffbd45) 21%, transparent);
+  --scene-low-glow:color-mix(in srgb, var(--crew-game-word, #55b9ff) 10%, transparent);
+}
+/* Make the signature scene the player's actual game color. */
+.rewind-tone-specialty.rewind-game-mystery {
+  --scene-accent:var(--crew-game-mystery, #55e6ac);
+  --scene-glow:color-mix(in srgb, var(--crew-game-mystery, #55e6ac) 27%, transparent);
+}
+.rewind-tone-specialty.rewind-game-trivia {
+  --scene-accent:var(--crew-game-trivia, #ffbd45);
+  --scene-glow:color-mix(in srgb, var(--crew-game-trivia, #ffbd45) 27%, transparent);
+}
+.rewind-tone-specialty.rewind-game-word {
+  --scene-accent:var(--crew-game-word, #55b9ff);
+  --scene-glow:color-mix(in srgb, var(--crew-game-word, #55b9ff) 27%, transparent);
+}
+.rewind-tone-specialty.rewind-game-tick_tock {
+  --scene-accent:var(--crew-game-tick-tock, #c55cff);
+  --scene-glow:color-mix(in srgb, var(--crew-game-tick-tock, #c55cff) 27%, transparent);
 }
 .rewind-orbit { position: absolute; z-index: -1; top: -120px; right: -65px; font-size: 500px; line-height: 1; opacity: .055; font-weight: 900; user-select: none; }
 .rewind-scene { flex: 1; display: flex; flex-direction: column; animation: rewind-appear .4s cubic-bezier(.2,.75,.3,1) both; }
@@ -134,7 +165,7 @@
 .rewind-copy h1 em, .rewind-copy h2 em { font-style: normal; color: var(--scene-accent); }
 .rewind-copy p { font-size: 16px; line-height: 1.47; max-width: 330px; margin: 10px 0 18px; color: rgba(255,255,255,.9); }
 .rewind-copy p strong { color: #fff; }
-.rewind-avatar { display: grid; place-items: center; width: 126px; height: 126px; font-size: 80px; line-height: 1; border-radius: 100%; background: rgba(3,13,44,.36); border: 2px solid rgba(255,255,255,.55); box-shadow: 0 14px 55px rgba(0,0,0,.2); margin: 20px 0; transform: rotate(-9deg); }
+.rewind-avatar { display: grid; place-items: center; width: 126px; height: 126px; font-size: 80px; line-height: 1; border-radius: 100%; background: rgba(2,7,11,.42); border: 2px solid rgba(255,255,255,.55); box-shadow: 0 14px 55px rgba(0,0,0,.2); margin: 20px 0; transform: rotate(-9deg); }
 .rewind-opening h1 { font-size: clamp(53px, 13vw, 78px); }
 .rewind-footnote { margin-top: auto; padding-top: 24px; font-size: 10px; font-weight: 850; letter-spacing: .15em; color: rgba(255,255,255,.7); }
 .rewind-points h2 { color: #d6edff; font-size: clamp(45px, 11vw, 66px); }
@@ -173,11 +204,11 @@
 .rewind-placement h2 { font-size: clamp(45px,11vw,68px); }
 .rewind-placement-rank { color: var(--scene-accent); font-weight: 1000; font-size: clamp(120px,30vw,178px); letter-spacing: -.1em; line-height: .97; }
 .rewind-placement p { font-size: 13px; letter-spacing: .06em; font-weight: 850; }
-.rewind-winner-stamp, .rewind-cohort-stamp { margin-top: auto; border-top: 1px solid rgba(255,255,255,.25); width: 100%; padding-top: 18px; color: #ffe8af; font-size: 11px; font-weight: 900; letter-spacing: .12em; }
+.rewind-winner-stamp, .rewind-cohort-stamp { margin-top: auto; border-top: 1px solid rgba(255,255,255,.25); width: 100%; padding-top: 18px; color: var(--rewind-gold); font-size: 11px; font-weight: 900; letter-spacing: .12em; }
 .rewind-cohort-stamp { color: rgba(255,255,255,.76); }
 .rewind-finale { justify-content: flex-start; align-items: stretch; }
 .rewind-finale .rewind-eyebrow { margin-bottom: 23px; }
-.rewind-card-avatar { display: grid; place-items: center; margin: 0 auto; width: 108px; height: 108px; font-size: 63px; border: 2px solid #7de0ff; border-radius: 100%; background: rgba(255,255,255,.1); }
+.rewind-card-avatar { display: grid; place-items: center; margin: 0 auto; width: 108px; height: 108px; font-size: 63px; border: 2px solid var(--crew-game-word, #55b9ff); border-radius: 100%; background: rgba(255,255,255,.1); }
 .rewind-finale h2 { margin: 13px 0 0; text-align: center; font-size: clamp(34px, 9vw, 54px); overflow-wrap: anywhere; }
 .rewind-persona { color: var(--scene-accent); font-size: clamp(15px,4.5vw,20px); text-align: center; margin: 7px 0 24px; }
 .rewind-final-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; padding: 17px 0; border-top: 1px solid rgba(255,255,255,.3); border-bottom: 1px solid rgba(255,255,255,.3); }
@@ -186,8 +217,8 @@
 .rewind-final-stats span { font-size: 10px; font-weight: 850; letter-spacing: .13em; color: #acc8e8; }
 .rewind-finale-title { font-size: 17px; font-weight: 900; color: var(--scene-accent); text-align: center; margin-top: 22px; }
 .rewind-finale p { font-size: 12px; text-align: center; align-self: center; }
-.rewind-share-button { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: auto; padding: 16px; border: 0; border-radius: 11px; background: var(--rewind-lime); color: #06221c; font-size: 14px; font-weight: 1000; cursor: pointer; }
-.rewind-share-button:hover { background: #e0ffc6; }
+.rewind-share-button { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: auto; padding: 16px; border: 0; border-radius: 11px; background: var(--rewind-gold); color: #17110a; font-size: 14px; font-weight: 1000; cursor: pointer; }
+.rewind-share-button:hover { background: color-mix(in srgb, var(--rewind-gold) 82%, white); }
 .rewind-share-feedback { display: block; color: #b8f4ca; text-align: center; margin-top: 5px; }
 .rewind-stage-footer { display: flex; justify-content: space-between; padding: 14px 20px 17px; font-size: 9px; letter-spacing: .18em; font-weight: 850; color: rgba(255,255,255,.55); }
 .rewind-navigation { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 15px; }
