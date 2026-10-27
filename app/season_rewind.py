@@ -113,6 +113,7 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
     games = {key: {"key": key, "name": name, "points": 0, "played": 0}
              for key, name in _GAME_NAMES.items()}
     weeks = defaultdict(lambda: {"points": 0, "played": 0})
+    weekly_game_points = defaultdict(lambda: defaultdict(int))
     season_week_zero = get_week_start(season["start_date"])
 
     for row in mine:
@@ -122,6 +123,7 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
         played_day = date.fromisoformat(row["game_date"])
         week_number = (get_week_start(played_day) - season_week_zero).days // 7 + 1
         weeks[week_number]["points"] += int(row["score"])
+        weekly_game_points[week_number][row["game_key"]] += int(row["score"])
         weeks[week_number]["played"] += 1
 
     played_games = [game for game in games.values() if game["played"]]
@@ -190,6 +192,10 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
         "bestWeek": best_week,
         "weeklyScores": [
             {"number": number, **weeks[number]}
+            for number in range(1, int(season["weeks_total"]) + 1)],
+        "weeklyGameScores": [
+            {"number": number, "games": {
+                key: weekly_game_points[number][key] for key in _GAME_ORDER}}
             for number in range(1, int(season["weeks_total"]) + 1)],
         "gameBreakdown": list(games.values()),
         "badges": {"count": len(badges), "featured": (

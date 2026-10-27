@@ -52,6 +52,7 @@ def test_rewind_is_locked_to_players_until_championship_approval(app, client):
     with patch("app.main.routes.crew_today", return_value=date(2026, 10, 26)):
         assert client.get("/rewind").status_code == 404
         assert client.get("/rewind?preview=1").status_code == 404
+        assert client.get("/rewind?preview=1&prototype=1").status_code == 404
 
     _login(client, app, admin_id)
     with patch("app.main.routes.crew_today", return_value=date(2026, 10, 26)):
@@ -60,6 +61,9 @@ def test_rewind_is_locked_to_players_until_championship_approval(app, client):
         assert b"CREW REWIND" not in preview.data  # React renders client-side
         assert b'"preview": true' in preview.data
         assert client.get("/rewind").status_code == 404
+        film = client.get("/rewind?preview=1&prototype=1")
+        assert film.status_code == 200
+        assert b'"rewindFilmPrototype": true' in film.data
 
 
 def test_rewind_uses_real_earned_metrics_and_exact_season_weeks(app):
@@ -87,6 +91,10 @@ def test_rewind_uses_real_earned_metrics_and_exact_season_weeks(app):
     assert len(data["weeklyScores"]) == 6
     assert data["weeklyScores"][0]["points"] == 140
     assert data["weeklyScores"][1]["points"] == 100
+    assert len(data["weeklyGameScores"]) == 6
+    assert data["weeklyGameScores"][0]["games"]["trivia"] == 80
+    assert data["weeklyGameScores"][0]["games"]["word"] == 60
+    assert data["weeklyGameScores"][1]["games"]["trivia"] == 100
     assert data["signature"]["key"] == "trivia"
     assert data["signature"]["average"] == 90
     assert data["rank"] == 1
@@ -122,6 +130,7 @@ def test_approved_rewind_stays_frozen_after_late_archive_play(app, client):
     assert after["points"] == before["points"] == 75
     assert after["gamesPlayed"] == before["gamesPlayed"] == 1
     assert after["insights"] == before["insights"]
+    assert after["weeklyGameScores"] == before["weeklyGameScores"]
     assert after["signature"]["key"] == "word"
     assert after["champion"] is True
 
