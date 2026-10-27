@@ -60,9 +60,42 @@
 .rewind-preview-tag { color: #ffce73; text-align: center; font-size: 9px; }
 .rewind-exit { display: grid; place-items: center; width: 34px; height: 34px; text-decoration: none; color: #c6d8eb; border-radius: 50%; font-size: 18px; }
 .rewind-exit:hover { background: #17243a; }
-.rewind-progress { display: flex; gap: 5px; margin: 11px 0 14px; height: 4px; }
-.rewind-progress button { cursor: pointer; min-width: 0; flex: 1; border: 0; border-radius: 99px; background: #31415b; padding: 0; transition: background .2s; }
-.rewind-progress button.is-seen { background: var(--rewind-blue); }
+.rewind-progress {
+  display: flex;
+  gap: 6px;
+  height: 44px;
+  margin: 0 0 5px;
+  align-items: stretch;
+}
+/* The accessible tap target stays 44px; only its inset visual is 4px high.
+   This prevents the global button min-height from overflowing into the card. */
+.rewind-progress button {
+  position: relative;
+  display: block;
+  cursor: pointer;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  appearance: none;
+}
+.rewind-progress button::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
+  border-radius: var(--crew-radius-pill, 999px);
+  background: rgba(160, 185, 210, .32);
+  transition: background-color var(--crew-motion-fast, 180ms) ease;
+}
+.rewind-progress button.is-seen::before { background: var(--rewind-blue); }
 .rewind-stage {
   --scene-start: #101d28;
   --scene-end: #04090e;
@@ -84,19 +117,6 @@
     radial-gradient(ellipse 90% 70% at -10% 110%, var(--scene-low-glow), transparent 76%),
     linear-gradient(158deg, var(--scene-start) 0%, var(--scene-end) 100%);
   transition: background .25s;
-}
-.rewind-stage::before {
-  position: absolute;
-  z-index: -1;
-  content: "";
-  width: 415px;
-  height: 415px;
-  top: -185px;
-  right: -195px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.14);
-  box-shadow: 0 0 0 58px rgba(255,255,255,.025), 0 0 0 122px rgba(255,255,255,.018);
-  pointer-events: none;
 }
 .rewind-tone-opening {
   --scene-start:#10212b; --scene-end:#050a10;
@@ -157,7 +177,6 @@
   --scene-accent:var(--crew-game-tick-tock, #c55cff);
   --scene-glow:color-mix(in srgb, var(--crew-game-tick-tock, #c55cff) 27%, transparent);
 }
-.rewind-orbit { position: absolute; z-index: -1; top: -120px; right: -65px; font-size: 500px; line-height: 1; opacity: .055; font-weight: 900; user-select: none; }
 .rewind-scene { flex: 1; display: flex; flex-direction: column; animation: rewind-appear .4s cubic-bezier(.2,.75,.3,1) both; }
 .rewind-copy { flex: 1; min-height: 490px; padding: clamp(26px,7%,44px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 .rewind-eyebrow { display: block; margin-bottom: auto; color: rgba(255,255,255,.8); font-size: 11px; font-weight: 900; letter-spacing: .18em; }
@@ -230,7 +249,7 @@
   .crew-rewind { padding: 10px 10px 15px; align-items: stretch; }
   .rewind-shell { display: flex; flex-direction: column; width: 100%; }
   .rewind-header { min-height: 47px; padding: 0 5px; }
-  .rewind-progress { margin: 7px 0 9px; }
+  .rewind-progress { margin: 0 0 4px; }
   .rewind-stage { flex: 1; min-height: 0; border-radius: 15px; }
   .rewind-copy { min-height: 0; padding: clamp(22px, 6vw, 30px); }
   .rewind-avatar { width: 104px; height: 104px; font-size: 60px; }
@@ -241,7 +260,7 @@
 @media (max-height: 660px) {
   .crew-rewind { padding-top: 6px; padding-bottom: 8px; }
   .rewind-header { min-height: 35px; }
-  .rewind-progress { margin: 5px 0; }
+  .rewind-progress { margin: 0; }
   .rewind-copy h1, .rewind-copy h2 { font-size: clamp(35px, 8.8vh, 59px); }
   .rewind-avatar { width: 70px; height: 70px; font-size: 42px; margin: 10px 0; }
   .rewind-big-number { font-size: 90px; }
