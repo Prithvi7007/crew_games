@@ -77,3 +77,34 @@ def test_film_is_single_continuous_stage_not_a_seven_panel_dashboard():
     assert "rewind-film-line" not in CSS
     assert "rewind-film-timeline button" in CSS
     assert ".rewind-film-arena svg" in CSS
+
+
+def test_opening_symbols_have_distinct_positions_and_labels_below_them():
+    # Catch the layout regression visible in the owner screenshot: game labels
+    # should never share the center coordinate of their symbols.
+    assert "[125,355,585,815]" in FILM
+    assert "[62,164,266,368]" in FILM
+    assert "const introY=compact ? 197 : 240" in FILM
+    assert "<text x={targetX} y={targetY+" in FILM
+    assert "phase==='intro'?(compact?62:83)" in FILM
+    assert "textAnchor=\"middle\"" in FILM
+    assert "rewind-film-arena-intro svg text" in CSS
+
+
+def test_rewind_restores_personal_story_after_the_game_race():
+    assert "phase==='identity'" in FILM
+    assert "phase==='trophy'" in FILM
+    assert "phase==='finale'" in FILM
+    assert "const style = insights.playStyle" in FILM
+    assert "const momentum = insights.momentum" in FILM
+    assert "insights.highestGame" in FILM
+    assert "recap.badges?.featured" in FILM
+    assert "<BadgeMedallion badge={trophy}" in FILM
+    assert "(trophy?'trophy':'finale')" in FILM  # no fake award if none was earned
+    assert "recap.champion" in FILM
+    assert "onClick={shareStory}" in FILM
+    assert "navigator.share" in FILM
+    assert ".rewind-film-personality" in CSS
+    assert ".rewind-film-award" in CSS
+    assert ".rewind-film-finale-object" in CSS
+    assert ".rewind-film-timeline[hidden]" in CSS
