@@ -43,7 +43,7 @@ def test_progress_keeps_seven_interactive_accessible_story_steps():
     assert "PAGES.map((item, index) => <button" in JSX
     assert "aria-label={'Go to story ' + (index + 1)}" in JSX
     assert "aria-current={index === step ? 'step' : undefined}" in JSX
-    assert "onClick={() => { setStep(index); setFeedback(''); }}" in JSX
+    assert "onClick={() => { setDirection(index < step ? -1 : 1); setStep(index); setFeedback(''); }}" in JSX
     assert ".rewind-progress button:focus-visible" in CSS or (
         ".crew-rewind button:focus-visible" in CSS
     )

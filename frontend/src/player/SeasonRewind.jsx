@@ -8,10 +8,12 @@ const PAGES = ['opening', 'points', 'specialty', 'best-week', 'badges', 'placeme
 export default function SeasonRewind({ data }) {
   const recap = data.rewind || {};
   const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [feedback, setFeedback] = useState('');
   const touchX = useRef(null);
   const last = PAGES.length - 1;
   const next = useCallback(direction => {
+    setDirection(direction < 0 ? -1 : 1);
     setStep(current => Math.min(last, Math.max(0, current + direction)));
     setFeedback('');
   }, [last]);
@@ -24,9 +26,9 @@ export default function SeasonRewind({ data }) {
       } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
         event.preventDefault(); next(-1);
       } else if (event.key === 'Home') {
-        event.preventDefault(); setStep(0);
+        event.preventDefault(); setDirection(-1); setStep(0);
       } else if (event.key === 'End') {
-        event.preventDefault(); setStep(last);
+        event.preventDefault(); setDirection(1); setStep(last);
       }
     }
     window.addEventListener('keydown', keydown);
@@ -167,15 +169,15 @@ export default function SeasonRewind({ data }) {
         <a href="/home" className="rewind-exit" aria-label="Exit Season Rewind">✕</a>
       </header>
       <div className="rewind-progress" aria-label={'Story ' + (step + 1) + ' of ' + PAGES.length}>
-        {PAGES.map((item, index) => <button type="button" key={item} aria-label={'Go to story ' + (index + 1)} aria-current={index === step ? 'step' : undefined} className={index <= step ? 'is-seen' : ''} onClick={() => { setStep(index); setFeedback(''); }}/>)}
+        {PAGES.map((item, index) => <button type="button" key={item} aria-label={'Go to story ' + (index + 1)} aria-current={index === step ? 'step' : undefined} className={index <= step ? 'is-seen' : ''} onClick={() => { setDirection(index < step ? -1 : 1); setStep(index); setFeedback(''); }}/>)}
       </div>
       <main className={'rewind-stage rewind-tone-' + PAGES[step] + (PAGES[step] === 'specialty' && GAME_COLORS[specialty?.key] ? ' rewind-game-' + specialty.key : '')} aria-label="Your CREW Season One recap">
-        <div key={PAGES[step]} className="rewind-scene">{pages[PAGES[step]]}</div>
+        <div key={PAGES[step]} className="rewind-scene" style={{'--rewind-shift': direction < 0 ? '-14px' : '14px'}}>{pages[PAGES[step]]}</div>
         <div className="rewind-stage-footer" aria-hidden="true"><span>CREW GAMES</span><span>SEASON 01 · 2026</span></div>
       </main>
       <nav className="rewind-navigation" aria-label="Recap story controls">
         <button type="button" className="rewind-back" disabled={step === 0} onClick={() => next(-1)}>← Previous</button>
-        <span className="rewind-page-count">{String(step + 1).padStart(2, '0')} / {String(PAGES.length).padStart(2, '0')}</span>
+        <span className="rewind-page-count" role="status" aria-live="polite" aria-atomic="true">{String(step + 1).padStart(2, '0')} / {String(PAGES.length).padStart(2, '0')}</span>
         <button type="button" className="rewind-next" onClick={() => step === last ? setStep(0) : next(1)}>{step === last ? 'Replay ↺' : 'Next →'}</button>
       </nav>
     </div>
