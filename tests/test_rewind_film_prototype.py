@@ -1,4 +1,4 @@
-"""CREW Rewind film lab stays in preview, using real cutoff-scoped game scores."""
+"""CREW Rewind Film Lab: score-driven visuals, permission gate, real season data."""
 from datetime import date
 from pathlib import Path
 
@@ -10,25 +10,28 @@ ROOT = Path(__file__).resolve().parents[1]
 MAIN = (ROOT / "frontend/src/player/main.jsx").read_text()
 FILM = (ROOT / "frontend/src/player/RewindFilmPrototype.jsx").read_text()
 CSS = (ROOT / "frontend/src/player/styles/rewind-film.css").read_text()
+ROUTE = (ROOT / "app/main/routes.py").read_text()
 
 
-def test_prototype_only_selected_on_administrator_preview_with_explicit_query():
-    assert "data.rewind?.preview === true" in MAIN
-    assert "get('prototype')==='1'" in MAIN
+def test_prototype_is_server_gated_and_live_rewind_is_still_default():
+    assert 'request.args.get("prototype") == "1"' in ROUTE
+    assert 'user.get("role") in ("admin", "owner")' in ROUTE
+    assert "if film_requested and not film_preview:" in ROUTE
+    assert 'rewindFilmPrototype": film_preview' in ROUTE
+    assert "data.rewindFilmPrototype === true" in MAIN
     assert "RewindFilmPrototype : pages[root.dataset.page]" in MAIN
     assert "rewind:SeasonRewind" in MAIN
     assert "/rewind?preview=1" in FILM
-    assert "EXPERIMENTAL · OWNER PREVIEW" in FILM
 
 
-def test_weekly_game_race_uses_real_per_game_scores_and_six_season_weeks(app):
+def test_weekly_race_uses_real_cutoff_scoped_game_scores(app):
     with app.app_context():
         season = get_season_for_date(date(2026, 10, 26))
-        player = create_profile(
+        profile = create_profile(
             "FilmTester", generate_password_hash("test-test-test"),
             "⭐", generate_password_hash("test-key"),
         )
-        pid = int(player["id"])
+        pid = int(profile["id"])
         finalize_game_stats(profile_user_key(pid), "trivia", "2026-09-22", 85, True)
         finalize_game_stats(profile_user_key(pid), "word", "2026-09-23", 70, True)
         finalize_game_stats(profile_user_key(pid), "trivia", "2026-09-29", 92, True)
@@ -42,14 +45,30 @@ def test_weekly_game_race_uses_real_per_game_scores_and_six_season_weeks(app):
     assert sum(sum(item["games"].values()) for item in data["weeklyGameScores"]) == data["points"] == 247
 
 
-def test_data_drives_actual_animation_and_reduced_motion_fallback():
-    assert "history.slice(0, week + 1)" in FILM
-    assert "item.games?.[key] || 0" in FILM
-    assert "layout={!reduce}" in FILM
-    assert "setPlaying(false)" in FILM
-    assert "if (!playing || reduce || phase !== 'race')" in FILM
+def test_game_visuals_follow_weekly_scores_not_fake_keyframes():
+    assert "history" not in FILM or "weeklyGameScores" in FILM
+    assert "const weeks = recap.weeklyGameScores || []" in FILM
+    assert "weeks.slice(0, limit + 1)" in FILM
+    assert "Math.round((game.score/maximum)*600)" in FILM
+    assert "leadChanges += 1" in FILM
+    assert "game.score === topScore" in FILM or "item.score === topScore" in FILM
+    assert "<m.path" in FILM
+    assert "<m.circle" in FILM
+    assert "animate={{cx:targetX,cy:targetY" in FILM
+    assert "Math.round(100 * topScore / total)" in FILM
+    assert "setTimeout" in FILM
+    assert 'phase === "race"' not in FILM or "phase" in FILM
     assert "useReducedMotion()" in FILM
-    assert 'aria-label={\'Game scores through week \' ' in FILM
-    assert "initial={reduce ? false" in FILM
-    assert ".rewind-film-discovery" in CSS
-    assert ".rewind-film-runner" in CSS
+    assert "if (reduce || !weeks.length)" in FILM
+    assert "aria-current={phase==='race'&&week===i?'step':undefined}" in FILM
+
+
+def test_film_is_single_continuous_stage_not_a_seven_panel_dashboard():
+    assert '<svg viewBox="0 0 940 480"' in FILM
+    assert "rewind-film-field" in FILM
+    assert "rewind-film-discovery-copy" in FILM
+    assert "7 CHAPTERS" not in FILM
+    assert "ORIGINAL SERIES" not in FILM
+    assert "rewind-film-line" not in CSS
+    assert "rewind-film-timeline button" in CSS
+    assert ".rewind-film-arena svg" in CSS

@@ -47,6 +47,11 @@ def season_one_rewind():
                    if item["number"] == 1), None)
     if not season:
         abort(404)
+    # Restrict this experimental film to staff even after finalization.
+    film_requested = request.args.get("prototype") == "1"
+    film_preview = film_requested and user.get("role") in ("admin", "owner")
+    if film_requested and not film_preview:
+        abort(404)
     preview = (
         user.get("role") in ("admin", "owner")
         and request.args.get("preview") == "1"
@@ -56,7 +61,7 @@ def season_one_rewind():
         abort(404)
     return render_player(
         "rewind", "Season One Rewind", "crew-rewind-page",
-        {"rewind": story}, user,
+        {"rewind": story, "rewindFilmPrototype": film_preview}, user,
     )
 
 
