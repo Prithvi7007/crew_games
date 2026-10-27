@@ -148,3 +148,57 @@
     transition-duration:.01ms!important;scroll-behavior:auto!important;
   }
 }
+/* Film Lab refinement: data-driven hierarchy, no boxed statistic panels. */
+.rewind-film-field {
+  transition: color .3s ease;
+}
+.rewind-film-narration h1 {
+  min-height: 1.8em;
+}
+.rewind-film-arena svg {
+  max-height: min(49vh, 535px);
+}
+.rewind-film-discovery .rewind-film-narration h1 {
+  font-size: clamp(43px, 6.5vw, 82px);
+  min-height: 0;
+}
+.rewind-film-discovery-copy {
+  gap: 5px;
+}
+.rewind-film-discovery-copy h2 {
+  font-size:clamp(39px,5.8vw,73px);
+}
+.rewind-film-discovery-copy .rewind-film-impact {
+  display:block;
+  margin: 7px 0 0;
+  font:1000 clamp(74px,10vw,136px)/.86 var(--crew-font-display,Manrope,Inter,sans-serif);
+  letter-spacing:-.09em;
+  color:var(--film-accent);
+  text-shadow:0 0 62px color-mix(in srgb,var(--film-accent) 30%,transparent);
+}
+.rewind-film-discovery-copy .rewind-film-impact-label {
+  font-size:11px;
+  letter-spacing:.14em;
+  font-weight:900;
+  color:#b5d5e5;
+  padding:5px 0 14px;
+}
+.rewind-film-discovery-copy>p {
+  max-width:620px;
+  font-size:clamp(13px,1.5vw,17px);
+}
+@media(max-width:760px) {
+  .rewind-film-arena svg {
+    max-height:none;
+    width:100%;
+  }
+  .rewind-film-narration h1 {font-size:clamp(42px,10vw,70px);}
+  .rewind-film-discovery .rewind-film-narration h1 {font-size:clamp(37px,9vw,59px);}
+  .rewind-film-discovery-copy .rewind-film-impact {font-size:clamp(71px,20vw,110px);}
+  .rewind-film-discovery-copy .rewind-film-impact-label {font-size:9px;line-height:1.5;}
+}
+@media(max-width:390px) {
+  .rewind-film-narration h1 {font-size:44px;min-height:0;}
+  .rewind-film-discovery .rewind-film-narration h1 {font-size:37px;}
+  .rewind-film-discovery-copy .rewind-film-impact {font-size:73px;}
+}

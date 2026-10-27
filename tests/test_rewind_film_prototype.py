@@ -49,7 +49,10 @@ def test_game_visuals_follow_weekly_scores_not_fake_keyframes():
     assert "history" not in FILM or "weeklyGameScores" in FILM
     assert "const weeks = recap.weeklyGameScores || []" in FILM
     assert "weeks.slice(0, limit + 1)" in FILM
-    assert "Math.round((game.score/maximum)*600)" in FILM
+    assert "Math.round((game.score/maximum)*(compact ? 252 : 600))" in FILM
+    assert "rankingY[game.key]" in FILM
+    assert "leadChanged ? 1650 : 1150" in FILM
+    assert "const theme = GAMES[phase==='discovery' ? lead : phase==='race' ? liveLeader : null]" in FILM
     assert "leadChanges += 1" in FILM
     assert "game.score === topScore" in FILM or "item.score === topScore" in FILM
     assert "<m.path" in FILM
@@ -59,12 +62,14 @@ def test_game_visuals_follow_weekly_scores_not_fake_keyframes():
     assert "setTimeout" in FILM
     assert 'phase === "race"' not in FILM or "phase" in FILM
     assert "useReducedMotion()" in FILM
-    assert "if (reduce || !weeks.length)" in FILM
+    assert "if (reduce || !weeks.length || discovery.noGames)" in FILM
     assert "aria-current={phase==='race'&&week===i?'step':undefined}" in FILM
 
 
 def test_film_is_single_continuous_stage_not_a_seven_panel_dashboard():
-    assert '<svg viewBox="0 0 940 480"' in FILM
+    assert "viewBox={compact ? '0 0 430 440' : '0 0 940 480'}" in FILM
+    assert 'className="rewind-film-impact"' in FILM
+    assert ".rewind-film-discovery-copy .rewind-film-impact" in CSS
     assert "rewind-film-field" in FILM
     assert "rewind-film-discovery-copy" in FILM
     assert "7 CHAPTERS" not in FILM

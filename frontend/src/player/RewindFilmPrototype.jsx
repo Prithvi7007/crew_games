@@ -10,6 +10,11 @@ const GAMES = {
 };
 const EASE = [.2, .8, .2, 1];
 const LANES = [90, 190, 290, 390];
+const ranked = (scores) => [...scores].sort((a,b) => b.score-a.score || ORDER.indexOf(a.key)-ORDER.indexOf(b.key));
+const uniqueLeader = (scores) => {
+  const placed = ranked(scores);
+  return placed[0]?.score > 0 && placed[0].score > (placed[1]?.score || 0) ? placed[0].key : null;
+};
 const SUM = (weeks, limit) => ORDER.map(key => ({
   key,
   score: weeks.slice(0, limit + 1).reduce((total, row) => total + (Number(row.games?.[key]) || 0), 0),
@@ -42,12 +47,28 @@ export default function RewindFilmPrototype({data}) {
   const [week, setWeek] = useState(0);
   const [phase, setPhase] = useState('intro');
   const [playing, setPlaying] = useState(false);
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 760px)');
+    const update = () => setCompact(mq.matches);
+    mq.addEventListener?.('change', update);
+    update();
+    return () => mq.removeEventListener?.('change', update);
+  }, []);
   const discovery = useMemo(()=>filmDiscovery(weeks,recap.gamesPlayed),[weeks,recap.gamesPlayed]);
   const scores = useMemo(()=>SUM(weeks,week),[weeks,week]);
+  const ranking = ranked(scores);
+  const screenLanes = compact ? [53, 155, 257, 359] : LANES;
+  const rankingY = Object.fromEntries(ranking.map((item,i)=>[item.key, screenLanes[i]]));
+  const liveLeader = uniqueLeader(scores);
+  const previousLeader = week > 0 ? uniqueLeader(SUM(weeks,week-1)) : null;
+  const leadChanged = !!liveLeader && !!previousLeader && liveLeader !== previousLeader;
+  const weekName = weeks[week]?.number || week+1;
   const maximum = Math.max(1,...SUM(weeks,weeks.length-1).map(g=>g.score));
   const lead = discovery.leaders[0]?.key;
   const singleLeader = discovery.leaders.length === 1;
-  const theme = GAMES[lead]?.color || '#55b9ff';
+  // Do not spoil the final winner in the first seconds of the film.
+  const theme = GAMES[phase==='discovery' ? lead : phase==='race' ? liveLeader : null]?.color || '#55b9ff';
   const fullWeek = week >= weeks.length - 1;
 
   useEffect(() => {
@@ -57,12 +78,12 @@ export default function RewindFilmPrototype({data}) {
         setPlaying(false);
         setPhase('discovery');
       } else setWeek(old => Math.min(old+1,weeks.length-1));
-    }, 1030);
+    }, leadChanged ? 1650 : 1150);
     return () => clearTimeout(id);
-  },[week,weeks.length,playing,phase,reduce]);
+  },[week,weeks.length,playing,phase,reduce,leadChanged]);
 
   function play() {
-    if (reduce || !weeks.length) {
+    if (reduce || !weeks.length || discovery.noGames) {
       setWeek(Math.max(0,weeks.length-1));
       setPlaying(false);
       setPhase('discovery');
@@ -91,16 +112,15 @@ export default function RewindFilmPrototype({data}) {
   const filmTitle = discovery.noGames
     ? 'Your next chapter is unwritten.'
     : !singleLeader
-      ? 'You had more than one frontrunner.'
-      : 'One game kept pulling ahead.';
+      ? 'A dead heat at the finish.'
+      : GAMES[lead].name + ' finished in front.';
   const revealName = discovery.noGames ? 'Season Two awaits'
     : discovery.leaders.map(g=>GAMES[g.key].name).join(' + ');
   const detail = discovery.noGames
     ? 'There are no completed games in this season to compare yet.'
     : singleLeader
-      ? GAMES[lead].name + ' earned ' + discovery.topScore + ' of your ' + discovery.total +
-        ' points (' + discovery.percent + '%)—more than any other game.'
-      : 'These games tied at ' + discovery.topScore + ' points each. Your season had a shared lead.';
+      ? GAMES[lead].name + ' earned ' + discovery.topScore + ' of your ' + discovery.total + ' season points.'
+      : 'Each of these games earned ' + discovery.topScore + ' points. Your season had a shared lead.';
 
   return <LazyMotion features={domAnimation} strict><MotionConfig reducedMotion="user">
     <main className={'rewind-film rewind-film-' + phase} style={{'--film-accent':theme}}
@@ -116,18 +136,20 @@ export default function RewindFilmPrototype({data}) {
         <div className="rewind-film-narration" aria-live="polite">
           <m.p className="rewind-film-introline" animate={{opacity:1}} initial={false}>
             {phase==='intro' ? (recap.username || 'YOUR') + ', THIS WAS YOUR SEASON.'
-              : phase==='race' ? 'WATCH THE SEASON UNFOLD' : 'HERE IS WHAT EMERGED'}
+              : phase==='race' ? 'WEEK '+String(weekName).padStart(2,'0')+' / '+String(weeks.length).padStart(2,'0') : 'WHAT YOUR SEASON REVEALED'}
           </m.p>
           <m.h1 layout animate={{opacity:1}} transition={{duration:reduce?0:.5}}>
-            {phase === 'intro' ? <>Every game<br/><em>left a mark.</em></>
-              : phase === 'race' ? <>Six weeks.<br/><em>Four contenders.</em></>
+            {phase === 'intro' ? <>Your season<br/><em>had a story.</em></>
+              : phase === 'race' ? (leadChanged ? <>Plot twist.<br/><em>{GAMES[liveLeader].name} takes over.</em></>
+                : liveLeader ? <>{GAMES[liveLeader].name}<br/><em>leads the way.</em></>
+                : <>The race<br/><em>is wide open.</em></>)
               : filmTitle}
           </m.h1>
         </div>
 
         <div className="rewind-film-arena">
-          <svg viewBox="0 0 940 480" preserveAspectRatio="xMidYMid meet"
-            role="img" aria-label={'Cumulative scores through week '+(week+1)+': '+
+          <svg viewBox={compact ? '0 0 430 440' : '0 0 940 480'} preserveAspectRatio="xMidYMid meet"
+            role="img" aria-label={phase==='intro' ? 'Four CREW games ready to reveal the season' : 'Cumulative scores through week '+(week+1)+': '+
               scores.map(g=>GAMES[g.key].name+' '+g.score+' points').join(', ')}>
             <defs>
               {ORDER.map(key=><linearGradient id={'film-stream-'+key} key={key} x1="0" y1="0" x2="1" y2="0">
@@ -137,32 +159,41 @@ export default function RewindFilmPrototype({data}) {
               </linearGradient>)}
             </defs>
             {scores.map((game,index)=>{
-              const y=LANES[index];
-              const x=140+Math.round((game.score/maximum)*600);
-              const targetX=phase==='discovery' && discovery.leaders.some(item=>item.key===game.key) ? 490 : x;
-              const targetY=phase==='discovery' && discovery.leaders.some(item=>item.key===game.key) ? 220+ (discovery.leaders.length>1 ? (discovery.leaders.findIndex(item=>item.key===game.key)*112 -56) : 0) : y;
+              const y=screenLanes[index];
+              const x=(compact ? 65 : 140)+Math.round((game.score/maximum)*(compact ? 252 : 600));
               const isLeader=discovery.leaders.some(item=>item.key===game.key);
+              const spotlightIndex=discovery.leaders.findIndex(item=>item.key===game.key);
+              const targetX=phase==='discovery' && isLeader ? (compact ? 215 : 490) : phase==='intro' ? (compact ? 72 : 180) : x;
+              const targetY=phase==='discovery' && isLeader
+                ? (compact ? 214 : 220) + (spotlightIndex-(discovery.leaders.length-1)/2)*(compact ? 74 : 82)
+                : phase==='intro' ? y : rankingY[game.key];
               const faded=phase==='discovery' && !isLeader;
+              const leadingNow=phase==='race' && liveLeader===game.key;
+              const spotlightRadius=discovery.leaders.length>1?38:64;
+              const radius=phase==='discovery' && isLeader?spotlightRadius:leadingNow?34:25;
+              const startX=compact ? 27 : 82;
               const duration=reduce?0:.85;
               return <g key={game.key} className={'rewind-film-contender rewind-film-contender-'+game.key}>
-                <m.path d={'M 82 '+y+' C '+(90+x*.22)+' '+(y-44)+' '+(x-65)+' '+(y+24)+' '+x+' '+y}
+                <m.path d={'M '+startX+' '+y+' C '+(startX+8+x*.22)+' '+(y-44)+' '+(x-65)+' '+(y+24)+' '+x+' '+y}
                   fill="none" stroke={'url(#film-stream-'+game.key+')'} strokeWidth="5" strokeLinecap="round"
-                  initial={false} animate={{opacity:phase==='discovery' ? .06 : .9,
-                    d:'M 82 '+y+' C '+(90+targetX*.22)+' '+(y-44)+' '+(targetX-65)+' '+(y+24)+' '+targetX+' '+targetY}}
+                  initial={false} animate={{opacity:phase==='intro' ? .15 : phase==='discovery' ? .06 : .9,
+                    d:'M '+startX+' '+y+' C '+(startX+8+targetX*.22)+' '+(y-44)+' '+(targetX-65)+' '+(y+24)+' '+targetX+' '+targetY}}
                   transition={{duration,ease:EASE}}/>
-                <m.circle initial={false} animate={{cx:targetX,cy:targetY,r:phase==='discovery' && isLeader?64:25,opacity:faded?0:1}}
+                <m.circle initial={false} animate={{cx:targetX,cy:targetY,r:radius+13,opacity:leadingNow || (phase==='discovery' && isLeader) ? .3 : 0}}
+                  transition={{duration,ease:EASE}} fill="none" stroke={GAMES[game.key].color} strokeWidth="1.5"/>
+                <m.circle initial={false} animate={{cx:targetX,cy:targetY,r:radius,opacity:faded?0:1}}
                   transition={{duration,ease:EASE}} fill="#061725" stroke={GAMES[game.key].color}
-                  strokeWidth={phase==='discovery'&&isLeader?3:2}/>
+                  strokeWidth={isLeader || leadingNow ? 3 : 2}/>
                 <m.text initial={false}
-                  animate={{x:targetX,y:targetY+9,opacity:faded?0:1,fontSize:phase==='discovery'&&isLeader?70:28}}
+                  animate={{x:targetX,y:targetY+(phase==='discovery'&&isLeader&&discovery.leaders.length===1?22:10),opacity:faded?0:1,fontSize:phase==='discovery'&&isLeader?(discovery.leaders.length===1?70:42):leadingNow?34:28}}
                   transition={{duration,ease:EASE}}
                   textAnchor="middle" fontWeight="900" fill={GAMES[game.key].color}>
                   {GAMES[game.key].symbol}
                 </m.text>
-                <m.text initial={false} animate={{x:phase==='discovery'?targetX:Math.min(830,x+38),y:phase==='discovery'?targetY+94:y+6,opacity:faded?0:1}}
-                  transition={{duration,ease:EASE}} textAnchor={phase==='discovery'?'middle':'start'}
-                  fontSize={phase==='discovery'?20:18} fill="#e2f4ff" fontWeight="800">
-                  {GAMES[game.key].name}{phase==='discovery'?'':'  ·  '+game.score+' pts'}
+                <m.text initial={false} animate={{x:phase==='discovery'||compact?targetX:Math.min(830,x+38),y:phase==='discovery'?targetY+(compact?72:94):compact?targetY+51:targetY+6,opacity:phase==='intro'?.5:faded?0:1}}
+                  transition={{duration,ease:EASE}} textAnchor={phase==='discovery'||compact?'middle':'start'}
+                  fontSize={phase==='discovery'?20:compact?20:18} fill="#e2f4ff" fontWeight="800">
+                  {GAMES[game.key].name}{phase==='discovery'||phase==='intro'||compact?'':'  ·  '+game.score+' pts'}
                 </m.text>
               </g>;
             })}
@@ -170,11 +201,13 @@ export default function RewindFilmPrototype({data}) {
         </div>
 
         <div className="rewind-film-insight" aria-live="polite">
-          {phase==='intro' ? <p>Your results will move the four games across the screen—one week at a time.</p>
-            : phase==='race' ? <p>Week {week+1} of {weeks.length || 6}. Every movement is drawn from your actual scores.</p>
+          {phase==='intro' ? <p>Discover what six weeks of playing revealed about you.</p>
+            : phase==='race' ? <p>{leadChanged ? 'The lead just changed.' : liveLeader ? GAMES[liveLeader].name+' is out front.' : 'There is no clear leader this week.'}</p>
             : <div className="rewind-film-discovery-copy">
                 <span>YOUR POINTS LEADER</span>
                 <h2>{revealName}</h2>
+                {!discovery.noGames && <m.strong className="rewind-film-impact" initial={reduce ? false : {opacity:0, y:14}} animate={{opacity:1,y:0}} transition={{duration:reduce?0:.6,delay:reduce?0:.25}}>{discovery.percent}%</m.strong>}
+                {!discovery.noGames && <span className="rewind-film-impact-label">OF YOUR SEASON POINTS {singleLeader ? 'CAME FROM THIS GAME' : 'CAME FROM EACH TIED GAME'}</span>}
                 <p>{detail}</p>
                 {discovery.leadChanges>0 && <p className="rewind-film-twist">The lead changed {discovery.leadChanges} {discovery.leadChanges===1?'time':'times'} along the way.</p>}
                 {singleLeader && recap.signature?.key && recap.signature.key!==lead &&
