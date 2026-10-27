@@ -170,7 +170,6 @@ export default function SeasonRewind({ data }) {
         {PAGES.map((item, index) => <button type="button" key={item} aria-label={'Go to story ' + (index + 1)} aria-current={index === step ? 'step' : undefined} className={index <= step ? 'is-seen' : ''} onClick={() => { setStep(index); setFeedback(''); }}/>)}
       </div>
       <main className={'rewind-stage rewind-tone-' + PAGES[step] + (PAGES[step] === 'specialty' && GAME_COLORS[specialty?.key] ? ' rewind-game-' + specialty.key : '')} aria-label="Your CREW Season One recap">
-        <div className="rewind-orbit" aria-hidden="true">✳</div>
         <div key={PAGES[step]} className="rewind-scene">{pages[PAGES[step]]}</div>
         <div className="rewind-stage-footer" aria-hidden="true"><span>CREW GAMES</span><span>SEASON 01 · 2026</span></div>
       </main>
