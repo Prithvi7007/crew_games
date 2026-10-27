@@ -9,6 +9,7 @@ from datetime import date
 
 from app.badges import BADGES_BY_CODE
 from app.db import get_db
+from app.rewind_insights import build_rewind_insights
 from app.schedule import get_week_start
 
 _GAME_NAMES = {
@@ -179,6 +180,13 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
         "participants": len(totals),
         "signature": strongest,
         "persona": _PERSONAS[strongest["key"]] if strongest else "The CREW Original",
+        "insights": build_rewind_insights(
+            mine, completions, profile_id=profile_id,
+            season_start=season["start_date"],
+            weeks_total=season["weeks_total"], signature=strongest,
+            rank=rank, participants=len(totals),
+            points=totals[int(profile_id)]["points"],
+        ),
         "bestWeek": best_week,
         "weeklyScores": [
             {"number": number, **weeks[number]}
