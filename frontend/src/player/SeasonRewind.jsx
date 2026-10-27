@@ -1,9 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BadgeMedallion } from './TrophyRoom';
+import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m, useReducedMotion } from 'motion/react';
 
 const GAME_ICONS = { mystery:'◆', trivia:'?', word:'W', tick_tock:'◷' };
 const GAME_COLORS = { mystery:'var(--crew-game-mystery, #55e6ac)', trivia:'var(--crew-game-trivia, #ffbd45)', word:'var(--crew-game-word, #55b9ff)', tick_tock:'var(--crew-game-tick-tock, #c55cff)' };
 const PAGES = ['opening', 'points', 'specialty', 'best-week', 'badges', 'placement', 'finale'];
+
+// Direction-dependent scenes; only transform and opacity are animated.
+const SCENE_VARIANTS = {
+  enter: direction => ({ opacity: 0, x: direction * 22, scale: .986 }),
+  center: { opacity: 1, x: 0, scale: 1 },
+  exit: direction => ({ opacity: 0, x: direction * -18, scale: .994 }),
+};
 
 export default function SeasonRewind({ data }) {
   const recap = data.rewind || {};
@@ -11,6 +19,9 @@ export default function SeasonRewind({ data }) {
   const [direction, setDirection] = useState(1);
   const [feedback, setFeedback] = useState('');
   const touchX = useRef(null);
+  const reduceMotion = useReducedMotion();
+  const revealStart = reduceMotion ? false : { opacity: 0, y: 12, scale: .95 };
+  const revealTransition = reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 190, damping: 24, delay: .12 };
   const last = PAGES.length - 1;
   const next = useCallback(direction => {
     setDirection(direction < 0 ? -1 : 1);
@@ -75,7 +86,7 @@ export default function SeasonRewind({ data }) {
     points: <div className="rewind-copy rewind-points">
       <span className="rewind-eyebrow">01 / THE NUMBERS</span>
       <h2>YOU SHOWED<br/>UP.</h2>
-      <strong className="rewind-big-number">{(recap.points || 0).toLocaleString()}</strong>
+      <m.strong className="rewind-big-number" initial={revealStart} animate={{opacity: 1, y: 0, scale: 1}} transition={revealTransition}>{(recap.points || 0).toLocaleString()}</m.strong>
       <p className="rewind-stat-label">POINTS EARNED</p>
       <div className="rewind-big-divider" aria-hidden="true"/>
       <p>Across <strong>{recap.gamesPlayed}</strong> of {recap.gamesTotal} season challenges.</p>
@@ -83,7 +94,7 @@ export default function SeasonRewind({ data }) {
     specialty: <div className="rewind-copy rewind-specialty">
       <span className="rewind-eyebrow">02 / YOUR SIGNATURE MOVE</span>
       {specialty ? <>
-        <div className="rewind-game-glyph" aria-hidden="true">{GAME_ICONS[specialty.key]}</div>
+        <m.div className="rewind-game-glyph" aria-hidden="true" initial={revealStart} animate={{opacity: 1, y: 0, scale: 1}} transition={revealTransition}>{GAME_ICONS[specialty.key]}</m.div>
         <h2>You had a<br/><em>specialty.</em></h2>
         <strong className="rewind-specialty-name">{specialty.name}</strong>
         <p>{specialty.average} points on average, across {specialty.played} {specialty.played === 1 ? 'game' : 'games'}.</p>
@@ -105,7 +116,7 @@ export default function SeasonRewind({ data }) {
       {week ? <>
         <h2>YOUR PEAK<br/>WEEK.</h2>
         <strong className="rewind-peak-label">WEEK {String(week.number).padStart(2, '0')}</strong>
-        <strong className="rewind-peak-points">{week.points} <small>PTS</small></strong>
+        <m.strong className="rewind-peak-points" initial={revealStart} animate={{opacity: 1, y: 0, scale: 1}} transition={revealTransition}>{week.points} <small>PTS</small></m.strong>
         <div className="rewind-weekly-chart" aria-label="Your points by season week">
           {(recap.weeklyScores || []).map(item => <div key={item.number} className={'rewind-week-column' + (item.number === week.number ? ' is-peak' : '')}>
             <div className="rewind-week-bar"><i style={{height: Math.max(item.points ? 5 : 0, Math.round(100 * item.points / weeklyMax)) + '%'}}/></div>
@@ -121,31 +132,31 @@ export default function SeasonRewind({ data }) {
     badges: <div className="rewind-copy rewind-badges">
       <span className="rewind-eyebrow">04 / THE TROPHY CASE</span>
       <h2>YOU LEFT<br/>YOUR MARK.</h2>
-      <strong className="rewind-badge-total">{recap.badges?.count || 0}</strong>
+      <m.strong className="rewind-badge-total" initial={revealStart} animate={{opacity: 1, y: 0, scale: 1}} transition={revealTransition}>{recap.badges?.count || 0}</m.strong>
       <p className="rewind-stat-label">{recap.badges?.count === 1 ? 'BADGE EARNED' : 'BADGES EARNED'}</p>
-      {trophy ? <div className="rewind-featured-badge">
+      {trophy ? <m.div className="rewind-featured-badge" initial={reduceMotion ? false : {opacity: 0, y: 14}} animate={{opacity: 1, y: 0}} transition={reduceMotion ? {duration: 0} : {duration: .45, delay: .18}}>
         <BadgeMedallion badge={trophy} size="normal" seasonNumber={1}/>
         <div><span>YOUR RAREST TROPHY</span><strong>{trophy.name}</strong><small>{trophy.rarity} · S01</small></div>
-      </div> : <p>There are plenty more achievements waiting for you next season.</p>}
+      </m.div> : <p>There are plenty more achievements waiting for you next season.</p>}
     </div>,
     placement: <div className="rewind-copy rewind-placement">
       <span className="rewind-eyebrow">05 / YOUR PLACE IN THE STORY</span>
       <h2>YOU WERE<br/>PART OF IT.</h2>
-      <strong className="rewind-placement-rank">{recap.rank ? '#' + recap.rank : '✦'}</strong>
+      <m.strong className="rewind-placement-rank" initial={revealStart} animate={{opacity: 1, y: 0, scale: 1}} transition={revealTransition}>{recap.rank ? '#' + recap.rank : '✦'}</m.strong>
       <p>{recap.rank ? 'YOUR SEASON RANK · ' + recap.participants + ' ACTIVE PLAYERS' : recap.participants + ' ACTIVE PLAYERS THIS SEASON'}</p>
       {recap.champion ? <span className="rewind-winner-stamp">✦ SEASON ONE CHAMPION ✦</span> :
         <span className="rewind-cohort-stamp">ONE CREW. SIX WEEKS. A LOT OF BRAGGING RIGHTS.</span>}
     </div>,
     finale: <div className="rewind-copy rewind-finale">
       <span className="rewind-eyebrow">CREW REWIND · YOUR FINALE CARD</span>
-      <span className="rewind-card-avatar" aria-hidden="true">{data.shell?.user?.avatar || '✦'}</span>
+      <m.span className="rewind-card-avatar" aria-hidden="true" initial={reduceMotion ? false : {opacity: 0, scale: .84}} animate={{opacity: 1, scale: 1}} transition={revealTransition}>{data.shell?.user?.avatar || '✦'}</m.span>
       <h2>{recap.username}</h2>
       <strong className="rewind-persona">{recap.persona}</strong>
-      <div className="rewind-final-stats">
+      <m.div className="rewind-final-stats" initial={reduceMotion ? false : {opacity: 0, y: 12}} animate={{opacity: 1, y: 0}} transition={reduceMotion ? {duration: 0} : {duration: .4, delay: .18}}>
         <div><strong>{recap.points}</strong><span>POINTS</span></div>
         <div><strong>{recap.gamesPlayed}</strong><span>GAMES</span></div>
         <div><strong>{recap.badges?.count || 0}</strong><span>BADGES</span></div>
-      </div>
+      </m.div>
       <strong className="rewind-finale-title">{placement}</strong>
       <p>Season 01 complete. This is just the beginning.</p>
       <button type="button" className="rewind-share-button" onClick={shareHighlights}>Share my Rewind <span aria-hidden="true">↗</span></button>
@@ -153,7 +164,7 @@ export default function SeasonRewind({ data }) {
     </div>,
   };
 
-  return <div className="crew-rewind" onTouchStart={event => {
+  return <LazyMotion features={domAnimation} strict><MotionConfig reducedMotion="user"><div className="crew-rewind" onTouchStart={event => {
     touchX.current = event.touches[0]?.clientX ?? null;
   }} onTouchEnd={event => {
     if (touchX.current === null) return;
@@ -172,14 +183,20 @@ export default function SeasonRewind({ data }) {
         {PAGES.map((item, index) => <button type="button" key={item} aria-label={'Go to story ' + (index + 1)} aria-current={index === step ? 'step' : undefined} className={index <= step ? 'is-seen' : ''} onClick={() => { setDirection(index < step ? -1 : 1); setStep(index); setFeedback(''); }}/>)}
       </div>
       <main className={'rewind-stage rewind-tone-' + PAGES[step] + (PAGES[step] === 'specialty' && GAME_COLORS[specialty?.key] ? ' rewind-game-' + specialty.key : '')} aria-label="Your CREW Season One recap">
-        <div key={PAGES[step]} className="rewind-scene" style={{'--rewind-shift': direction < 0 ? '-14px' : '14px'}}>{pages[PAGES[step]]}</div>
+        <AnimatePresence mode="wait" initial={false} custom={direction}>
+          <m.div key={PAGES[step]} className="rewind-scene" custom={direction} variants={SCENE_VARIANTS}
+            initial={reduceMotion ? false : 'enter'} animate="center" exit={reduceMotion ? undefined : 'exit'}
+            transition={reduceMotion ? {duration: 0} : {duration: .38, ease: [.22, 1, .36, 1]}}>
+            {pages[PAGES[step]]}
+          </m.div>
+        </AnimatePresence>
         <div className="rewind-stage-footer" aria-hidden="true"><span>CREW GAMES</span><span>SEASON 01 · 2026</span></div>
       </main>
       <nav className="rewind-navigation" aria-label="Recap story controls">
         <button type="button" className="rewind-back" disabled={step === 0} onClick={() => next(-1)}>← Previous</button>
         <span className="rewind-page-count" role="status" aria-live="polite" aria-atomic="true">{String(step + 1).padStart(2, '0')} / {String(PAGES.length).padStart(2, '0')}</span>
-        <button type="button" className="rewind-next" onClick={() => step === last ? setStep(0) : next(1)}>{step === last ? 'Replay ↺' : 'Next →'}</button>
+        <button type="button" className="rewind-next" onClick={() => { if (step === last) { setDirection(1); setStep(0); setFeedback(''); } else next(1); }}>{step === last ? 'Replay ↺' : 'Next →'}</button>
       </nav>
     </div>
-  </div>;
+  </div></MotionConfig></LazyMotion>;
 }

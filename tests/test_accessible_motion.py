@@ -3,7 +3,6 @@
 No animated element may require Web Animations to become visible: native
 animations are optional polish, not a dependency for gameplay/navigation.
 """
-import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,14 +58,13 @@ def test_entrance_targets_exclude_gameplay_and_user_controls():
 def test_rewind_has_directional_transitions_and_reduced_motion_exit():
     assert "const [direction, setDirection] = useState(1)" in REWIND
     assert "setDirection(index < step ? -1 : 1)" in REWIND
-    assert "'--rewind-shift': direction < 0 ? '-14px' : '14px'" in REWIND
     assert 'role="status" aria-live="polite" aria-atomic="true"' in REWIND
-    assert "rewind-scene-enter 360ms" in STYLE
-    assert "translate3d(var(--rewind-shift, 14px),0,0)" in STYLE
-    assert re.search(
-        r"@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{"
-        r"[^}]*\.rewind-scene\s*\{\s*animation:\s*none",
-        STYLE,
-        re.S,
-    )
+    assert "SCENE_VARIANTS" in REWIND
+    assert 'mode="wait"' in REWIND
+    assert "useReducedMotion()" in REWIND
+    assert 'reducedMotion="user"' in REWIND
+    assert "initial={reduceMotion ? false : 'enter'}" in REWIND
+    assert "exit={reduceMotion ? undefined : 'exit'}" in REWIND
+    assert "transition={reduceMotion ? {duration: 0}" in REWIND
+    assert "animation: rewind-scene-enter" not in STYLE
     assert "animation-iteration-count: infinite" not in STYLE
