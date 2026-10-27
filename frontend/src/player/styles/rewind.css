@@ -270,3 +270,421 @@
 @media (prefers-reduced-motion: reduce) {
   .rewind-progress button, .rewind-progress button::before, .rewind-stage { transition: none; }
 }
+/* REWIND 2.1 · Visual storytelling. Content stays real; the stage changes per chapter. */
+.crew-rewind { --rewind-display: var(--crew-font-display, Manrope, Inter, Arial, sans-serif); }
+.rewind-shell { width: min(100%, 1030px); }
+.rewind-stage {
+  min-height: 650px;
+  border-radius: 24px;
+  background: linear-gradient(150deg, var(--scene-start), var(--scene-end));
+  border-color: rgba(255,255,255,.13);
+  box-shadow: 0 32px 110px rgba(0,0,0,.6), inset 0 1px rgba(255,255,255,.09);
+}
+.rewind-scene { width: 100%; min-width: 0; isolation: isolate; }
+.rewind-copy {
+  position: relative;
+  isolation: isolate;
+  min-height: 608px;
+  padding: clamp(28px, 5.5vw, 56px);
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+.rewind-eyebrow {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: .22em;
+  color: rgba(255,255,255,.75);
+}
+.rewind-eyebrow-rule { width: 35px; height: 1px; background: currentColor; opacity: .55; }
+.rewind-chapter-kicker, .rewind-data-caption {
+  display: block;
+  color: var(--scene-accent);
+  font: 850 10px/1.3 var(--crew-font-body, Inter, sans-serif);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.rewind-copy h1, .rewind-copy h2 {
+  font-family: var(--rewind-display);
+  font-weight: 1000;
+  letter-spacing: -.075em;
+  text-wrap: balance;
+}
+.rewind-stage-footer { position: relative; z-index: 3; padding: 11px 24px 15px; border-top: 1px solid rgba(255,255,255,.07); }
+.rewind-navigation { max-width: 1030px; margin-inline: auto; }
+.rewind-navigation button { min-height: 44px; }
+
+/* 00 · Movie-poster title sequence. */
+.rewind-opening {
+  background:
+    radial-gradient(ellipse at 78% 28%, rgba(88,145,255,.23), transparent 43%),
+    linear-gradient(118deg,#061016 9%,#0b1c2f 55%,#081019 100%);
+}
+.rewind-opening::before {
+  content:"";
+  position:absolute;
+  width: 68%; height: 180%;
+  top:-38%; right:7%;
+  pointer-events:none;
+  background: linear-gradient(110deg, transparent 25%,rgba(131,200,255,.14) 50%,transparent 75%);
+  transform: rotate(-19deg);
+}
+.rewind-opening-art { position:absolute; top:9%; right:5%; width:49%; height:79%; pointer-events:none; }
+.rewind-opening-art::before {
+  content:""; position:absolute; inset:0;
+  clip-path:polygon(49% 0, 96% 16%, 83% 88%, 32% 100%, 0 45%);
+  background:linear-gradient(145deg,rgba(108,175,255,.22),rgba(165,86,255,.06) 48%,rgba(14,21,35,.06));
+  border:1px solid rgba(255,255,255,.16);
+  transform:rotate(7deg);
+}
+.rewind-opening-season {
+  position:absolute; top:2%; right:1%;
+  display:flex; flex-direction:column; text-align:right;
+  font:1000 clamp(32px,5vw,70px)/.8 var(--rewind-display);
+  letter-spacing:-.07em;
+  color:rgba(218,236,255,.45);
+}
+.rewind-opening-season span { font-size:clamp(140px,24vw,280px); color:rgba(205,230,255,.12); }
+.rewind-opening-cross { position:absolute; top:44%; right:12%; color:rgba(255,255,255,.55); font-size:34px; }
+.rewind-opening .rewind-avatar {
+  position:absolute; bottom:13%; right:24%; margin:0;
+  width:clamp(96px,13vw,158px); height:clamp(96px,13vw,158px);
+  font-size:clamp(58px,8vw,96px);
+  border-color:rgba(230,244,255,.53);
+  background:linear-gradient(135deg,#102e47,#13182b);
+  box-shadow:0 22px 100px #0009, 0 0 85px rgba(108,177,255,.25);
+}
+.rewind-opening-story { position:relative; z-index:2; margin:auto 0 34px; width:100%; }
+.rewind-opening-story h1 {
+  margin:22px 0 16px;
+  max-width:800px;
+  font-size:clamp(70px,10vw,130px);
+  line-height:.82;
+}
+.rewind-opening-story h1 em { color:#b5ddff; }
+.rewind-opening-story p { max-width:350px; margin:22px 0 0; color:rgba(237,246,255,.82); font-size:15px; }
+.rewind-opening-endcard {
+  position:relative; z-index:2;
+  display:flex; justify-content:space-between; gap:14px;
+  width:100%; padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.32);
+  font-size:10px; font-weight:800; letter-spacing:.13em; color:#dcecff;
+}
+
+/* 01 · Scores as editorial type rather than a dashboard widget. */
+.rewind-points {
+  background:
+    repeating-linear-gradient(90deg,transparent 0 115px,rgba(153,208,255,.045) 116px,transparent 117px),
+    radial-gradient(ellipse at 82% 56%,rgba(42,119,219,.27),transparent 59%),
+    #071524;
+}
+.rewind-points-composition { flex:1; display:grid; grid-template-columns:minmax(0,.95fr) minmax(0,1.1fr); gap:24px; align-items:center; }
+.rewind-points-story h2 { margin:14px 0 0; font-size:clamp(72px,8.9vw,115px); line-height:.82; }
+.rewind-points-story h2 em { color:#b3deff; }
+.rewind-points-total { position:relative; isolation:isolate; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; min-width:0; }
+.rewind-points-total .rewind-scenery {
+  position:absolute; z-index:-1; top:-100px; right:-24px;
+  font:1000 clamp(130px,23vw,270px)/1 var(--rewind-display);
+  letter-spacing:-.07em; color:rgba(114,188,255,.10);
+}
+.rewind-points .rewind-big-number {
+  max-width:100%;
+  margin:0; font-size:clamp(78px,10vw,138px); line-height:.9; color:#f7fbff;
+  letter-spacing:-.105em; overflow-wrap:anywhere;
+  text-shadow:0 0 60px rgba(85,185,255,.3);
+}
+.rewind-points .rewind-stat-label { margin:14px 0 0!important; color:var(--scene-accent); }
+.rewind-points-footer {
+  display:flex; align-items:center; gap:28px;
+  border-top:1px solid rgba(200,230,255,.38);
+  padding:20px 0 0;
+}
+.rewind-points-progress { display:flex; align-items:center; gap:13px; }
+.rewind-points-progress strong { font:1000 68px/.9 var(--rewind-display); letter-spacing:-.08em; }
+.rewind-points-progress span, .rewind-points-footnote { font-size:11px; line-height:1.5; font-weight:850; letter-spacing:.14em; color:#b0cbe3; }
+.rewind-points-divider { height:45px; width:1px; background:rgba(200,230,255,.35); }
+
+/* 02 · Each player's strongest game gets a striking individual color. */
+.rewind-specialty {
+  background:radial-gradient(ellipse at 25% 39%,var(--scene-glow),transparent 54%),linear-gradient(135deg,#071716,#081018);
+}
+.rewind-specialty-feature { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,.76fr) minmax(0,1fr); gap:35px; align-items:center; }
+.rewind-specialty .rewind-game-glyph {
+  display:grid; place-items:center; width:100%; height:auto; min-height:220px;
+  margin:0; border:0; border-radius:0; background:none;
+  color:var(--scene-accent);
+  font:1000 clamp(150px,24vw,300px)/1 var(--rewind-display);
+  text-shadow:0 0 90px var(--scene-glow);
+  filter:drop-shadow(0 22px 22px rgba(0,0,0,.28));
+}
+.rewind-specialty-headline h2 { margin:16px 0; font-size:clamp(63px,8vw,105px); line-height:.86; }
+.rewind-specialty-name { display:block; color:#fff; font-size:clamp(24px,3vw,40px); letter-spacing:-.045em; }
+.rewind-specialty-headline p { max-width:320px; margin:12px 0 0; color:rgba(238,248,255,.82); }
+.rewind-specialty .rewind-game-bars {
+  margin:0; padding:20px 0 0;
+  border-top:1px solid rgba(255,255,255,.32);
+  width:100%;
+}
+.rewind-game-bars .rewind-data-caption { margin-bottom:10px; color:rgba(255,255,255,.65); }
+.rewind-game-row { grid-template-columns:110px 1fr 48px; gap:16px; padding:8px 0; }
+.rewind-game-track { background:rgba(255,255,255,.09); height:7px; }
+.rewind-game-track i { box-shadow:0 0 17px currentColor; }
+.rewind-specialty-unwritten { grid-template-columns:200px 1fr; }
+
+/* 03 · A sports-broadcast peak-score scene. */
+.rewind-best-week {
+  background:
+    linear-gradient(165deg,rgba(12,46,34,.95),rgba(3,17,19,.98)),
+    #031015;
+}
+.rewind-week-feature { position:relative; flex:1; min-height:0; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; isolation:isolate; }
+.rewind-week-wordmark {
+  position:absolute; z-index:-1; top:7%; right:-5%;
+  font:1000 clamp(160px,26vw,340px)/1 var(--rewind-display);
+  letter-spacing:-.09em; color:rgba(103,255,191,.085);
+  transform:rotate(-8deg);
+}
+.rewind-week-feature h2 { margin:16px 0 12px; font-size:clamp(82px,11vw,145px); line-height:.79; }
+.rewind-week-feature h2 em { color:#8bf5c1; }
+.rewind-peak-label { margin-top:10px; font-size:clamp(23px,3vw,38px); }
+.rewind-best-week .rewind-peak-points { margin-top:4px; font-size:clamp(82px,12vw,157px); color:#fff; }
+.rewind-best-week .rewind-peak-points small { color:#a0ffce; font-size:19px; }
+.rewind-weekly-panel { border-top:1px solid rgba(173,255,217,.3); padding-top:14px; }
+.rewind-weekly-panel .rewind-data-caption { color:rgba(220,250,236,.78); }
+.rewind-weekly-panel .rewind-weekly-chart { height:140px; margin:10px 0 0; gap:16px; padding:0; }
+.rewind-week-bar { background:rgba(2,7,9,.22); }
+.rewind-week-bar i { background:rgba(173,235,207,.42); }
+.rewind-week-column.is-peak .rewind-week-bar i { background:#8bf5c1; box-shadow:0 0 35px rgba(139,245,193,.4); }
+.rewind-weekly-panel p { margin:12px 0 0; font-size:12px; }
+
+/* 04 · Actual earned CREW badge becomes the hero artwork, not a card. */
+.rewind-badges { background:radial-gradient(ellipse at 50% 70%,rgba(126,59,197,.24),transparent 46%),linear-gradient(140deg,#1b1227,#090b14 65%); }
+.rewind-badge-header { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px; width:100%; align-items:start; }
+.rewind-badge-header h2 { margin:19px 0 0; font-size:clamp(55px,8vw,97px); line-height:.84; }
+.rewind-badge-header h2 em { color:#e5b1ff; }
+.rewind-badge-counter { display:flex; align-items:center; gap:10px; }
+.rewind-badges .rewind-badge-total { font-size:clamp(90px,11vw,146px); line-height:.9; color:#e3b4ff; }
+.rewind-badge-counter > span { color:rgba(238,209,255,.84); font-size:10px; line-height:1.5; letter-spacing:.18em; font-weight:900; }
+.rewind-badges .rewind-featured-badge {
+  flex:1; display:flex; flex-direction:row; align-items:center;
+  gap:35px; width:100%; margin:10px 0 0; padding:0;
+  border:0; border-radius:0; background:transparent;
+}
+.rewind-trophy-spotlight { position:relative; isolation:isolate; flex:0 0 min(43%,310px); height:285px; display:grid; place-items:center; }
+.rewind-trophy-spotlight::before {
+  content:""; position:absolute; inset:1% -5%; z-index:-1;
+  background:radial-gradient(ellipse,rgba(171,99,255,.21),rgba(147,89,230,.11) 35%,transparent 70%);
+}
+.rewind-trophy-shine { position:absolute; width:100%; height:1px; top:49%; background:linear-gradient(90deg,transparent,rgba(249,216,255,.25),transparent); transform:rotate(-34deg); }
+.rewind-trophy-spotlight .trophy-medallion {
+  flex:none; width:clamp(190px,22vw,248px); height:clamp(190px,22vw,248px);
+  margin:0; filter:drop-shadow(0 23px 27px rgba(0,0,0,.56));
+}
+.rewind-trophy-label { min-width:0; display:flex; flex-direction:column; gap:10px; align-items:flex-start; }
+.rewind-featured-badge .rewind-trophy-label span { color:#c9a2f1; font-size:10px; font-weight:950; letter-spacing:.2em; }
+.rewind-featured-badge .rewind-trophy-label strong { color:#fff; font:950 clamp(31px,5vw,63px)/.99 var(--rewind-display); letter-spacing:-.055em; overflow-wrap:anywhere; }
+.rewind-featured-badge .rewind-trophy-label small { font-size:12px; color:#d7b5f2; letter-spacing:.15em; }
+.rewind-badge-empty { flex:1; display:flex; align-items:center; gap:25px; }
+.rewind-badge-empty > span { font-size:140px; color:#c8a6ea; }
+.rewind-badge-serial { display:flex; align-items:center; justify-content:space-between; padding-top:18px; border-top:1px solid rgba(241,205,255,.25); font-size:10px; letter-spacing:.16em; color:rgba(242,215,255,.72); font-weight:850; }
+
+/* 05 · A commanding rank with poster-scale background typography. */
+.rewind-placement { background:linear-gradient(145deg,#102b3f,#050c15 68%); }
+.rewind-placement-center { position:relative; isolation:isolate; flex:1; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; }
+.rewind-placement-backdrop {
+  position:absolute; z-index:-1; right:0; top:18%;
+  font:1000 clamp(155px,27vw,300px)/1 var(--rewind-display); letter-spacing:-.09em;
+  color:rgba(105,181,255,.11);
+}
+.rewind-placement-center h2 { margin:16px 0 5px; font-size:clamp(62px,9vw,120px); line-height:.85; }
+.rewind-placement-center h2 em { color:#84caff; }
+.rewind-placement .rewind-placement-rank { color:#fff; font-size:clamp(130px,19vw,240px); line-height:.88; letter-spacing:-.11em; text-shadow:0 0 100px rgba(90,178,255,.34); }
+.rewind-placement-center p { font-size:12px; letter-spacing:.15em; color:#c4e3ff; }
+.rewind-winner-stamp,.rewind-cohort-stamp { margin:0; padding-top:20px; font-size:12px; }
+
+/* 06 · Share-worthy collectible print, not another dashboard. */
+.rewind-finale {
+  background:
+    radial-gradient(ellipse at 73% 15%,rgba(250,192,89,.17),transparent 35%),
+    linear-gradient(135deg,#18160f,#090f15 70%);
+  align-items:center;
+}
+.rewind-finale > .rewind-eyebrow { width:100%; margin:0 0 16px; }
+.rewind-finale-poster {
+  position:relative; isolation:isolate; flex:1; width:min(100%,710px);
+  display:flex; flex-direction:column;
+  padding:25px 36px 23px;
+  border:1px solid rgba(255,204,103,.62);
+  background:
+    radial-gradient(circle at 50% 33%,rgba(255,189,69,.09),transparent 43%),
+    linear-gradient(150deg,rgba(46,38,22,.92),rgba(8,16,21,.97) 63%);
+  box-shadow:0 26px 90px rgba(0,0,0,.38), inset 0 1px rgba(255,235,182,.1);
+}
+.rewind-finale-poster::before {
+  content:"S01"; position:absolute; inset:auto 5% 5% auto; z-index:-1;
+  font:1000 clamp(125px,21vw,260px)/1 var(--rewind-display); letter-spacing:-.12em;
+  color:rgba(255,217,153,.055); pointer-events:none;
+}
+.rewind-poster-masthead { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid rgba(255,215,141,.43); padding-bottom:14px; font-size:10px; font-weight:900; letter-spacing:.22em; color:#ffdda1; }
+.rewind-poster-identity { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; padding:12px 0; }
+.rewind-finale .rewind-card-avatar { margin:0 0 12px; width:78px; height:78px; font-size:48px; border:1px solid rgba(255,214,142,.66); background:rgba(255,218,150,.09); box-shadow:0 0 45px rgba(255,195,96,.12); }
+.rewind-poster-edition { font-size:9px; font-weight:850; letter-spacing:.18em; color:#c5a87c; }
+.rewind-finale .rewind-poster-identity h2 { margin:12px 0 0; font-size:clamp(43px,6vw,76px); line-height:1; color:#fff8e9; text-align:center; overflow-wrap:anywhere; }
+.rewind-finale .rewind-persona { margin:5px 0 0; font-size:clamp(15px,2vw,22px); letter-spacing:.04em; text-transform:uppercase; color:#ffd58b; text-align:center; }
+.rewind-finale .rewind-final-stats { display:grid; gap:12px; padding:17px 0; border-top:1px solid rgba(255,224,162,.4); border-bottom:1px solid rgba(255,224,162,.4); }
+.rewind-finale .rewind-final-stats div { gap:4px; }
+.rewind-finale .rewind-final-stats strong { font:1000 clamp(24px,4vw,43px)/1 var(--rewind-display); letter-spacing:-.045em; color:#fff8e9; }
+.rewind-finale .rewind-final-stats span { color:#d9bc91; font-size:10px; }
+.rewind-poster-footer { display:flex; align-items:center; justify-content:space-between; gap:18px; padding-top:15px; }
+.rewind-poster-footer .rewind-finale-title { margin:0; text-align:left; font-size:clamp(15px,2vw,22px); color:#ffd58b; }
+.rewind-poster-footer > span { color:#cfb180; font-size:9px; letter-spacing:.14em; font-weight:850; text-align:right; }
+.rewind-finale-actions { display:flex; align-items:center; justify-content:space-between; width:100%; gap:16px; padding-top:18px; }
+.rewind-finale-actions p { margin:0; color:rgba(239,232,213,.76); font-size:12px; text-align:left; }
+.rewind-finale .rewind-share-button { margin:0; flex:none; min-height:48px; padding:12px 22px; }
+.rewind-finale-actions .rewind-share-feedback { font-size:11px; }
+
+/* Tablet and phone: full-bleed story pages, comfortable accessible navigation. */
+@media (max-width: 750px) {
+  .rewind-shell { width:100%; }
+  .rewind-stage { min-height:620px; border-radius:17px; }
+  .rewind-copy { min-height:585px; padding:clamp(24px,5vw,38px); }
+  .rewind-opening-story h1 { font-size:clamp(67px,11vw,105px); }
+  .rewind-opening-art { right:0; width:61%; }
+  .rewind-points-story h2 { font-size:clamp(58px,9.5vw,85px); }
+  .rewind-points .rewind-big-number { font-size:clamp(68px,10.5vw,100px); }
+  .rewind-specialty-feature { gap:20px; }
+  .rewind-specialty-headline h2 { font-size:clamp(48px,7vw,74px); }
+  .rewind-specialty .rewind-game-glyph { min-height:160px; font-size:clamp(110px,22vw,210px); }
+  .rewind-badge-header h2 { font-size:clamp(47px,7.6vw,73px); }
+  .rewind-badges .rewind-badge-total { font-size:clamp(85px,11vw,120px); }
+  .rewind-trophy-spotlight .trophy-medallion { width:clamp(155px,25vw,205px); height:clamp(155px,25vw,205px); }
+  .rewind-placement-center h2 { font-size:clamp(56px,8.4vw,95px); }
+}
+@media (max-width: 530px) {
+  .crew-rewind { padding:8px 10px 14px; }
+  .rewind-shell { display:flex; flex-direction:column; }
+  .rewind-stage { flex:1; min-height:0; overflow-x:hidden; overflow-y:auto; }
+  .rewind-copy { min-height:560px; padding:24px; }
+  .rewind-eyebrow { font-size:9px; letter-spacing:.15em; }
+  .rewind-chapter-kicker,.rewind-data-caption { font-size:9px; }
+  .rewind-opening-story { margin:auto 0 25px; }
+  .rewind-opening-story h1 { font-size:clamp(57px,15.2vw,82px); }
+  .rewind-opening-story p { font-size:13px; max-width:270px; }
+  .rewind-opening-art { top:10%; right:-13%; width:90%; height:56%; opacity:.77; }
+  .rewind-opening .rewind-avatar { right:25%; bottom:10%; width:100px; height:100px; font-size:65px; }
+  .rewind-opening-season span { font-size:180px; }
+  .rewind-opening-endcard { font-size:8px; line-height:1.5; }
+  .rewind-points-composition { grid-template-columns:1fr; gap:13px; align-content:center; }
+  .rewind-points-story h2 { font-size:clamp(70px,18vw,96px); margin:12px 0 0; }
+  .rewind-points .rewind-big-number { font-size:clamp(82px,20vw,116px); }
+  .rewind-points-total .rewind-scenery { top:-40px; font-size:150px; }
+  .rewind-points-footer { gap:16px; padding-top:16px; }
+  .rewind-points-progress strong { font-size:53px; }
+  .rewind-points-progress span,.rewind-points-footnote { font-size:9px; }
+  .rewind-specialty-feature { grid-template-columns:87px minmax(0,1fr); gap:11px; align-items:center; }
+  .rewind-specialty .rewind-game-glyph { min-height:100px; font-size:110px; }
+  .rewind-specialty-headline h2 { font-size:clamp(40px,10.3vw,58px); }
+  .rewind-specialty-name { font-size:22px; }
+  .rewind-specialty-headline p { font-size:12px; }
+  .rewind-specialty .rewind-game-bars { padding-top:15px; }
+  .rewind-game-row { grid-template-columns:64px minmax(0,1fr) 32px; gap:8px; padding:7px 0; font-size:11px; }
+  .rewind-week-feature h2 { font-size:clamp(70px,18vw,100px); }
+  .rewind-week-wordmark { font-size:180px; top:22%; }
+  .rewind-best-week .rewind-peak-points { font-size:clamp(80px,20vw,120px); }
+  .rewind-weekly-panel .rewind-weekly-chart { height:115px; gap:9px; }
+  .rewind-badge-header { grid-template-columns:minmax(0,1fr) auto; gap:7px; }
+  .rewind-badge-header h2 { font-size:clamp(40px,10vw,57px); }
+  .rewind-badges .rewind-badge-total { font-size:75px; }
+  .rewind-badge-counter { gap:5px; }
+  .rewind-badge-counter > span { font-size:8px; }
+  .rewind-badges .rewind-featured-badge { flex-direction:column; gap:4px; justify-content:center; margin:6px 0; }
+  .rewind-trophy-spotlight { flex:0 0 auto; width:100%; height:210px; }
+  .rewind-trophy-spotlight .trophy-medallion { width:195px; height:195px; margin:0; }
+  .rewind-trophy-label { gap:5px; align-items:center; text-align:center; }
+  .rewind-featured-badge .rewind-trophy-label strong { font-size:clamp(27px,7vw,38px); }
+  .rewind-badge-serial { font-size:8px; }
+  .rewind-placement-center h2 { font-size:clamp(55px,14vw,79px); }
+  .rewind-placement .rewind-placement-rank { font-size:clamp(117px,29vw,165px); }
+  .rewind-placement-backdrop { right:-8%; top:35%; font-size:155px; }
+  .rewind-cohort-stamp,.rewind-winner-stamp { font-size:10px; }
+  .rewind-finale { justify-content:flex-start; padding:16px; }
+  .rewind-finale > .rewind-eyebrow { margin-bottom:12px; }
+  .rewind-finale-poster { padding:15px 17px; }
+  .rewind-poster-masthead { font-size:8px; }
+  .rewind-finale .rewind-card-avatar { width:65px; height:65px; font-size:38px; margin-bottom:8px; }
+  .rewind-poster-edition { font-size:8px; }
+  .rewind-finale .rewind-poster-identity h2 { font-size:clamp(31px,8vw,47px); }
+  .rewind-finale .rewind-persona { font-size:13px; }
+  .rewind-finale .rewind-final-stats { gap:7px; padding:12px 0; }
+  .rewind-finale .rewind-final-stats strong { font-size:clamp(21px,6vw,31px); }
+  .rewind-finale .rewind-final-stats span { font-size:8px; }
+  .rewind-poster-footer .rewind-finale-title { font-size:14px; }
+  .rewind-poster-footer > span { max-width:95px; font-size:8px; }
+  .rewind-finale-actions { flex-wrap:wrap; padding-top:12px; gap:10px; }
+  .rewind-finale-actions p { font-size:11px; }
+  .rewind-finale .rewind-share-button { padding:10px 14px; font-size:12px; min-height:44px; }
+  .rewind-navigation button { min-height:44px; }
+}
+@media (max-height: 680px) and (max-width: 530px) {
+  .rewind-copy { min-height:510px; }
+  .rewind-stage { overflow-y:auto; }
+  .rewind-opening-story h1 { font-size:clamp(52px,13.8vw,73px); }
+  .rewind-weekly-panel .rewind-weekly-chart { height:90px; }
+  .rewind-trophy-spotlight { height:174px; }
+  .rewind-trophy-spotlight .trophy-medallion { width:165px; height:165px; }
+  .rewind-finale-poster { padding:12px 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rewind-opening::before { transform:none; }
+  .rewind-week-wordmark { transform:none; }
+}
+/* Play-style analytics: evidence is part of the visual story, not a list of stats. */
+.rewind-points-footnote strong { color:#fff; font-weight:950; font-size:12px; }
+.rewind-peer-benchmark {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  width:100%;
+  margin:16px 0 0;
+  padding:13px 0 0;
+  border-top:1px solid rgba(230,255,250,.3);
+}
+.rewind-peer-benchmark > span { display:flex; flex-direction:column; gap:5px; font-size:9px; color:#d9eee9; font-weight:800; letter-spacing:.08em; }
+.rewind-peer-benchmark > span strong { font:950 clamp(27px,4vw,44px)/1 var(--rewind-display); letter-spacing:-.06em; color:#fff; }
+.rewind-peer-benchmark small { grid-column:1/-1; color:rgba(231,255,248,.64); font-size:9px; line-height:1.4; letter-spacing:.08em; }
+.rewind-specialty-note { display:block; margin-top:10px; font-size:10px; font-weight:850; letter-spacing:.12em; color:var(--scene-accent); }
+.rewind-personal-best { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; font-size:10px; letter-spacing:.1em; font-weight:850; color:rgba(222,253,234,.74); }
+.rewind-personal-best strong { color:#c0ffe0; }
+.rewind-momentum { display:flex; justify-content:space-between; gap:14px; align-items:end; margin-top:9px; border-top:1px solid rgba(150,230,191,.23); padding-top:10px; }
+.rewind-momentum span { display:flex; flex-direction:column; gap:4px; font-size:9px; font-weight:850; letter-spacing:.11em; color:#b3d9c9; }
+.rewind-momentum strong { font:950 30px/1 var(--rewind-display); letter-spacing:-.05em; color:#fff; }
+.rewind-momentum em { font:850 9px/1.3 var(--crew-font-body,Inter,sans-serif); font-style:normal; letter-spacing:.09em; color:#8bf5c1; text-align:right; max-width:120px; }
+.rewind-placement-insight { display:flex; gap:12px; align-items:center; margin-top:12px; font-size:11px; letter-spacing:.11em; font-weight:850; color:#b9defa; }
+.rewind-placement-insight strong { font:950 32px/1 var(--rewind-display); color:#fff; }
+.rewind-poster-evidence { display:block; max-width:450px; margin:11px auto 0; font-size:12px; line-height:1.4; font-weight:650; color:rgba(255,232,188,.84); text-align:center; }
+@media (max-width:750px) {
+  .rewind-momentum strong { font-size:25px; }
+  .rewind-peer-benchmark > span strong { font-size:30px; }
+}
+@media (max-width:530px) {
+  .rewind-points-footnote strong { font-size:10px; }
+  .rewind-peer-benchmark { gap:8px; margin-top:9px; padding-top:8px; }
+  .rewind-peer-benchmark > span { font-size:8px; }
+  .rewind-peer-benchmark > span strong { font-size:25px; }
+  .rewind-personal-best { margin-top:7px; font-size:9px; }
+  .rewind-momentum { flex-wrap:wrap; gap:9px; margin-top:7px; padding-top:7px; }
+  .rewind-momentum span { font-size:8px; }
+  .rewind-momentum strong { font-size:21px; }
+  .rewind-momentum em { max-width:90px; font-size:8px; }
+  .rewind-placement-insight { font-size:9px; }
+  .rewind-placement-insight strong { font-size:25px; }
+  .rewind-poster-evidence { margin-top:6px; font-size:10px; line-height:1.35; }
+}
+/* Keep the real badge artwork centered despite older trophy layout rules. */
+.rewind-badges .rewind-featured-badge .rewind-trophy-spotlight { display:grid; place-items:center; flex-direction:initial; gap:0; }

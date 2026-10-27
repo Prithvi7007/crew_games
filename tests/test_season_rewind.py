@@ -75,6 +75,11 @@ def test_rewind_uses_real_earned_metrics_and_exact_season_weeks(app):
         data = build_season_rewind(pid, season, admin_preview=True)
 
     assert data["points"] == 240
+    assert data["insights"]["averageScore"] == 80
+    assert data["insights"]["gamesTried"] == 2
+    assert data["insights"]["longestWeeklyStreak"] == 2
+    assert data["insights"]["highestGame"]["score"] == 100
+    assert data["insights"]["momentum"] is None
     assert data["gamesPlayed"] == 3
     assert data["gamesTotal"] == 24
     assert data["weeksActive"] == 2
@@ -116,6 +121,7 @@ def test_approved_rewind_stays_frozen_after_late_archive_play(app, client):
     assert after["preview"] is False
     assert after["points"] == before["points"] == 75
     assert after["gamesPlayed"] == before["gamesPlayed"] == 1
+    assert after["insights"] == before["insights"]
     assert after["signature"]["key"] == "word"
     assert after["champion"] is True
 
@@ -138,5 +144,7 @@ def test_rewind_zero_score_player_gets_kind_story_without_fake_rank(app):
     assert data["rank"] is None
     assert data["signature"] is None
     assert data["bestWeek"] is None
+    assert data["insights"]["playStyle"]["title"] == "THE NEXT CHAPTER"
+    assert data["insights"]["averageScore"] is None
     assert data["persona"] == "The CREW Original"
     assert data["badges"]["count"] == 0
