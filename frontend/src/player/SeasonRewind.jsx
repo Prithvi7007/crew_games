@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BadgeMedallion } from './TrophyRoom';
 
 const GAME_ICONS = { mystery:'◆', trivia:'?', word:'W', tick_tock:'◷' };
-const GAME_COLORS = { mystery:'#68f3c1', trivia:'#ffd166', word:'#7bc4ff', tick_tock:'#d7a4ff' };
+const GAME_COLORS = { mystery:'var(--crew-game-mystery, #55e6ac)', trivia:'var(--crew-game-trivia, #ffbd45)', word:'var(--crew-game-word, #55b9ff)', tick_tock:'var(--crew-game-tick-tock, #c55cff)' };
 const PAGES = ['opening', 'points', 'specialty', 'best-week', 'badges', 'placement', 'finale'];
 
 export default function SeasonRewind({ data }) {
@@ -169,7 +169,7 @@ export default function SeasonRewind({ data }) {
       <div className="rewind-progress" aria-label={'Story ' + (step + 1) + ' of ' + PAGES.length}>
         {PAGES.map((item, index) => <button type="button" key={item} aria-label={'Go to story ' + (index + 1)} aria-current={index === step ? 'step' : undefined} className={index <= step ? 'is-seen' : ''} onClick={() => { setStep(index); setFeedback(''); }}/>)}
       </div>
-      <main className={'rewind-stage rewind-tone-' + PAGES[step]} aria-label="Your CREW Season One recap">
+      <main className={'rewind-stage rewind-tone-' + PAGES[step] + (PAGES[step] === 'specialty' && GAME_COLORS[specialty?.key] ? ' rewind-game-' + specialty.key : '')} aria-label="Your CREW Season One recap">
         <div className="rewind-orbit" aria-hidden="true">✳</div>
         <div key={PAGES[step]} className="rewind-scene">{pages[PAGES[step]]}</div>
         <div className="rewind-stage-footer" aria-hidden="true"><span>CREW GAMES</span><span>SEASON 01 · 2026</span></div>
