@@ -26,6 +26,7 @@ import HomeCoverflow from './HomeCoverflow';
 import HomeTheaterArc from './HomeTheaterArc';
 import GamePageHeader from './GamePageHeader';
 import SeasonRewind from './SeasonRewind';
+import { enableCrewEntranceMotion } from './CrewMotion';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -675,6 +676,9 @@ function PlayerWithTour({ Component, data }) {
     document.body.classList.toggle('crew-gameplay-preview', data.shell?.gameplayPreviewEnabled === true);
     return () => document.body.classList.remove('crew-gameplay-preview');
   }, [data.shell?.gameplayPreviewEnabled]);
+  useEffect(() => {
+    return enableCrewEntranceMotion(document.getElementById('crew-player-root'));
+  }, []);
   const [tour, setTour] = useState(data.unlockPreviewEnabled ? null : (data.shell?.trophyTour || null));
   return <>
     <Component data={data}/>

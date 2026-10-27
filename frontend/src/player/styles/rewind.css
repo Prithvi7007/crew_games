@@ -177,7 +177,7 @@
   --scene-accent:var(--crew-game-tick-tock, #c55cff);
   --scene-glow:color-mix(in srgb, var(--crew-game-tick-tock, #c55cff) 27%, transparent);
 }
-.rewind-scene { flex: 1; display: flex; flex-direction: column; animation: rewind-appear .4s cubic-bezier(.2,.75,.3,1) both; }
+.rewind-scene { flex: 1; display: flex; flex-direction: column; animation: rewind-scene-enter 360ms var(--crew-ease-emphasis, cubic-bezier(.16,1,.3,1)) both; }
 .rewind-copy { flex: 1; min-height: 490px; padding: clamp(26px,7%,44px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 .rewind-eyebrow { display: block; margin-bottom: auto; color: rgba(255,255,255,.8); font-size: 11px; font-weight: 900; letter-spacing: .18em; }
 .rewind-copy h1, .rewind-copy h2 { font-size: clamp(46px, 12vw, 75px); line-height: .93; font-weight: 1000; letter-spacing: -.065em; text-transform: uppercase; margin: 16px 0 20px; max-width: 100%; text-wrap: balance; }
@@ -244,7 +244,8 @@
 .rewind-navigation button { min-height: 40px; border: 0; background: transparent; color: #e6f1ff; padding: 7px 9px; font-weight: 850; font-size: 13px; cursor: pointer; }
 .rewind-navigation button:disabled { opacity: .27; cursor: default; }
 .rewind-page-count { color: #8195b2; font-size: 11px; font-weight: 950; letter-spacing: .13em; }
-@keyframes rewind-appear { from { opacity: .6; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+/* Chapter navigation respects direction; opacity remains available in reduced-motion mode. */
+@keyframes rewind-scene-enter { from { opacity: .45; transform: translate3d(var(--rewind-shift, 14px),0,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
 @media (max-width: 530px) {
   .crew-rewind { padding: 10px 10px 15px; align-items: stretch; }
   .rewind-shell { display: flex; flex-direction: column; width: 100%; }
@@ -270,5 +271,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .rewind-scene { animation: none; }
-  .rewind-progress button, .rewind-stage { transition: none; }
+  .rewind-progress button, .rewind-progress button::before, .rewind-stage { transition: none; }
+  .rewind-scene { transform: none; }
 }
