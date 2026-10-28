@@ -202,3 +202,169 @@
   .rewind-film-discovery .rewind-film-narration h1 {font-size:37px;}
   .rewind-film-discovery-copy .rewind-film-impact {font-size:73px;}
 }
+/* Rewind Film — the race is one act of a full personalized season story. */
+.rewind-film-arena {
+  isolation:isolate;
+  min-height:clamp(300px,43vh,510px);
+  display:grid;
+  place-items:center;
+  margin:0 auto;
+}
+.rewind-film-arena svg {
+  width:100%;
+  max-height:min(52vh,535px);
+}
+.rewind-film-arena svg text {
+  paint-order:stroke;
+  stroke:rgba(3,11,19,.78);
+  stroke-width:3px;
+  stroke-linejoin:round;
+  pointer-events:none;
+}
+.rewind-film-arena-intro svg text {stroke:none;}
+.rewind-film-arena-intro svg {min-height:340px;}
+.rewind-film-arena-identity svg,.rewind-film-arena-trophy svg,.rewind-film-arena-finale svg {
+  opacity:0;
+  pointer-events:none;
+}
+.rewind-film-story-beat {
+  max-width:810px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  margin:0;
+}
+.rewind-film-story-beat p {
+  color:#d1e7f7;
+  margin:0;
+  font-size:clamp(16px,2vw,23px);
+  line-height:1.5;
+  letter-spacing:-.015em;
+  text-wrap:balance;
+}
+.rewind-film-story-beat p+p {color:#93bdce;font-size:clamp(13px,1.4vw,17px);}
+.rewind-film-story-beat [role=status] {
+  color:#a8f4ca;
+  font-size:13px;
+  font-weight:750;
+}
+.rewind-film-personality,.rewind-film-award,.rewind-film-finale-object {
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  text-align:center;
+  padding:18px;
+  isolation:isolate;
+}
+.rewind-film-personality::before,.rewind-film-award::before,.rewind-film-finale-object::before {
+  content:"";
+  position:absolute;
+  inset:11% 20%;
+  z-index:-1;
+  background:radial-gradient(circle at center,color-mix(in srgb,var(--film-accent) 22%,transparent),transparent 66%);
+  pointer-events:none;
+}
+.rewind-film-personality>span,.rewind-film-finale-object>span {
+  color:#8fcaed;
+  font:850 11px/1.3 var(--crew-font-body,Inter,sans-serif);
+  letter-spacing:.2em;
+}
+.rewind-film-personality strong {
+  max-width:900px;
+  font:1000 clamp(56px,9.5vw,125px)/.9 var(--crew-font-display,Manrope,Inter,sans-serif);
+  color:#fff;
+  letter-spacing:-.075em;
+  overflow-wrap:anywhere;
+  text-wrap:balance;
+}
+.rewind-film-personality i {
+  color:var(--film-accent);
+  font:normal 850 34px/1 var(--crew-font-display,Manrope,Inter,sans-serif);
+}
+.rewind-film-award .trophy-medallion {
+  flex:none;
+  width:clamp(175px,24vw,264px);
+  height:clamp(175px,24vw,264px);
+  filter:drop-shadow(0 20px 47px rgba(0,0,0,.62));
+}
+.rewind-film-award>span {
+  color:#fff;
+  font:1000 clamp(34px,5vw,61px)/.95 var(--crew-font-display,Manrope,Inter,sans-serif);
+  letter-spacing:-.065em;
+  text-wrap:balance;
+}
+.rewind-film-award>small {
+  font:850 10px/1.4 var(--crew-font-body,Inter,sans-serif);
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:#dab989;
+}
+.rewind-film-finale-object {
+  outline:1px solid rgba(165,213,251,.13);
+  outline-offset:-32px;
+  background:radial-gradient(ellipse at 50% 46%,rgba(77,171,255,.16),transparent 63%);
+}
+.rewind-film-finale-object strong {
+  max-width:100%;
+  font:1000 clamp(60px,9vw,125px)/.95 var(--crew-font-display,Manrope,Inter,sans-serif);
+  letter-spacing:-.08em;
+  color:white;
+  overflow-wrap:anywhere;
+}
+.rewind-film-finale-object em {
+  font:950 clamp(19px,3vw,36px)/1.2 var(--crew-font-display,Manrope,Inter,sans-serif);
+  color:var(--film-accent);
+  font-style:normal;
+  letter-spacing:-.035em;
+}
+.rewind-film-finale-object small {
+  font-size:12px;
+  letter-spacing:.12em;
+  font-weight:850;
+  color:#c0d9e8;
+}
+.rewind-film-timeline[hidden] {display:none!important;}
+.rewind-film-preview {letter-spacing:.16em;opacity:.7;}
+.rewind-film-controls:has(.rewind-film-timeline[hidden]) {
+  justify-content:flex-end;
+  border-top-color:rgba(171,218,252,.09);
+}
+.rewind-film-controls:has(.rewind-film-timeline[hidden]) .rewind-film-buttons button {min-width:170px;}
+.rewind-film-narration h1 {min-height:0;}
+.rewind-film-identity .rewind-film-narration h1,.rewind-film-trophy .rewind-film-narration h1,.rewind-film-finale .rewind-film-narration h1 {
+  font-size:clamp(42px,6.2vw,78px);
+}
+.rewind-film-identity .rewind-film-insight,.rewind-film-trophy .rewind-film-insight,.rewind-film-finale .rewind-film-insight {
+  min-height:75px;
+  margin:4px 0 12px;
+}
+@media(max-width:760px) {
+  .rewind-film-field {justify-content:flex-start;padding:10px 12px;}
+  .rewind-film-arena {min-height:350px;}
+  .rewind-film-arena svg {min-height:0;max-height:none;}
+  .rewind-film-arena-intro svg {min-height:0;}
+  .rewind-film-personality strong {font-size:clamp(46px,11.5vw,70px);}
+  .rewind-film-personality>span {font-size:9px;}
+  .rewind-film-award .trophy-medallion {width:clamp(145px,41vw,200px);height:clamp(145px,41vw,200px);}
+  .rewind-film-award>span {font-size:clamp(30px,7.7vw,44px);}
+  .rewind-film-finale-object {outline-offset:-15px;}
+  .rewind-film-finale-object strong {font-size:clamp(45px,12vw,71px);}
+  .rewind-film-finale-object small {font-size:10px;}
+  .rewind-film-identity .rewind-film-narration h1,.rewind-film-trophy .rewind-film-narration h1,.rewind-film-finale .rewind-film-narration h1 {font-size:clamp(36px,9vw,57px);}
+  .rewind-film-story-beat {padding:0 12px;}
+  .rewind-film-story-beat p {font-size:clamp(15px,4.2vw,19px);}
+  .rewind-film-story-beat p+p {font-size:13px;}
+  .rewind-film-controls:has(.rewind-film-timeline[hidden]) .rewind-film-buttons button {min-width:0;flex:1;}
+}
+@media(max-width:390px) {
+  .rewind-film-arena {min-height:300px;}
+  .rewind-film-personality strong {font-size:45px;}
+  .rewind-film-finale-object strong {font-size:43px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .rewind-film-personality,.rewind-film-award,.rewind-film-finale-object {transition:none!important;}
+}
