@@ -5,11 +5,12 @@
   isolation:isolate;
   display:flex;
   flex-direction:column;
-  min-height:100vh;
-  min-height:100dvh;
+  height:100vh;
+  height:100dvh;
+  min-height:0;
   color:#f1f8ff;
   background:#030b13;
-  overflow-x:hidden;
+  overflow:hidden;
   font-family:var(--crew-font-body,Inter,Arial,sans-serif);
 }
 .rewind-film *, .rewind-film *::before, .rewind-film *::after { box-sizing:border-box; }
@@ -25,7 +26,7 @@
 }
 .rewind-film-header {
   display:flex;align-items:center;justify-content:space-between;
-  gap:16px;min-height:78px;width:100%;
+  gap:16px;min-height:78px;width:100%;flex-shrink:0;
   padding:15px clamp(17px,4vw,64px);z-index:4;
 }
 .rewind-film-mark {display:flex;align-items:center;gap:4px;color:#fff;font:950 20px/1 var(--crew-font-display,Manrope,Inter,sans-serif);letter-spacing:-.055em;white-space:nowrap;}
@@ -42,7 +43,8 @@
   width:min(100%,1180px);flex:1;margin:0 auto;
   padding:clamp(12px,2vw,30px) clamp(24px,5vw,78px);
   display:flex;flex-direction:column;justify-content:center;
-  position:relative;isolation:isolate;min-width:0;
+  position:relative;isolation:isolate;min-width:0;min-height:0;
+  overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
 }
 .rewind-film-narration {position:relative;z-index:3;min-height:145px;}
 .rewind-film-introline {
@@ -94,7 +96,7 @@
   border-top:1px solid rgba(171,218,252,.14);
   margin:0 auto;
   display:flex;align-items:center;justify-content:space-between;
-  gap:22px;z-index:5;
+  gap:22px;z-index:5;flex-shrink:0;
 }
 .rewind-film-timeline {display:flex;align-items:center;gap:4px;flex-wrap:nowrap;}
 .rewind-film-timeline button {
@@ -371,7 +373,7 @@
 /* Film Lab trophy reveal: only the RACE SVG may disappear.
    The real BadgeMedallion contains its own nested SVG and must remain visible. */
 .rewind-film-trophy .rewind-film-field {
-  flex:1 0 auto;
+  flex:1 1 auto;
   justify-content:flex-start;
   gap:clamp(10px,1.8vh,22px);
   padding-block:clamp(14px,2.4vh,27px);
@@ -651,4 +653,75 @@
 }
 @media(prefers-reduced-motion:reduce) {
   .rewind-film-arena > svg {transition:none;}
+}
+/* Adaptive film stage: size by available screen height, not width alone.
+   Navigation stays visible; long discovery copy scrolls only inside the stage. */
+.rewind-film-header {
+  min-height:clamp(56px,8.2dvh,78px);
+  padding-block:clamp(8px,1.2dvh,15px);
+}
+.rewind-film-controls {
+  padding-top:clamp(8px,1.4dvh,16px);
+  padding-bottom:max(12px,env(safe-area-inset-bottom));
+}
+.rewind-film-field {padding-block:clamp(8px,1.8dvh,23px);}
+.rewind-film-arena {
+  min-height:0;
+  height:clamp(230px,39dvh,390px);
+  flex-shrink:0;
+}
+.rewind-film-arena > svg {
+  display:block;
+  width:100%;
+  height:100%;
+  max-height:100%;
+  min-height:0;
+}
+.rewind-film-arena-intro > svg {min-height:0;}
+.rewind-film-intro .rewind-film-narration {min-height:0;}
+.rewind-film-intro .rewind-film-narration h1 {
+  font-size:clamp(44px,min(6.2vw,9.8dvh),95px);
+  line-height:.96;
+}
+.rewind-film-intro .rewind-film-arena {height:clamp(250px,42dvh,400px);}
+.rewind-film-race .rewind-film-narration {min-height:0;}
+.rewind-film-race .rewind-film-narration h1 {
+  font-size:clamp(42px,min(5.5vw,8dvh),76px);
+}
+.rewind-film-race .rewind-film-arena {height:clamp(240px,40dvh,378px);}
+.rewind-film-discovery .rewind-film-arena {height:clamp(210px,29dvh,315px);}
+.rewind-film-identity .rewind-film-arena,
+.rewind-film-finale .rewind-film-arena {height:clamp(240px,37dvh,370px);}
+.rewind-film-trophy .rewind-film-arena {height:clamp(240px,37dvh,390px);}
+@media (max-width:760px) {
+  .rewind-film-header {min-height:54px;padding-block:8px;}
+  .rewind-film-field {padding:clamp(6px,1.4dvh,13px) 12px;justify-content:flex-start;}
+  .rewind-film-controls {padding:9px 14px max(12px,env(safe-area-inset-bottom));}
+  .rewind-film-arena {height:clamp(210px,35dvh,315px);min-height:0;}
+  .rewind-film-intro .rewind-film-arena {height:clamp(220px,36dvh,320px);}
+  .rewind-film-race .rewind-film-arena {height:clamp(220px,35dvh,310px);}
+  .rewind-film-discovery .rewind-film-arena {height:clamp(185px,25dvh,245px);}
+  .rewind-film-identity .rewind-film-arena,
+  .rewind-film-finale .rewind-film-arena {height:clamp(215px,33dvh,285px);}
+  .rewind-film-trophy .rewind-film-arena {height:clamp(250px,32dvh,320px);}
+  .rewind-film-intro .rewind-film-narration h1 {
+    font-size:clamp(40px,9.7vw,57px);
+  }
+  .rewind-film-race .rewind-film-narration h1 {
+    font-size:clamp(37px,9vw,55px);
+  }
+  .rewind-film-race .rewind-film-insight {min-height:145px;}
+}
+@media (max-height:680px) and (min-width:761px) {
+  .rewind-film-arena,
+  .rewind-film-intro .rewind-film-arena,
+  .rewind-film-race .rewind-film-arena,
+  .rewind-film-identity .rewind-film-arena,
+  .rewind-film-finale .rewind-film-arena {height:clamp(195px,35dvh,255px);}
+  .rewind-film-discovery .rewind-film-arena {height:clamp(185px,29dvh,225px);}
+  .rewind-film-header {min-height:52px;}
+  .rewind-film-narration h1 {line-height:.94;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .rewind-film-field {scroll-behavior:auto;}
 }

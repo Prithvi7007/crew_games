@@ -189,3 +189,28 @@ def test_film_production_polish_keeps_score_and_story_in_sync():
     assert "total-previousMax" in FILM
     assert ".rewind-film-race-report" in CSS
     assert ".rewind-film-race-score" in CSS
+def test_film_uses_viewport_height_and_keeps_playback_controls_visible():
+    # Regression for the owner's 1752x864 screenshot: the heading and game
+    # canvas used to push the Play button below the bottom of the viewport.
+    assert "height:100dvh;" in CSS
+    assert "overflow:hidden;" in CSS
+    assert "overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;" in CSS
+    assert "min-width:0;min-height:0;" in CSS
+    assert "gap:22px;z-index:5;flex-shrink:0;" in CSS
+    assert "width:100%;flex-shrink:0;" in CSS
+    assert ".rewind-film-intro .rewind-film-arena {height:clamp(250px,42dvh,400px);}" in CSS
+    assert ".rewind-film-race .rewind-film-arena {height:clamp(240px,40dvh,378px);}" in CSS
+    assert "font-size:clamp(44px,min(6.2vw,9.8dvh),95px)" in CSS
+    assert "height:100%;\n  max-height:100%;\n  min-height:0;" in CSS
+    assert ".rewind-film-arena-intro > svg {min-height:0;}" in CSS
+
+
+def test_film_adapts_short_desktop_and_phone_without_cropping_badge():
+    assert "@media (max-width:760px)" in CSS
+    assert ".rewind-film-field {padding:clamp(6px,1.4dvh,13px) 12px;justify-content:flex-start;}" in CSS
+    assert ".rewind-film-intro .rewind-film-arena {height:clamp(220px,36dvh,320px);}" in CSS
+    assert ".rewind-film-race .rewind-film-arena {height:clamp(220px,35dvh,310px);}" in CSS
+    assert "@media (max-height:680px) and (min-width:761px)" in CSS
+    assert ".rewind-film-trophy .rewind-film-field {\n  flex:1 1 auto;" in CSS
+    assert ".rewind-film-trophy .rewind-film-award .trophy-medallion > svg" in CSS
+    assert ".rewind-film-trophy .rewind-film-arena {height:clamp(240px,37dvh,390px);}" in CSS
