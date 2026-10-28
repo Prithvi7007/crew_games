@@ -76,7 +76,7 @@ def test_film_is_single_continuous_stage_not_a_seven_panel_dashboard():
     assert "ORIGINAL SERIES" not in FILM
     assert "rewind-film-line" not in CSS
     assert "rewind-film-timeline button" in CSS
-    assert ".rewind-film-arena svg" in CSS
+    assert ".rewind-film-arena > svg" in CSS
 
 
 def test_opening_symbols_have_distinct_positions_and_labels_below_them():
@@ -88,7 +88,7 @@ def test_opening_symbols_have_distinct_positions_and_labels_below_them():
     assert "<text x={targetX} y={targetY+" in FILM
     assert "phase==='intro'?(compact?62:83)" in FILM
     assert "textAnchor=\"middle\"" in FILM
-    assert "rewind-film-arena-intro svg text" in CSS
+    assert "rewind-film-arena-intro > svg text" in CSS
 
 
 def test_rewind_restores_personal_story_after_the_game_race():
@@ -115,3 +115,26 @@ def test_other_player_film_preview_is_marked_private_and_cannot_share():
     assert '"VIEWING " + previewPlayer + " · PRIVATE PREVIEW"' in FILM
     assert '!previewPlayer && <button className="rewind-film-primary"' in FILM
     assert 'onClick={shareStory}' in FILM
+
+
+def test_badge_art_is_not_hidden_by_race_svg_selectors():
+    # The old descendant selector hid the SVG inside the earned badge.
+    # Only the race canvas's direct SVG can be faded during the badge reveal.
+    assert ".rewind-film-arena-trophy > svg" in CSS
+    assert ".rewind-film-arena-trophy svg" not in CSS
+    assert ".rewind-film-arena svg {" not in CSS
+    assert ".rewind-film-arena > svg" in CSS
+    assert ".rewind-film-trophy .rewind-film-award .trophy-medallion > svg" in CSS
+    assert "<BadgeMedallion badge={trophy}" in FILM
+
+
+def test_badge_name_and_story_use_separate_layout_regions():
+    # The medallion itself is a direct span, so a generic >span text
+    # rule also incorrectly overrides its inherited emblem colors.
+    assert 'className="rewind-film-award-name"' in FILM
+    assert 'className="rewind-film-award-meta"' in FILM
+    assert ".rewind-film-award>span {" not in CSS
+    assert ".rewind-film-award>.rewind-film-award-name" in CSS
+    assert ".rewind-film-trophy .rewind-film-story-beat" in CSS
+    assert ".rewind-film-trophy .rewind-film-arena" in CSS
+    assert ".rewind-film-trophy .rewind-film-controls" in CSS
