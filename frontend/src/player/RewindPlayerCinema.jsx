@@ -31,9 +31,9 @@ const noRepeat=(beat)=>{
   }
 };
 const openerLabel=(beat)=>{
-  const name=beat.visual?.rival?.name;
-  if(beat.visual?.motif==='rivalry'&&beat.metric&&beat.description)
-    return beat.description.replace(/^Only\s+/i,'').replace(/[.!]\s*$/,'');
+  const match=beat.description?.match(/separated you and ([^.]+)/i);
+  if(beat.visual?.motif==='rivalry'&&match)
+    return 'Every point mattered. Your closest rival: '+match[1]+'.';
   return beat.description;
 };
 
@@ -58,12 +58,11 @@ function FilmMoment({beat,recap,player,reduce}){
           {fmt(beat.metric)}
         </m.div>
         <m.h1 className="rc-hero-title" initial={reduce?false:motionIn} animate={{opacity:1,y:0,filter:'blur(0px)'}} transition={{...smooth,delay:.48}}>
-          {ending?'That was your season.':beat.headline}
+          {ending?'That was your season.':beat.visual?.motif==='rivalry'?'POINTS APART.':beat.headline}
         </m.h1>
         <m.p className="rc-hero-description" initial={reduce?false:motionIn} animate={{opacity:1,y:0,filter:'blur(0px)'}} transition={{...smooth,delay:.76}}>
           {ending?player+' · '+noRepeat(beat):openerLabel(beat)}
         </m.p>
-        <div className="rc-hero-orbit" aria-hidden="true"><i/><i/><i/></div>
       </div>
     :<>
       <div className="rc-narration">
@@ -121,11 +120,11 @@ export default function RewindPlayerCinema({data}){
   },[chrome,playing,evidence,index]);
   useEffect(()=>{
     const handler=e=>{
+      if(e.key==='Escape'){setEvidence(false);setChrome(false);return;}
       if(e.target?.closest?.('button,a,input,textarea,select,[contenteditable=true]'))return;
       if(e.key==='ArrowRight'){e.preventDefault();forward();}
       else if(e.key==='ArrowLeft'){e.preventDefault();backward();}
       else if(e.code==='Space'){e.preventDefault();if(index===0&&!playing)begin();else pause();}
-      else if(e.key==='Escape'){setEvidence(false);setChrome(false);}
     };
     window.addEventListener('keydown',handler);
     return ()=>window.removeEventListener('keydown',handler);
@@ -136,7 +135,7 @@ export default function RewindPlayerCinema({data}){
     <main className={'rc-film rc-'+scene.kind+(playing?' rc-is-playing':'')} style={{'--rc-light':tone[0],'--rc-glow':tone[1]}}
       aria-label={'Season 01 cinematic Rewind for '+story.player}
       onPointerMove={e=>{if(e.pointerType==='mouse')reveal();}}
-      onPointerDown={e=>{if(e.pointerType==='touch')setChrome(v=>!v);}}
+      onPointerDown={e=>{if(e.pointerType==='touch'&&!e.target.closest('button,a'))setChrome(v=>!v);}}
       onFocusCapture={reveal}>
       <link rel="stylesheet" href="/static/css/rewind-director.css"/>
       <link rel="stylesheet" href="/static/css/rewind-cinema.css"/>

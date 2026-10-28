@@ -22,6 +22,9 @@ def test_cinema_uses_no_permanent_header_footer_or_chapter_progress_bars():
     assert "rc-start-wrap" in film and "BEGIN YOUR REWIND" in film
     assert "rd-masthead" not in film and "rd-chapters" not in film
     assert "rd-footbar" not in film and "rd-foot-context" not in film
+    assert '<div className="rc-hero-orbit"' not in film
+    assert "'POINTS APART.'" in film
+    assert "e.key==='Escape'" in film
     assert "rc-chrome" in film and "rc-minimal-tools" in film
     assert "rc-progress" in film and "role=\"progressbar\"" in film
     assert ".rc-film {" in css and "height:100dvh" in css
