@@ -49,9 +49,9 @@ def test_game_visuals_follow_weekly_scores_not_fake_keyframes():
     assert "history" not in FILM or "weeklyGameScores" in FILM
     assert "const weeks = recap.weeklyGameScores || []" in FILM
     assert "weeks.slice(0, limit + 1)" in FILM
-    assert "Math.round((game.score/maximum)*(compact ? 252 : 600))" in FILM
+    assert "(game.score/maximum)*(compact ? 252 : 600)" in FILM
     assert "rankingY[game.key]" in FILM
-    assert "leadChanged ? 1650 : 1150" in FILM
+    assert "duration:(end-from)*2.15, ease:'linear'" in FILM
     assert "const theme = GAMES[phase==='discovery' ? lead : phase==='race' ? liveLeader : null]" in FILM
     assert "leadChanges += 1" in FILM
     assert "game.score === topScore" in FILM or "item.score === topScore" in FILM
@@ -62,7 +62,7 @@ def test_game_visuals_follow_weekly_scores_not_fake_keyframes():
     assert "setTimeout" in FILM
     assert 'phase === "race"' not in FILM or "phase" in FILM
     assert "useReducedMotion()" in FILM
-    assert "if (reduce || !weeks.length || discovery.noGames)" in FILM
+    assert "if (reduce || weeks.length<2 || discovery.noGames)" in FILM
     assert "aria-current={phase==='race'&&week===i?'step':undefined}" in FILM
 
 
@@ -138,3 +138,38 @@ def test_badge_name_and_story_use_separate_layout_regions():
     assert ".rewind-film-trophy .rewind-film-story-beat" in CSS
     assert ".rewind-film-trophy .rewind-film-arena" in CSS
     assert ".rewind-film-trophy .rewind-film-controls" in CSS
+
+def test_weekly_race_is_continuous_not_a_sequence_of_timeouts():
+    assert "export function filmFrame(weeks, progress, lanes)" in FILM
+    assert "const controls=animate(from,end" in FILM
+    assert "onUpdate:value=>" in FILM
+    assert "progressRef.current=value;" in FILM
+    assert "setProgress(value);" in FILM
+    assert "const t = Math.max(0,Math.min(1,progress-lower))" in FILM
+    assert "score:mix(a.find(g=>g.key===key).score,b.find(g=>g.key===key).score,t)" in FILM
+    assert "y:mix(lanes[first],lanes[next],easeAcross(t))" in FILM
+    assert "controls.stop()" in FILM
+    assert "seek(i)" in FILM
+    assert "setInterval(" not in FILM
+    assert "leadChanged ? 1650 : 1150" not in FILM
+    assert "scoreSnapshot.map(g=>" in FILM  # static accessible labels; no 60 Hz announcements
+    assert ".rewind-film-race .rewind-film-timeline::before" in CSS
+
+
+def test_actual_weekly_scores_drive_story_beats_without_made_up_analytics():
+    assert "export function filmWeekBeat(weeks, index)" in FILM
+    assert "Number(row.games?.[key])||0" in FILM
+    assert "The lead changed." in FILM
+    assert "A new weekly high." in FILM
+    assert "You scored in " in FILM
+    assert "No points were recorded this week." in FILM
+    assert "weekBeat.detail" in FILM
+    assert "insights.peerComparison" in FILM
+    assert "insights.longestWeeklyStreak" in FILM
+    assert "You completed games in " in FILM
+    assert "You scored points in " not in FILM
+    assert "insights.highestGame" in FILM
+    assert "insights.outpacedPercent" in FILM
+    assert "personalFindings.map" in FILM
+    assert 'className="rewind-film-week-finding"' in FILM
+    assert ".rewind-film-week-finding" in CSS
