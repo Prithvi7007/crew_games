@@ -63,7 +63,10 @@ def season_one_rewind():
         abort(404)
     # Evidence-led V2 is a second, strictly staff-only film preview.
     story_preview = request.args.get("story") == "2"
-    if story_preview and (not film_preview or not preview or analysis_preview):
+    director_preview = request.args.get("story") == "3"
+    if (story_preview or director_preview) and (
+        not film_preview or not preview or analysis_preview
+    ):
         abort(404)
     # View another player's real Rewind only in the explicit staff-only Film
     # Lab preview. Never impersonate the player or change the login session.
@@ -91,6 +94,7 @@ def season_one_rewind():
             "rewindFilmPrototype": film_preview,
             "rewindAnalyticsPreview": analysis_preview,
             "rewindStoryPreview": story_preview,
+            "rewindStoryDirectorPreview": director_preview,
             "rewindPreviewPlayer": story["username"] if cross_player_preview else None,
         }, user,
     ))
