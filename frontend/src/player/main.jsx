@@ -33,6 +33,7 @@ import RewindFilmPrototype from './RewindFilmPrototype';
 import RewindAnalysisNotebook from './RewindAnalysisNotebook';
 import RewindStoryFilm from './RewindStoryFilm';
 import RewindStoryFilmDirector from './RewindStoryFilmDirector';
+import RewindPlayerCinema from './RewindPlayerCinema';
 import { enableCrewEntranceMotion } from './CrewMotion';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
@@ -700,4 +701,4 @@ function PlayerWithTour({ Component, data }) {
 }
 
 const root=document.getElementById('crew-player-root'); const data=readState();
-if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,trophies:TrophyPage,rewind:SeasonRewind,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=(root.dataset.page==='rewind' && data.rewindAnalyticsPreview === true) ? RewindAnalysisNotebook : (root.dataset.page==='rewind' && data.rewindStoryDirectorPreview === true) ? RewindStoryFilmDirector : (root.dataset.page==='rewind' && data.rewindStoryPreview === true) ? RewindStoryFilm : (root.dataset.page==='rewind' && data.rewindFilmPrototype === true) ? RewindFilmPrototype : pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<PlayerWithTour Component={Component} data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
+if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,trophies:TrophyPage,rewind:SeasonRewind,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=(root.dataset.page==='rewind' && data.rewindAnalyticsPreview === true) ? RewindAnalysisNotebook : (root.dataset.page==='rewind' && data.rewindPlayerCinemaPreview === true) ? RewindPlayerCinema : (root.dataset.page==='rewind' && data.rewindStoryDirectorPreview === true) ? RewindStoryFilmDirector : (root.dataset.page==='rewind' && data.rewindStoryPreview === true) ? RewindStoryFilm : (root.dataset.page==='rewind' && data.rewindFilmPrototype === true) ? RewindFilmPrototype : pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<PlayerWithTour Component={Component} data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
