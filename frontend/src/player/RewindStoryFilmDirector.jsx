@@ -11,22 +11,27 @@ const PALETTE={
 };
 const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
 const durationFor=beat=>clamp(6100+Math.round((beat?.description?.length||0)*10),6800,9000);
+// Narration complements the scene rather than reading chart labels aloud.
 const short=(beat)=>{
   const v=beat.visual||{};
+  if(beat.kind==='trajectory' && v.rival)
+    return 'Two cumulative scores, six scheduled weeks. The marked week changed the gap more than any other.';
+  if(beat.kind==='strength' && v.game)
+    return 'Among games with enough peer data, '+v.game+' was where you gained the clearest edge.';
   if(beat.kind==='swing' && v.net>0 && v.other<0)
-    return v.game+' gave you a '+v.edge+'-point edge. Across the other games, you trailed by '+Math.abs(v.other)+'. The difference was '+v.net+'.';
-  if(beat.kind==='trajectory' && v.rival?.turning)
-    return 'In Week '+v.rival.turning.week+', the season gap shifted '+Math.abs(v.rival.turning.delta)+' points '+(v.rival.turning.delta>0?'toward you.':'toward '+v.rival.name+'.')+' Watch the entire six-week journey.';
-  if(beat.kind==='strength' && Number.isFinite(Number(v.mine)))
-    return 'Your '+v.game+' average was '+v.mine+' points. Across the field: '+v.peers+'. This was the game where you stood furthest above your peers.';
-  if(beat.kind==='standout' && v.peerCount)
-    return 'You outscored '+v.outscored+' of '+v.peerCount+' people who faced the exact same '+v.game+' puzzle.';
+    return 'The other games favored your rival. One game turned that deficit into a lead.';
   if(beat.kind==='rivalry' && v.rival)
-    return 'You finished '+v.rival.gap+' points '+(v.rival.difference>0?'ahead of':v.rival.difference<0?'behind':'level with')+' '+v.rival.name+'. There was almost nothing in it.';
+    return 'The closest season points total belonged to '+v.rival.name+'. Look how little separated you.';
+  if(beat.kind==='standout' && v.peerCount)
+    return 'One shared puzzle. The same challenge for everyone. This was a performance that stood out.';
+  if(beat.kind==='pivot')
+    return 'Take this week away while leaving every other player unchanged. The standings look very different.';
   if(beat.kind==='consistency' && v.weeksTotal)
-    return 'You played in '+v.weeksActive+' of the '+v.weeksTotal+' scheduled weeks. The habit mattered.';
-  if(beat.kind==='pivot' && v.currentRank)
-    return beat.description.split('. ')[0]+'.';
+    return 'Week after week, you kept coming back. That rhythm became part of your season.';
+  if(beat.kind==='momentum')
+    return 'Same game types, two halves of the season. Your scoring pace changed.';
+  if(beat.kind==='ending' && Number(v.total)>0)
+    return 'Every game added to a season that could only be yours.';
   return beat.description;
 };
 function formatCount(n){return String(n).padStart(2,'0');}
@@ -136,7 +141,7 @@ export default function RewindStoryFilmDirector({data}) {
       </div>
 
       <section className="rd-theater" aria-live="polite" aria-label="Your personalized season story">
-        <AnimatePresence initial={false} mode="popLayout">
+        <AnimatePresence initial={false} mode="wait">
           <m.div key={'copy-'+index} className="rd-copy" initial={reduce?false:{opacity:0,y:38,filter:'blur(14px)'}}
             animate={{opacity:1,y:0,filter:'blur(0px)'}}
             exit={reduce?{opacity:0}:{opacity:0,y:-32,filter:'blur(14px)'}}
@@ -152,7 +157,7 @@ export default function RewindStoryFilmDirector({data}) {
               <AnimatePresence>
                 {details&&<m.div className="rd-evidence-panel" initial={{opacity:0,height:0}} animate={{opacity:1,height:'auto'}}
                   exit={{opacity:0,height:0}} transition={{duration:.3}}>
-                  <p>{active.description}</p><p>{active.evidence}</p>
+                  <p className="rd-evidence-label">THE EVIDENCE</p><p>{active.evidence}</p>
                   <p className="rd-evidence-note">Only cutoff-eligible completed games are included. This is an analytical comparison, not a claim about an unobserved play.</p>
                 </m.div>}
               </AnimatePresence>
@@ -161,26 +166,19 @@ export default function RewindStoryFilmDirector({data}) {
         </AnimatePresence>
 
         <div className="rd-visual-stage">
-          <AnimatePresence initial={false} mode="popLayout">
+          <AnimatePresence initial={false} mode="wait">
             <m.div key={'visual-'+index} className={'rd-visual-shell rd-scene-'+active.kind}
               initial={reduce?false:{opacity:0,x:70,scale:.92,filter:'blur(21px)'}}
               animate={{opacity:1,x:0,scale:1,filter:'blur(0px)'}}
               exit={reduce?{opacity:0}:{opacity:0,x:-55,scale:1.04,filter:'blur(19px)'}}
               transition={{duration:reduce?0:1.15,ease:[.22,1,.36,1]}}>
-              <m.div className="rd-ghost-number" aria-hidden="true"
-                initial={{opacity:0,scale:.85}} animate={{opacity:.12,scale:1}}
-                transition={{duration:1.5}}>{active.metric}</m.div>
               <RewindDirectorScenes beat={active} recap={recap}/>
-              <div className="rd-metric-banner" aria-label={'Key finding '+active.metric}>
-                <span>THE NUMBER</span><strong>{active.metric}</strong>
-              </div>
             </m.div>
           </AnimatePresence>
         </div>
       </section>
 
       <footer className="rd-footbar">
-        <div className="rd-foot-context"><span>THE STORY BEHIND THE SCORE</span><strong>{formatCount(index+1)} <i/> {formatCount(beats.length)}</strong></div>
         <div className="rd-playback">
           <button type="button" className="rd-step" disabled={index===0} onClick={previous} aria-label="Previous scene">←</button>
           <button type="button" className="rd-play-button" onClick={last?replay:toggle}>
@@ -189,7 +187,6 @@ export default function RewindStoryFilmDirector({data}) {
           </button>
           <button type="button" className="rd-step" disabled={last} onClick={next} aria-label="Next scene">→</button>
         </div>
-        <div className="rd-foot-hint">← → EXPLORE <span>·</span> SPACE PLAY/PAUSE</div>
       </footer>
     </main>
   </MotionConfig></LazyMotion>;
