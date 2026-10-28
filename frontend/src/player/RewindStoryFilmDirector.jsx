@@ -61,9 +61,10 @@ export default function RewindStoryFilmDirector({data}) {
   const replay=useCallback(()=>jump(0),[jump]);
   const toggle=useCallback(()=>{
     if(last){jump(0);setPlaying(!reduce);return;}
+    if(reduce){next();return;}
     setDetails(false);
     setPlaying(p=>!p);
-  },[last,jump,reduce]);
+  },[last,jump,reduce,next]);
 
   useEffect(()=>{
     if(!playing||reduce||last||beats.length<2) return undefined;
@@ -183,7 +184,7 @@ export default function RewindStoryFilmDirector({data}) {
         <div className="rd-playback">
           <button type="button" className="rd-step" disabled={index===0} onClick={previous} aria-label="Previous scene">←</button>
           <button type="button" className="rd-play-button" onClick={last?replay:toggle}>
-            {last?'WATCH AGAIN':playing?'PAUSE FILM':index===0?'BEGIN MY REWIND':'CONTINUE FILM'}
+            {last?'WATCH AGAIN':reduce?'NEXT CHAPTER':playing?'PAUSE FILM':index===0?'BEGIN MY REWIND':'CONTINUE FILM'}
             <span aria-hidden="true">{last?'↺':playing?'Ⅱ':'▶'}</span>
           </button>
           <button type="button" className="rd-step" disabled={last} onClick={next} aria-label="Next scene">→</button>
