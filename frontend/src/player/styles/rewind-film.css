@@ -577,3 +577,78 @@
     font-size:clamp(14px,3.9vw,18px)!important;
   }
 }
+/* Film Lab editorial telemetry: data belongs in the story, not in slide cards.
+   Reserve its height so changing weekly copy never moves the race canvas. */
+.rewind-film-arena > svg {transition:opacity .55s ease;}
+.rewind-film-race .rewind-film-narration {min-height:clamp(116px,15vh,165px);}
+.rewind-film-race .rewind-film-narration h1 {
+  font-size:clamp(46px,6.5vw,84px);
+  line-height:.96;
+  letter-spacing:-.067em;
+}
+.rewind-film-race .rewind-film-insight {
+  max-width:940px;
+  width:100%;
+  min-height:126px;
+  margin:0;
+  padding:6px 0 10px;
+}
+.rewind-film-race-report {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) max-content;
+  align-items:center;
+  gap:clamp(20px,4vw,48px);
+  min-height:105px;
+}
+.rewind-film-race-copy {min-width:0;min-height:99px;}
+.rewind-film-finding-label {
+  display:block;
+  max-width:670px;
+  margin-bottom:10px;
+  color:var(--film-accent);
+  font:850 10px/1.5 var(--crew-font-body,Inter,sans-serif);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.rewind-film-race-copy .rewind-film-week-finding {
+  margin:0;
+  min-height:62px;
+  max-width:690px;
+}
+.rewind-film-running-total {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:7px;
+  border-left:1px solid rgba(187,225,248,.24);
+  padding-left:24px;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.rewind-film-running-total strong {
+  color:#f1f8ff;
+  font:1000 clamp(39px,4.6vw,64px)/.9 var(--crew-font-display,Manrope,Inter,sans-serif);
+  letter-spacing:-.075em;
+}
+.rewind-film-running-total span {
+  color:#94bad0;
+  font:850 10px/1.2 var(--crew-font-body,Inter,sans-serif);
+  letter-spacing:.16em;
+}
+.rewind-film-race-score {font-variant-numeric:tabular-nums;letter-spacing:-.04em;paint-order:stroke;stroke:#061725;stroke-width:3px;}
+@media(max-width:760px) {
+  .rewind-film-race .rewind-film-narration {min-height:104px;}
+  .rewind-film-race .rewind-film-narration h1 {font-size:clamp(39px,9.4vw,57px);}
+  .rewind-film-race .rewind-film-insight {min-height:155px;padding:4px 12px 8px;}
+  .rewind-film-race-report {display:flex;flex-direction:column-reverse;align-items:stretch;gap:8px;min-height:0;}
+  .rewind-film-race-copy {min-height:90px;}
+  .rewind-film-finding-label {font-size:9px;line-height:1.5;letter-spacing:.1em;margin-bottom:5px;}
+  .rewind-film-race-copy .rewind-film-week-finding {min-height:62px;}
+  .rewind-film-running-total {flex-direction:row;align-items:baseline;justify-content:flex-start;gap:10px;border:0;padding:0;}
+  .rewind-film-running-total strong {font-size:clamp(30px,8.8vw,40px);}
+  .rewind-film-running-total span {font-size:9px;letter-spacing:.12em;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .rewind-film-arena > svg {transition:none;}
+}

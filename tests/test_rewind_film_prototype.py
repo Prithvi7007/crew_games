@@ -85,7 +85,7 @@ def test_opening_symbols_have_distinct_positions_and_labels_below_them():
     assert "[125,355,585,815]" in FILM
     assert "[62,164,266,368]" in FILM
     assert "const introY=compact ? 197 : 240" in FILM
-    assert "<text x={targetX} y={targetY+" in FILM
+    assert "animate={{x:targetX,y:targetY+" in FILM
     assert "phase==='intro'?(compact?62:83)" in FILM
     assert "textAnchor=\"middle\"" in FILM
     assert "rewind-film-arena-intro > svg text" in CSS
@@ -173,3 +173,19 @@ def test_actual_weekly_scores_drive_story_beats_without_made_up_analytics():
     assert "personalFindings.map" in FILM
     assert 'className="rewind-film-week-finding"' in FILM
     assert ".rewind-film-week-finding" in CSS
+
+
+def test_film_production_polish_keeps_score_and_story_in_sync():
+    assert "Your season<br/><em>in motion.</em>" in FILM
+    assert "<m.h1 animate=" in FILM and "<m.h1 layout" not in FILM
+    assert '<m.text className="rewind-film-race-score"' in FILM
+    assert "Math.round(game.score).toLocaleString()" in FILM
+    assert "const runningPoints=Math.round(scores.reduce(" in FILM
+    assert "runningPoints.toLocaleString()" in FILM
+    assert "weekPoints=useMemo" in FILM
+    assert "rewind-film-race-report" in FILM
+    assert '<AnimatePresence mode="wait" initial={false}>' in FILM
+    assert "topShare=Math.round(100*top.points/total)" in FILM
+    assert "total-previousMax" in FILM
+    assert ".rewind-film-race-report" in CSS
+    assert ".rewind-film-race-score" in CSS
