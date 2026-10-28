@@ -119,8 +119,8 @@ export default function RewindFilmPrototype({data}) {
           ? 'Your later games averaged '+momentum.change+' more points than your earlier games.'
           : 'Your later games averaged '+Math.abs(momentum.change)+' fewer points—your next comeback awaits.')
       : null,
-    insights.longestWeeklyStreak>=2
-      ? 'You scored points in '+insights.longestWeeklyStreak+' consecutive season weeks.' : null,
+    insights.longestWeeklyStreak>=2 && style.title !== 'THE MAINSTAY'
+      ? 'You completed games in '+insights.longestWeeklyStreak+' consecutive season weeks.' : null,
     insights.highestGame
       ? 'Your biggest single game was '+insights.highestGame.score+' points in '+insights.highestGame.game+'.' : null,
     insights.outpacedPercent!=null && recap.participants>1

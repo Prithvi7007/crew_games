@@ -166,6 +166,8 @@ def test_actual_weekly_scores_drive_story_beats_without_made_up_analytics():
     assert "weekBeat.detail" in FILM
     assert "insights.peerComparison" in FILM
     assert "insights.longestWeeklyStreak" in FILM
+    assert "You completed games in " in FILM
+    assert "You scored points in " not in FILM
     assert "insights.highestGame" in FILM
     assert "insights.outpacedPercent" in FILM
     assert "personalFindings.map" in FILM
