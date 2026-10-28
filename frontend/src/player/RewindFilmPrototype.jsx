@@ -43,6 +43,7 @@ export function filmDiscovery(weeks, gameCount) {
 
 export default function RewindFilmPrototype({data}) {
   const recap = data.rewind || {};
+  const previewPlayer = data.rewindPreviewPlayer;
   const reduce = useReducedMotion();
   const weeks = recap.weeklyGameScores || [];
   const [week, setWeek] = useState(0);
@@ -168,7 +169,7 @@ export default function RewindFilmPrototype({data}) {
       <div className="rewind-film-atmosphere" aria-hidden="true"/>
       <header className="rewind-film-header">
         <span className="rewind-film-mark">CREW<span>+</span><small>REWIND · 01</small></span>
-        <span className="rewind-film-preview">PRIVATE PREVIEW</span>
+        <span className="rewind-film-preview">{previewPlayer ? "VIEWING " + previewPlayer + " · PRIVATE PREVIEW" : "PRIVATE PREVIEW"}</span>
         <a href="/rewind?preview=1" className="rewind-film-exit" aria-label="Return to the original Rewind">✕</a>
       </header>
 
@@ -302,7 +303,7 @@ export default function RewindFilmPrototype({data}) {
             </> : phase==='discovery' ? <button className="rewind-film-primary" type="button" onClick={continueStory}>But that's only part of the story →</button>
             : phase==='identity' ? <button className="rewind-film-primary" type="button" onClick={continueStory}>{trophy?'See what you earned':'Your season, remembered'} →</button>
             : phase==='trophy' ? <button className="rewind-film-primary" type="button" onClick={continueStory}>Finish my story →</button>
-            : <><button type="button" onClick={replay}>Watch again ↺</button><button className="rewind-film-primary" type="button" onClick={shareStory}>Share my season ↗</button></>}
+            : <><button type="button" onClick={replay}>Watch again ↺</button>{!previewPlayer && <button className="rewind-film-primary" type="button" onClick={shareStory}>Share my season ↗</button>}</>}
         </div>
       </footer>
     </main>

@@ -108,3 +108,10 @@ def test_rewind_restores_personal_story_after_the_game_race():
     assert ".rewind-film-award" in CSS
     assert ".rewind-film-finale-object" in CSS
     assert ".rewind-film-timeline[hidden]" in CSS
+
+
+def test_other_player_film_preview_is_marked_private_and_cannot_share():
+    assert 'const previewPlayer = data.rewindPreviewPlayer;' in FILM
+    assert '"VIEWING " + previewPlayer + " · PRIVATE PREVIEW"' in FILM
+    assert '!previewPlayer && <button className="rewind-film-primary"' in FILM
+    assert 'onClick={shareStory}' in FILM
