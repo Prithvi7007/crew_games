@@ -1,0 +1,37 @@
+.rewind-v2{position:relative;isolation:isolate;display:flex;flex-direction:column;min-height:100vh;height:100dvh;overflow:hidden;background:#040c18;color:#f2f8ff;font-family:Inter,Arial,sans-serif}
+.rewind-v2 *{box-sizing:border-box}
+.rewind-v2-header,.rewind-v2-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 4vw;flex-shrink:0}
+.rewind-v2-timeline{display:flex;gap:8px;width:100%;padding:0 4vw}
+.rewind-v2-timeline button{flex:1;border:0;background:none;padding:10px 0}
+.rewind-v2-progress{display:block;height:3px;background:#425166;overflow:hidden}
+.rewind-v2-progress i{display:block;width:100%;height:100%;background:#7cd8ff;transform-origin:left}
+.rewind-v2-stage{display:grid;grid-template-columns:1fr 1fr;gap:3vw;align-items:center;flex:1;min-height:0;overflow-y:auto;padding:20px 5vw}
+.rewind-v2 h1{font-size:clamp(40px,6vw,90px);letter-spacing:-.06em;line-height:1;margin:0}
+.rewind-v2-story{font-size:clamp(16px,1.6vw,21px);line-height:1.5}
+.rewind-v2-evidence{color:#9fbdd3}
+.rewind-v2-artwork{min-height:250px;display:grid;place-items:center}
+.rewind-v2-scene{display:flex;flex-direction:column;gap:20px;align-items:center;justify-content:center;width:100%}
+.rewind-v2-number{font-size:clamp(65px,11vw,160px);font-weight:950;color:#7cd8ff;letter-spacing:-.08em}
+.rewind-v2-rival-visual,.rewind-v2-swing{width:min(100%,400px);padding:16px;border:1px solid #365068;border-radius:22px;background:rgba(255,255,255,.04)}
+.rewind-v2-rival-row,.rewind-v2-swing>div{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:15px}
+.rewind-v2-track{grid-column:1/-1;height:8px;background:#354d65}
+.rewind-v2-track>div{height:100%;background:#7cd8ff}
+.rewind-v2-actions{display:flex;gap:8px}
+.rewind-v2-actions button{border:1px solid #476074;background:transparent;color:white;border-radius:99px;min-height:42px;padding:0 16px}
+.rewind-v2-actions button.rewind-v2-play{background:#7cd8ff;color:#04111d}
+@media(max-width:780px){.rewind-v2-stage{display:flex;flex-direction:column;align-items:stretch}.rewind-v2-artwork{min-height:220px}.rewind-v2-number{font-size:75px}}
+.rewind-v2-background{position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 76% 46%,#173349,#050b18 72%)}
+.rewind-v2-brand{font-size:22px;font-weight:950}
+.rewind-v2-eyebrow{font-size:10px;color:#8fd9ff}
+.rewind-v2-evidence{border-left:2px solid #8fd9ff;padding-left:12px}
+.rewind-v2-pivot{display:flex;gap:16px}
+.rewind-v2-pivot strong{font-size:36px}
+.rewind-v2-week-track{display:flex;gap:8px}
+.rewind-v2-week i{display:block;height:48px;background:#46617b}
+.rewind-v2-dots{display:flex;gap:8px;flex-wrap:wrap}
+.rewind-v2-dots>span{display:block;width:18px;height:18px;border-radius:50%;background:#8fd9ff}
+.rewind-v2-momentum svg path{fill:none;stroke:#8fd9ff;stroke-width:4}
+.rewind-v2-footer{border-top:1px solid #36516a;background:#081426}
+.rewind-v2-aura{position:absolute;inset:0;display:grid;place-items:center;opacity:.2;z-index:-1}
+.rewind-v2-aura span{font-size:140px}
+@media(max-width:780px){.rewind-v2-footer>p{display:none}}
