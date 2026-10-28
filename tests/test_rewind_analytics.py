@@ -145,3 +145,24 @@ def test_analyst_notebook_is_staff_only_readonly_and_does_not_expand_player_prev
         with patch("app.main.routes.crew_today", return_value=date(2026, 10, 26)):
             assert client.get(
                 "/rewind?preview=1&prototype=1&analysis=1&player=SamIam").status_code == 404
+
+
+def test_rival_claim_needs_a_meaningful_peer_field():
+    rows = [row(1, "trivia", "2026-09-22", 100),
+            row(2, "trivia", "2026-09-22", 95)]
+    report = findings(rows)
+    assert not any(c["key"] == "closest_rival" for c in report["cards"])
+
+
+def test_analytics_preview_copies_inspectable_evidence_without_export_endpoint():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    notebook = (root / "frontend/src/player/RewindAnalysisNotebook.jsx").read_text()
+    app_entry = (root / "frontend/src/player/main.jsx").read_text()
+    assert "onClick={copyFindings}" in notebook
+    assert "navigator.clipboard?.writeText" in notebook
+    assert "Method: '+card.method" in notebook
+    assert "data.rewindAnalyticsPreview === true" in app_entry
+    assert "RewindAnalysisNotebook" in app_entry
+    assert "rewindAnalysisPreview" not in notebook  # server must enforce permission

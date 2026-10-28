@@ -10,6 +10,28 @@ export default function RewindAnalysisNotebook({data}) {
   const subject=data.rewindPreviewPlayer || recap.username || 'this player';
   const back='/rewind?preview=1&prototype=1'+
     (data.rewindPreviewPlayer ? '&player='+encodeURIComponent(data.rewindPreviewPlayer) : '');
+  const [copyStatus,setCopyStatus]=React.useState('');
+
+  async function copyFindings() {
+    const reportText=[
+      'CREW Season 01 — analytical evidence for '+subject,
+      'Completed games: '+(story.sample?.completedGames ?? 0)+
+        '; weeks active: '+(story.sample?.weeksActive ?? 0)+
+        '; other active players: '+(story.sample?.otherActivePlayers ?? 0),
+      ...cards.map((card,i)=>[
+        String(i+1)+'. '+card.title+' — '+card.metric,
+        card.story, 'Evidence: '+card.evidence, 'Method: '+card.method,
+      ].join('\n')),
+      'Limitations: '+story.limitations,
+    ].join('\n\n');
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(reportText);
+      setCopyStatus('Research findings copied.');
+    } catch (_) {
+      setCopyStatus('Copy is unavailable in this browser.');
+    }
+  }
 
   return <main className="rewind-analysis" aria-label="Private CREW Rewind analytics review">
     <header className="rewind-analysis-header">
@@ -29,6 +51,10 @@ export default function RewindAnalysisNotebook({data}) {
         <span><strong>{story.sample?.weeksActive ?? 0}</strong> active weeks</span>
         <span><strong>{story.sample?.otherActivePlayers ?? 0}</strong> other active players</span>
       </div>
+      <button className="rewind-analysis-copy" type="button" onClick={copyFindings}>
+        Copy the evidence report <span aria-hidden="true">↗</span>
+      </button>
+      {copyStatus && <p className="rewind-analysis-copy-status" role="status">{copyStatus}</p>}
       {cards.length ? <div className="rewind-analysis-findings">
         {cards.map((finding,i)=><article className="rewind-analysis-finding" key={finding.key}>
           <div className="rewind-analysis-finding-index">{String(i+1).padStart(2,'0')} <span>{finding.label}</span></div>

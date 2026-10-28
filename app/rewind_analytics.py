@@ -166,7 +166,7 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
         adjusted_points[me] -= points
         adjusted_counts[me] -= count
         without = _place(adjusted_points, adjusted_counts, profile_names, me)
-        if without is None or without > rank:
+        if (without is None or without > rank) and points < player_totals[me]:
             movement = without - rank if without is not None else None
             cards.append(_card(
                 "pivotal_week", "THE WEEK THAT MATTERED",
@@ -187,7 +187,7 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
     # nearest official rank. Distinguish ties and count-based tie breaks.
     opponents = [(abs(player_totals[pid] - player_totals[me]), pid)
                  for pid in player_counts if pid != me and player_totals[pid] > 0]
-    if opponents and player_totals[me] > 0:
+    if len(opponents) >= 3 and player_totals[me] > 0:
         gap, opponent = min(opponents, key=lambda item: (
             item[0], abs(player_counts[item[1]] - player_counts[me]), item[1]))
         other_name = profile_names.get(opponent, "Another player")
@@ -251,7 +251,7 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
                 "consistency", "YOU KEPT SHOWING UP",
                 "Consistency was part of your advantage.",
                 f"{sample['weeksActive']} / {weeks_total} weeks",
-                f"You earned points in {sample['weeksActive']} of the "
+                f"You completed games in {sample['weeksActive']} of the "
                 f"{weeks_total} season weeks, more than {beat} of the "
                 f"{len(peer_weeks)} other active players.",
                 f"The other active players' median was "
