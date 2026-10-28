@@ -130,6 +130,7 @@ def test_approved_rewind_stays_frozen_after_late_archive_play(app, client):
     assert after["points"] == before["points"] == 75
     assert after["gamesPlayed"] == before["gamesPlayed"] == 1
     assert after["insights"] == before["insights"]
+    assert after["analyticsStory"] == before["analyticsStory"]
     assert after["weeklyGameScores"] == before["weeklyGameScores"]
     assert after["signature"]["key"] == "word"
     assert after["champion"] is True

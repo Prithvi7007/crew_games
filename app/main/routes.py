@@ -57,6 +57,10 @@ def season_one_rewind():
         user.get("role") in ("admin", "owner")
         and request.args.get("preview") == "1"
     )
+    # A second staff-only lens: test the evidence before designing a film.
+    analysis_preview = request.args.get("analysis") == "1"
+    if analysis_preview and not (film_preview and preview):
+        abort(404)
     # View another player's real Rewind only in the explicit staff-only Film
     # Lab preview. Never impersonate the player or change the login session.
     cross_player_preview = "player" in request.args
@@ -81,6 +85,7 @@ def season_one_rewind():
         {
             "rewind": story,
             "rewindFilmPrototype": film_preview,
+            "rewindAnalyticsPreview": analysis_preview,
             "rewindPreviewPlayer": story["username"] if cross_player_preview else None,
         }, user,
     ))

@@ -20,6 +20,7 @@ import './styles/gameplay-refinement.css';
 import './styles/typography.css';
 import './styles/rewind.css';
 import './styles/rewind-film.css';
+import './styles/rewind-analysis.css';
 import TrophyRoom, { BadgeMedallion, EquippedProfileBadge, badgeFromAwardCode } from './TrophyRoom';
 import TrophyWelcomeTour from './TrophyWelcomeTour';
 import BadgeUnlockPreview, { CinematicReveal } from './BadgeUnlockPreview';
@@ -28,6 +29,7 @@ import HomeTheaterArc from './HomeTheaterArc';
 import GamePageHeader from './GamePageHeader';
 import SeasonRewind from './SeasonRewind';
 import RewindFilmPrototype from './RewindFilmPrototype';
+import RewindAnalysisNotebook from './RewindAnalysisNotebook';
 import { enableCrewEntranceMotion } from './CrewMotion';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
@@ -695,4 +697,4 @@ function PlayerWithTour({ Component, data }) {
 }
 
 const root=document.getElementById('crew-player-root'); const data=readState();
-if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,trophies:TrophyPage,rewind:SeasonRewind,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=(root.dataset.page==='rewind' && data.rewindFilmPrototype === true) ? RewindFilmPrototype : pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<PlayerWithTour Component={Component} data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
+if(root&&data){const pages={home:HomePage,games:GamesPage,leaderboard:RankingsPage,trophies:TrophyPage,rewind:SeasonRewind,profile:ProfilePage,mystery:MysteryPage,trivia:TriviaPage,word:WordPage,tick_tock:TickTockPage};const Component=(root.dataset.page==='rewind' && data.rewindAnalyticsPreview === true) ? RewindAnalysisNotebook : (root.dataset.page==='rewind' && data.rewindFilmPrototype === true) ? RewindFilmPrototype : pages[root.dataset.page];createRoot(root).render(<React.StrictMode>{Component?<PlayerWithTour Component={Component} data={data}/>:<div className="react-player-loading">Unable to load this CREW page.</div>}</React.StrictMode>)}
