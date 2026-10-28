@@ -28,9 +28,8 @@ function SeasonTrajectory({rival, turningWeek}) {
     <svg viewBox="0 0 690 340" preserveAspectRatio="xMidYMid meet">
       <defs><linearGradient id="rd-sea-grad" x1="0" y1="0" x2="1" y2="0"><stop stopColor="#80f2df"/><stop offset="1" stopColor="#69c3ff"/></linearGradient></defs>
       {[0,.25,.5,.75,1].map(v=><line key={v} x1="45" x2="635" y1={275-v*217} y2={275-v*217} className="rd-gridline"/>)}
-      {pivotX!==null&&<><m.line x1={pivotX} x2={pivotX} y1="45" y2="278" stroke="#e6c186" strokeDasharray="4 8"
-          initial={{opacity:0}} animate={{opacity:.65}} transition={{delay:2.2}}/>
-        <text x={Math.min(pivotX+8,545)} y="40" fill="#eecb91" fontSize="16" fontWeight="800">WEEK {turningWeek} SHIFT</text></>}
+      {pivotX!==null&&<m.line x1={pivotX} x2={pivotX} y1="45" y2="278" stroke="#e6c186" strokeDasharray="4 8"
+          initial={{opacity:0}} animate={{opacity:.65}} transition={{delay:2.2}}/>}
       <DataLine points={build('rival')} color="#df9cce" delay={.22}/>
       <DataLine points={build('mine')} color="url(#rd-sea-grad)" delay={.48}/>
       <m.circle cx={endMe[0]} cy={endMe[1]} r="8" fill="#8cecdf" stroke="#051726" strokeWidth="3"
@@ -40,7 +39,6 @@ function SeasonTrajectory({rival, turningWeek}) {
       {weeks.map((w,i)=><text key={w.week} x={point(0,i+1)[0]} y="313" textAnchor="middle" fill="#a3b5c7" fontSize="13">W{w.week}</text>)}
     </svg>
     <div className="rd-line-legend"><span><i className="rd-key-user"/>YOU · {labelScore(rival.myTotal)}</span><span><i className="rd-key-rival"/>{rival.name} · {labelScore(rival.theirTotal)}</span></div>
-    <div className="rd-micro">SCHEDULED GAME WEEKS · NOT REAL-TIME SUBMISSION ORDER</div>
   </div>;
 }
 
@@ -61,11 +59,9 @@ function FinishLine({rival}) {
 function SwingBalance({visual}) {
   const max=Math.max(1,Math.abs(visual.edge||0),Math.abs(visual.other||0));
   return <div className="rd-swing" role="img" aria-label={'Your '+visual.game+' advantage '+visual.edge+', other games '+visual.other+', net '+visual.net+' points'}>
-    <div className="rd-swing-label">THE GAME THAT TILTED THE SEASON</div>
     <div className="rd-swing-row rd-swing-positive"><span>{visual.game}</span><strong>+{labelScore(visual.edge)}</strong><div className="rd-swing-rail"><m.i initial={{scaleX:0}} animate={{scaleX:Math.abs(visual.edge)/max}} transition={{duration:1.65}}/></div></div>
     <div className="rd-swing-row rd-swing-negative"><span>ALL OTHER GAMES</span><strong>{visual.other>0?'+':''}{labelScore(visual.other)}</strong><div className="rd-swing-rail"><m.i initial={{scaleX:0}} animate={{scaleX:Math.abs(visual.other)/max}} transition={{duration:1.8,delay:.25}}/></div></div>
     <div className="rd-swing-net"><span>SEASON MARGIN</span><m.strong initial={{opacity:0,scale:.7}} animate={{opacity:1,scale:1}} transition={{delay:1.4,...tween}}>{visual.net>0?'+':''}{labelScore(visual.net)}</m.strong></div>
-    <p className="rd-micro">TOTAL POINT CONTRIBUTIONS · NOT PER-ATTEMPT GAME SKILL</p>
   </div>;
 }
 
@@ -77,7 +73,6 @@ function RankCounterfactual({beat,recap}) {
     <div className="rd-ranks-slot"><span>{recap.finalized?'FINAL RANK':'PREVIEW RANK'}</span><m.strong initial={{opacity:0,x:-35}} animate={{opacity:1,x:0}} transition={tween}>#{visual.currentRank||'—'}</m.strong></div>
     <div className="rd-ranks-arrow" aria-hidden="true"><svg viewBox="0 0 120 80"><path d="M4 40 H108 M79 13 L108 40 L79 67" stroke="#f6ce85" strokeWidth="3" fill="none"/></svg></div>
     <div className="rd-ranks-slot"><span>WITHOUT THAT WEEK</span><m.strong initial={{opacity:0,x:35}} animate={{opacity:1,x:0}} transition={{...tween,delay:.5}}>{next?'#'+next:'—'}</m.strong></div>
-    <p className="rd-micro">HYPOTHETICAL FINAL RANK · NOT A HISTORICAL LEADERBOARD</p>
   </div>;
 }
 
@@ -92,8 +87,7 @@ function StrengthComparison({visual}) {
         <span>{d.label}</span>
       </div>)}
     </div>
-    <p>{visual.game} · AVERAGE POINTS PER COMPLETED GAME</p>
-    <div className="rd-micro">{visual.ownAttempts} PERSONAL GAMES · {visual.otherPlayers} OTHER PLAYERS</div>
+    <p className="rd-strength-caption">AVERAGE POINTS PER GAME</p>
   </div>;
 }
 
@@ -109,12 +103,14 @@ function StandoutConstellation({visual}) {
 }
 
 function ConsistencyRhythm({recap}) {
+  const weeks=recap.weeklyScores||[];
+  const max=Math.max(1,...weeks.map(w=>Number(w.played)||0));
   return <div className="rd-rhythm" aria-label="Games completed across scheduled weeks">
-    {(recap.weeklyScores||[]).map((w,i)=><div className="rd-rhythm-week" key={w.number}>
-      <m.div initial={{scaleY:0}} animate={{scaleY:1}} transition={{duration:.7,delay:i*.13}} className={w.played?'rd-rhythm-active':'rd-rhythm-idle'} style={{height:(w.played?Math.min(100,18+w.played*19):9)+'%'}}/>
+    {weeks.map((w,i)=><div className="rd-rhythm-week" key={w.number}>
+      <strong>{w.played||'–'}</strong>
+      <m.div initial={{scaleY:0}} animate={{scaleY:1}} transition={{duration:.7,delay:i*.13}} className={w.played?'rd-rhythm-active':'rd-rhythm-idle'} style={{height:(w.played?Math.round(85*w.played/max):5)+'%'}}/>
       <span>W{w.number}</span>
     </div>)}
-    <p className="rd-micro">EACH COLUMN = ONE SCHEDULED WEEK · HEIGHT REPRESENTS GAMES COMPLETED</p>
   </div>;
 }
 
@@ -130,7 +126,7 @@ function MomentumSignal({beat}) {
         initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:2.4}}/>
     </svg>
     <div className="rd-momentum-end"><span>LATER</span><i/></div>
-    <p className="rd-micro">DIRECTIONAL ILLUSTRATION · SAME GAME TYPES IN BOTH HALVES</p>
+    <div className="rd-momentum-change"><strong>{beat.metric}</strong><span>AVERAGE CHANGE PER GAME</span></div>
   </div>;
 }
 
@@ -138,7 +134,7 @@ function CosmicSeal({beat,recap}) {
   return <div className="rd-seal" aria-hidden="true">
     <m.div className="rd-seal-ring rd-seal-ring-one" initial={{rotate:-45,opacity:0}} animate={{rotate:360,opacity:.75}} transition={{duration:22,ease:'linear',repeat:Infinity}}/>
     <m.div className="rd-seal-ring rd-seal-ring-two" initial={{rotate:75,opacity:0}} animate={{rotate:-360,opacity:.6}} transition={{duration:30,ease:'linear',repeat:Infinity}}/>
-    <div className="rd-seal-core"><span>{beat.kind==='ending'?'S01':recap.seasonNumber?'S0'+recap.seasonNumber:'CREW'}</span><strong>{beat.kind==='ending'?'✳':'✦'}</strong></div>
+    <div className="rd-seal-core"><span>{beat.metric}</span><strong>{beat.kind==='ending'?'GAMES COMPLETED':beat.visual?.motif==='rivalry'?'POINTS APART':'YOUR SEASON'}</strong></div>
   </div>;
 }
 
