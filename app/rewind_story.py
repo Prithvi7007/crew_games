@@ -63,7 +63,16 @@ def _closest_rival_data(rows, me, start, weeks_total, names):
             "week": week, "mine": my_running, "rival": other_running,
             "difference": my_running - other_running,
         })
+    # Week labels mean scheduled puzzle weeks (not the day a catch-up was
+    # submitted). Find the biggest week-on-week swing in the *point gap*.
+    swings = [
+        {"week": item["week"],
+         "delta": item["difference"] - (trail[i-1]["difference"] if i else 0)}
+        for i, item in enumerate(trail)
+    ]
+    turning = max(swings, key=lambda item: (abs(item["delta"]), -item["week"]))
     return {
+        "turning": turning,
         "name": names.get(rival, "another player"),
         "myTotal": totals[me], "theirTotal": totals[rival],
         "gap": abs(totals[me] - totals[rival]),
@@ -156,6 +165,26 @@ def build_rewind_story(recap, completions, *, profile_id, season_start,
             "Final cumulative totals, not a claim of a live head-to-head.",
             {"rival": rival},
         ))
+        # A genuine second scene: how the gap moved through scheduled weeks,
+        # not a fake real-time head-to-head or an invented comeback.
+        turning = rival["turning"]
+        shared_weeks = [
+            point for point in rival["weekly"]
+            if point["mine"] or point["rival"]
+        ]
+        if len(shared_weeks) >= 3 and abs(turning["delta"]) >= 20:
+            toward = ("you" if turning["delta"] > 0 else rival["name"])
+            beats.append(_beat(
+                "trajectory", "THE SEASON IN MOTION",
+                f"Week {turning['week']} shifted the story.",
+                f"{abs(turning['delta'])} pts",
+                f"In week {turning['week']}, the cumulative gap shifted "
+                f"{abs(turning['delta'])} points toward {toward}. "
+                f"Here is how your totals compared across all {weeks_total} weeks.",
+                "Week-by-week cumulative completion points, grouped by the "
+                "scheduled puzzle week; not a live playback of submission times.",
+                {"rival": rival, "turningWeek": turning["week"]},
+            ))
         # Reveal the biggest positive game contribution *relative to this
         # specific rival*, and the offset across other games. This explains
         # a close finish without claiming a higher skill at that game.
@@ -186,6 +215,8 @@ def build_rewind_story(recap, completions, *, profile_id, season_start,
             continue
         card = cards[key]
         visual = {"sourceKey": key}
+        if key in ("relative_strength", "same_puzzle"):
+            visual.update(card.get("comparison", {}))
         if key == "consistency":
             visual["weeksActive"] = sample["weeksActive"]
             visual["weeksTotal"] = weeks_total
@@ -196,9 +227,18 @@ def build_rewind_story(recap, completions, *, profile_id, season_start,
             card["story"], card["evidence"], visual,
         ))
 
-    # Avoid lengthy, repetitive films. Each beat needs one *different*
-    # discovery, not an animated restatement of the same totals.
-    beats = beats[:7]
+    # Sequence the strongest distinct findings, not a fixed six-slide
+    # template. Keep the finish / journey / explanation as one narrative
+    # thread; save room for a player's strongest additional insights.
+    core = [beat for beat in beats if beat["kind"] in
+            ("opening", "rivalry", "trajectory", "swing")]
+    extras = [beat for beat in beats if beat["kind"] not in
+              ("opening", "rivalry", "trajectory", "swing")]
+    # A pivot and a genuine per-game skill edge beat generic participation.
+    priorities = {"pivot": 6, "strength": 5, "standout": 4,
+                  "momentum": 3, "consistency": 2}
+    extras.sort(key=lambda beat: -priorities.get(beat["kind"], 0))
+    beats = (core + extras[:max(0, 7 - len(core))])[:7]
     beats.append(_beat(
         "ending", "YOUR SEASON / IN FULL", f"That was your story, {username}.",
         str(game_count),

@@ -104,11 +104,12 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
         margin = score - median(peers)
         if better < 2 or margin <= 0:
             continue
-        candidate = (better / len(peers), margin, better, len(peers), game, day, score)
+        candidate = (better / len(peers), margin, better, len(peers),
+                     game, day, score, median(peers))
         if standout is None or candidate[:2] > standout[:2]:
             standout = candidate
     if standout:
-        _, margin, better, peers_count, game, day, score = standout
+        _, margin, better, peers_count, game, day, score, peer_median = standout
         cards.append(_card(
             "same_puzzle", "THE DAY YOU STOOD OUT",
             f"{GAMES[game]} was your moment.",
@@ -120,6 +121,10 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
             "Same game, same puzzle date; compares one score per other player. "
             "Minimum three other players.",
         ))
+        cards[-1]["comparison"] = {
+            "game": GAMES[game], "score": score, "peerMedian": peer_median,
+            "outscored": better, "peerCount": peers_count,
+        }
 
     # 2. A hidden strength measured against the field *within* each game.
     benchmarks = []
@@ -134,7 +139,7 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
         peer_avg = mean(peers)
         benchmarks.append((mine_avg - peer_avg, game, mine_avg, peer_avg,
                            len(scores), len(peers)))
-    benchmarks = [entry for entry in benchmarks if abs(entry[0]) >= 5]
+    benchmarks = [entry for entry in benchmarks if entry[0] >= 5]
     if benchmarks:
         advantage, game, mine_avg, peer_avg, attempts, peers_count = max(benchmarks)
         direction = "above" if advantage > 0 else "below"
@@ -151,6 +156,11 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
             "Each competitor contributes one per-game average, regardless "
             "of number of attempts. No cross-game scoring comparison.",
         ))
+        cards[-1]["comparison"] = {
+            "game": GAMES[game], "mine": round(mine_avg, 1),
+            "peers": round(peer_avg, 1), "ownAttempts": attempts,
+            "otherPlayers": peers_count,
+        }
 
     # 3. A season-changing week, as a *counterfactual*, not a claimed
     # historical leaderboard movement. Other players' scores are unchanged.
