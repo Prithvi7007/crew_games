@@ -253,8 +253,8 @@ export default function RewindFilmPrototype({data}) {
           </m.div>}
           {phase==='trophy' && trophy && <m.div key="trophy" className="rewind-film-award" initial={reduce?false:{opacity:0,scale:.55,rotate:-12}} animate={{opacity:1,scale:1,rotate:0}} transition={{duration:reduce?0:.9,ease:EASE}}>
             <BadgeMedallion badge={trophy} size="normal" seasonNumber={1}/>
-            <span>{trophy.name}</span>
-            <small>{trophy.rarity} · SEASON 01</small>
+            <span className="rewind-film-award-name">{trophy.name}</span>
+            <small className="rewind-film-award-meta">{trophy.rarity} · SEASON 01</small>
           </m.div>}
           {phase==='finale' && <m.div key="finale" className="rewind-film-finale-object" initial={reduce?false:{opacity:0,scale:.9}} animate={{opacity:1,scale:1}} transition={{duration:reduce?0:.8,ease:EASE}}>
             <span>CREW / SEASON 01</span>
