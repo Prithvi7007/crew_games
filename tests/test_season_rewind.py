@@ -157,3 +157,70 @@ def test_rewind_zero_score_player_gets_kind_story_without_fake_rank(app):
     assert data["insights"]["averageScore"] is None
     assert data["persona"] == "The CREW Original"
     assert data["badges"]["count"] == 0
+
+
+def test_admin_can_preview_samiam_actual_season_without_changing_login(app, client):
+    with app.app_context():
+        player_id = _player("SamIam")
+        admin_id = _player("PreviewAdmin", role="admin")
+        finalize_game_stats(profile_user_key(player_id), "trivia", "2026-09-22", 85, True)
+        finalize_game_stats(profile_user_key(player_id), "word", "2026-09-23", 78, True)
+
+    _login(client, app, admin_id)
+    with patch("app.main.routes.crew_today", return_value=date(2026, 10, 26)):
+        response = client.get("/rewind?preview=1&prototype=1&player=SamIam")
+        assert response.status_code == 200
+        assert b'"rewindFilmPrototype": true' in response.data
+        assert b'"rewindPreviewPlayer": "SamIam"' in response.data
+        assert b'"username": "SamIam"' in response.data
+        assert b'"points": 163' in response.data
+        assert b'"gamesPlayed": 2' in response.data
+        assert b'"username": "PreviewAdmin"' in response.data
+        assert response.headers["Cache-Control"] == "private, no-store"
+
+        # Exact, case-insensitive username lookup; no fuzzy or prefix matching.
+        lowercase = client.get("/rewind?preview=1&prototype=1&player=samiam")
+        assert lowercase.status_code == 200
+        assert b'"rewindPreviewPlayer": "SamIam"' in lowercase.data
+        assert client.get("/rewind?preview=1&prototype=1&player=Sam").status_code == 404
+        assert client.get("/rewind?preview=1&prototype=1&player=NoSuchPlayer").status_code == 404
+        assert client.get("/rewind?preview=1&prototype=1&player=").status_code == 404
+
+        # Overrides must never work in the ordinary Rewind or without staff preview.
+        assert client.get("/rewind?preview=1&player=SamIam").status_code == 404
+        assert client.get("/rewind?prototype=1&player=SamIam").status_code == 404
+        default = client.get("/rewind?preview=1&prototype=1")
+        assert default.status_code == 200
+        assert b'"rewindPreviewPlayer": null' in default.data
+        assert b'"username": "PreviewAdmin"' in default.data
+
+    with client.session_transaction() as sess:
+        assert sess["user"]["profile_id"] == admin_id
+        assert sess["user"]["username"] == "PreviewAdmin"
+
+    _login(client, app, player_id)
+    with patch("app.main.routes.crew_today", return_value=date(2026, 10, 26)):
+        assert client.get("/rewind?preview=1&prototype=1&player=PreviewAdmin").status_code == 404
+        assert client.get("/rewind?player=PreviewAdmin").status_code == 404
+
+
+def test_owner_can_preview_another_player_after_finalization_but_player_cannot(app, client):
+    with app.app_context():
+        season = get_season_for_date(date(2026, 10, 26))
+        sam_id = _player("SamIam")
+        owner_id = _player("PreviewOwner", role="owner")
+        another_id = _player("OrdinaryViewer")
+        finalize_game_stats(profile_user_key(sam_id), "word", "2026-10-21", 88, True)
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+
+    _login(client, app, another_id)
+    with patch("app.main.routes.crew_today", return_value=date(2026, 11, 2)):
+        assert client.get("/rewind?preview=1&prototype=1&player=SamIam").status_code == 404
+        assert client.get("/rewind?player=SamIam").status_code == 404
+
+    _login(client, app, owner_id)
+    with patch("app.main.routes.crew_today", return_value=date(2026, 11, 2)):
+        response = client.get("/rewind?preview=1&prototype=1&player=SamIam")
+        assert response.status_code == 200
+        assert b'"rewindPreviewPlayer": "SamIam"' in response.data
+        assert b'"points": 88' in response.data

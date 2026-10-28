@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from flask import Blueprint, abort, current_app, jsonify, redirect, request, session, url_for
+from flask import Blueprint, abort, current_app, jsonify, make_response, redirect, request, session, url_for
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
@@ -13,6 +13,7 @@ from app.badge_store import get_badge_awards, get_showcase, set_showcase_slot
 from app.db import (
     get_game_attempt_summary,
     get_game_completion,
+    get_profile_by_username,
     get_leaderboard,
     get_season_for_date,
     get_season_summary,
@@ -56,13 +57,36 @@ def season_one_rewind():
         user.get("role") in ("admin", "owner")
         and request.args.get("preview") == "1"
     )
-    story = build_season_rewind(user["profile_id"], season, admin_preview=preview)
+    # View another player's real Rewind only in the explicit staff-only Film
+    # Lab preview. Never impersonate the player or change the login session.
+    cross_player_preview = "player" in request.args
+    requested_player = request.args.get("player")
+    if cross_player_preview and (
+        not film_preview or not preview
+        or not requested_player or len(requested_player) > 80
+    ):
+        abort(404)
+    profile_id = user["profile_id"]
+    if cross_player_preview:
+        player = get_profile_by_username(requested_player)
+        if not player:
+            abort(404)
+        profile_id = player["id"]
+
+    story = build_season_rewind(profile_id, season, admin_preview=preview)
     if not story:
         abort(404)
-    return render_player(
+    response = make_response(render_player(
         "rewind", "Season One Rewind", "crew-rewind-page",
-        {"rewind": story, "rewindFilmPrototype": film_preview}, user,
-    )
+        {
+            "rewind": story,
+            "rewindFilmPrototype": film_preview,
+            "rewindPreviewPlayer": story["username"] if cross_player_preview else None,
+        }, user,
+    ))
+    if film_preview:
+        response.headers["Cache-Control"] = "private, no-store"
+    return response
 
 
 @main_bp.get("/")
