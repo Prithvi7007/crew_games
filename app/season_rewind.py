@@ -11,6 +11,7 @@ from app.badges import BADGES_BY_CODE
 from app.db import get_db
 from app.rewind_insights import build_rewind_insights
 from app.rewind_analytics import build_rewind_analytics
+from app.rewind_story import build_rewind_story
 from app.schedule import get_week_start
 
 _GAME_NAMES = {
@@ -169,7 +170,7 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
         for item in winners.get("season_champion", [])
     )
 
-    return {
+    result = {
         "seasonNumber": int(season["number"]),
         "seasonName": season["name"],
         "username": profile_names[int(profile_id)],
@@ -212,3 +213,10 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
         )},
         "champion": champion,
     }
+    result["cinematicStory"] = build_rewind_story(
+        result, completions, profile_id=profile_id,
+        season_start=season["start_date"],
+        weeks_total=season["weeks_total"],
+        profile_names=profile_names,
+    )
+    return result
