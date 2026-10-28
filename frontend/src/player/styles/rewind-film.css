@@ -503,3 +503,77 @@
     height:165px;
   }
 }
+/* Rewind's race is a continuous journey: one moving film-strip progress line
+   and a single evidence-backed story sentence, not six slide cards. */
+.rewind-film-race .rewind-film-narration h1 {
+  font-size:clamp(43px,6.5vw,83px);
+  line-height:.95;
+  text-wrap:balance;
+}
+.rewind-film-race .rewind-film-insight {
+  min-height:80px;
+  padding-top:10px;
+}
+.rewind-film-week-finding {
+  max-width:730px;
+  font-size:clamp(15px,1.75vw,21px)!important;
+  line-height:1.45!important;
+  color:#e0f0fb!important;
+  letter-spacing:-.015em;
+  text-wrap:balance;
+}
+.rewind-film-week-finding::before {
+  content:"✳";
+  color:var(--film-accent);
+  display:inline-block;
+  margin-right:13px;
+  vertical-align:1px;
+}
+.rewind-film-race .rewind-film-timeline {
+  position:relative;
+}
+.rewind-film-race .rewind-film-timeline::before {
+  content:"";
+  position:absolute;
+  left:24px;
+  right:24px;
+  bottom:7px;
+  height:2px;
+  pointer-events:none;
+  background:linear-gradient(90deg,var(--film-accent) 0 var(--film-progress,0%),rgba(150,209,245,.14) var(--film-progress,0%) 100%);
+  transition:background-color .5s ease;
+  opacity:.86;
+}
+.rewind-film-race .rewind-film-timeline button {
+  z-index:1;
+}
+.rewind-film-race .rewind-film-timeline button::after {
+  width:5px;
+  height:5px;
+  left:calc(50% - 2.5px);
+  right:auto;
+  bottom:5px;
+  border-radius:50%;
+  background:#abc5d6;
+  opacity:1;
+}
+.rewind-film-race .rewind-film-timeline button[aria-current="step"]::after {
+  width:9px;
+  height:9px;
+  left:calc(50% - 4.5px);
+  bottom:3px;
+  background:var(--film-accent);
+  box-shadow:0 0 15px var(--film-accent);
+}
+@media(max-width:760px) {
+  .rewind-film-race .rewind-film-narration h1 {
+    font-size:clamp(37px,8.6vw,57px);
+  }
+  .rewind-film-race .rewind-film-insight {
+    min-height:72px;
+    padding:0 12px;
+  }
+  .rewind-film-week-finding {
+    font-size:clamp(14px,3.9vw,18px)!important;
+  }
+}
