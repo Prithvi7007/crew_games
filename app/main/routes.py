@@ -5,6 +5,7 @@ from flask import Blueprint, abort, current_app, jsonify, make_response, redirec
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
 from app.season_rewind import build_season_rewind, rewind_url
+from app.rewind_champion_preview import CHAMPION_PREVIEW_SELECTIONS, build_champion_preview
 from app.badge_display import with_public_equipped_badges
 from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.trophy_tour import complete_tour, earned_tour_payload
@@ -70,6 +71,15 @@ def season_one_rewind():
         not film_preview or not preview or analysis_preview
     ):
         abort(404)
+    # Demo scenes are available only in the explicit staff Saga preview.
+    # Reject the parameter everywhere else, even on finalized public Rewinds.
+    champion_preview = request.args.get("champion")
+    if "champion" in request.args and (
+        not (saga_preview and film_preview and preview)
+        or len(request.args.getlist("champion")) != 1
+        or champion_preview not in CHAMPION_PREVIEW_SELECTIONS
+    ):
+        abort(404)
     # View another player's real Rewind only in the explicit staff-only Film
     # Lab preview. Never impersonate the player or change the login session.
     cross_player_preview = "player" in request.args
@@ -89,6 +99,11 @@ def season_one_rewind():
     story = build_season_rewind(profile_id, season, admin_preview=preview)
     if not story:
         abort(404)
+    if champion_preview:
+        # Replace only this response's scenes; real results and awards stay intact.
+        story = {**story, "seasonSaga": build_champion_preview(
+            champion_preview, story["username"],
+        )}
     # The cinematic Saga is the signed-in player's official public Rewind
     # ONLY after an administrator has frozen the championship score cutoff.
     # Preserve the existing staff-only film studio and comparison previews.
@@ -103,6 +118,9 @@ def season_one_rewind():
             "rewindStoryDirectorPreview": director_preview,
             "rewindPlayerCinemaPreview": cinema_preview,
             "rewindSeasonSagaPreview": saga_preview or public_saga,
+            "rewindChampionPreview": (
+                story["seasonSaga"]["championPreview"] if champion_preview else None
+            ),
             "rewindPreviewPlayer": story["username"] if cross_player_preview else None,
         }, user,
     ))

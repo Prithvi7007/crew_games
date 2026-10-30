@@ -121,3 +121,10 @@
 .saga-legacy{gap:15px;padding:22px}
 }
 @media(prefers-reduced-motion:reduce){.saga-particles i{animation:none;opacity:.15}}
+
+/* Staff-only animation demos reuse the real champion scenes. */
+.rc-champion-preview{position:absolute;z-index:12;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);box-sizing:border-box;width:min(360px,calc(100% - 150px));display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 12px;border:1px solid rgba(255,189,69,.3);border-radius:12px;background:rgba(2,7,11,.94);text-align:center}
+.rc-champion-preview>strong{font:800 9px/1.35 var(--crew-font-body,Inter,sans-serif);letter-spacing:.06em;color:var(--crew-game-trivia,#ffbd45)}
+.rc-champion-preview select{box-sizing:border-box;max-width:100%;width:220px;min-height:36px;padding:6px 12px;border:1px solid var(--crew-color-line,#273d54);border-radius:8px;background:#101d2b;color:var(--saga-text);font:750 12px/1.3 var(--crew-font-body,Inter,sans-serif);cursor:pointer}
+.rc-champion-preview select:focus-visible{outline:2px solid var(--crew-game-word,#55b9ff);outline-offset:3px}
+.saga-champion-demo .rc-frame{padding-top:max(112px,12vh)}

@@ -373,3 +373,63 @@ def test_admin_badge_insights_directory_and_player_season_ui(ui, viewport):
     assert page.locator(".admin-badge-season-stats > div").count() == 4
     assert page.locator('select[name="season"] option').count() >= 1
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900},
+    {"width": 390, "height": 844},
+])
+def test_champion_animation_previews_use_real_titles_and_badges(ui, monkeypatch, viewport):
+    from datetime import date
+
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 10, 30))
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(
+        base_url + "/rewind?preview=1&prototype=1&story=5&champion=all",
+        wait_until="domcontentloaded",
+    )
+    selector = page.get_by_role("combobox", name="Champion animation preview")
+    selector.wait_for(timeout=12000)
+    assert selector.locator("option").count() == 6
+    assert page.locator(".rc-part").inner_text() == "01 / 10"
+    assert page.get_by_text("ANIMATION DEMO · NO AWARD GRANTED", exact=True).is_visible()
+    page.get_by_role("button", name="BEGIN YOUR REWIND").click()
+    page.get_by_role("heading", name="SEASON 01 CHAMPION", exact=True).click()
+    page.keyboard.press("ArrowRight")
+    page.locator(".saga-award").wait_for(timeout=12000)
+    page.locator(".rc-frame").hover()
+    page.get_by_role("button", name="THE STORY BEHIND THIS MOMENT").click()
+    sheet = page.get_by_role("dialog", name="How this moment was calculated")
+    assert "Animation preview only." in sheet.locator("small").inner_text()
+    page.get_by_role("button", name="Close evidence").click()
+
+    for key, title, badge in (
+        ("season", "SEASON 01 CHAMPION", "Season Champion"),
+        ("trivia", "TRIVIA LEADER", "Season Trivia Master"),
+        ("word", "WORDLE LEADER", "Season Wordle Master"),
+        ("mystery", "MYSTERY LEADER", "Season Mystery Master"),
+        ("tick_tock", "TICK-TOCK LEADER", "Season Tick-Tock Master"),
+    ):
+        selector.select_option(key)
+        page.wait_for_url("**&champion=" + key)
+        heading = page.get_by_role("heading", name=title, exact=True)
+        heading.wait_for(timeout=12000)
+        assert selector.input_value() == key
+        assert page.locator(".rc-part").inner_text() == "01 / 02"
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+        box = selector.bounding_box()
+        assert box and 0 <= box["x"] < box["x"] + box["width"] <= viewport["width"]
+        assert box["y"] + box["height"] < heading.bounding_box()["y"]
+        page.get_by_role("button", name="BEGIN YOUR REWIND").click()
+        heading.click()
+        page.keyboard.press("ArrowRight")
+        page.locator(".saga-award .saga-badge strong").wait_for(timeout=12000)
+        assert page.locator(".saga-award .saga-badge strong").inner_text() == badge
+        assert page.locator(".saga-award .trophy-medallion svg").is_visible()
+        assert page.get_by_text("ANIMATION DEMO · NO AWARD GRANTED", exact=True).is_visible()
+        page.get_by_role("button", name="WATCH AGAIN").click()
+        page.get_by_role("heading", name=title, exact=True).wait_for(timeout=12000)
+    assert errors == []
