@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React from 'react';
+import {m} from 'motion/react';
 import {BadgeMedallion, badgeFromAwardCode} from './TrophyRoom';
 
 const COLORS = {
@@ -8,6 +9,19 @@ const COLORS = {
   tick_tock:'var(--crew-game-tick-tock,#c55cff)',
 };
 const NAMES = {mystery:'MYSTERY', trivia:'TRIVIA', word:'WORDLE', tick_tock:'TICK-TOCK'};
+// One Motion timeline coordinates the medal, copy, and final championship seal.
+const ceremony={
+  hidden:{opacity:1},
+  show:{opacity:1,transition:{staggerChildren:.32,delayChildren:.22}},
+};
+const copy={
+  hidden:{opacity:0,y:22},
+  show:{opacity:1,y:0,transition:{duration:.75,ease:[.22,1,.36,1]}},
+};
+const medal={
+  hidden:{opacity:0,y:38,scale:.78,rotate:-7},
+  show:{opacity:1,y:0,scale:1,rotate:0,transition:{type:'spring',stiffness:125,damping:17,mass:1.1}},
+};
 
 export function championAccent(beat) {
   const v=beat?.visual||{};
@@ -23,7 +37,6 @@ export function ChampionCover({player}) {
 }
 
 export default function ChampionReveal({beat,recap,reduce,playing}) {
-  const [still]=useState(()=>!playing);
   const v=beat.visual||{};
   const closeup=beat.kind==='winner_badge';
   const game=v.gameKey||v.badge?.gameKey;
@@ -31,29 +44,30 @@ export default function ChampionReveal({beat,recap,reduce,playing}) {
   const badge=source?{...source,gameKey:game,vertical:'leaderboard'}:null;
   const theme={'--champion-accent':championAccent(beat),'--champion-play':playing?'running':'paused'};
   const caption=v.shared?'A SHARED FIRST PLACE':game?'YOU LED '+NAMES[game]:'YOU LED THE CREW';
-  return <div className={'champion-stage '+(closeup?'champion-closeup':'champion-winner')+(reduce?' is-reduced':'')+(still?' is-still':'')}
-    style={theme} data-game={game||'season'} aria-label={closeup?'Championship badge reveal':'Champion reveal'}>
+  return <m.div className={'champion-stage is-motion '+(closeup?'champion-closeup':'champion-winner')+(reduce?' is-reduced':'')}
+    style={theme} data-game={game||'season'} aria-label={closeup?'Championship badge reveal':'Champion reveal'}
+    variants={ceremony} initial={reduce?false:'hidden'} animate="show">
     {closeup?<>
-      <p className="champion-kicker">{v.demo?'THE BADGE REVEAL':'YOUR CHAMPIONSHIP BADGE'}</p>
-      {badge&&<div className="champion-insignia"><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></div>}
-      <h1 className="champion-badge-name">{badge?.name||beat.headline}</h1>
-      <p className="champion-badge-owner">{recap.username}<span>SEASON 01</span></p>
-      <p className="champion-signoff">{v.demo?'ANIMATION PREVIEW':'EARNED. PRESERVED. YOURS.'}</p>
+      <m.p variants={copy} className="champion-kicker">{v.demo?'THE BADGE REVEAL':'YOUR CHAMPIONSHIP BADGE'}</m.p>
+      {badge&&<m.div variants={medal} className="champion-insignia"><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></m.div>}
+      <m.h1 variants={copy} className="champion-badge-name">{badge?.name||beat.headline}</m.h1>
+      <m.p variants={copy} className="champion-badge-owner">{recap.username}<span>SEASON 01</span></m.p>
+      <m.p variants={copy} className="champion-signoff">{v.demo?'ANIMATION PREVIEW':'EARNED. PRESERVED. YOURS.'}</m.p>
     </>:<>
-      <p className="champion-overture" aria-hidden="true">{game?'YOUR GAME. YOUR MOMENT.':'SIX WEEKS IN THE MAKING.'}</p>
+      <m.p variants={copy} className="champion-overture" aria-hidden="true">{game?'YOUR GAME. YOUR MOMENT.':'SIX WEEKS IN THE MAKING.'}</m.p>
       <div className="champion-lockup">
         <div className="champion-copy">
-          <p className="champion-kicker">CREW / SEASON 01</p>
-          <h1 className="champion-name">{recap.username}</h1>
-          <h2 className="champion-title">{beat.headline}</h2>
-          <p className="champion-result">{caption}</p>
+          <m.p variants={copy} className="champion-kicker">CREW / SEASON 01</m.p>
+          <m.h1 variants={copy} className="champion-name">{recap.username}</m.h1>
+          <m.h2 variants={copy} className="champion-title">{beat.headline}</m.h2>
+          <m.p variants={copy} className="champion-result">{caption}</m.p>
         </div>
-        {badge&&<div className="champion-insignia" aria-label={badge.name+' badge'}>
+        {badge&&<m.div variants={medal} className="champion-insignia" aria-label={badge.name+' badge'}>
           <BadgeMedallion badge={badge} size="normal" seasonNumber={1}/>
           <span className="champion-badge-season">SEASON 01</span>
-        </div>}
+        </m.div>}
       </div>
-      <p className="champion-signoff">{v.demo?'CHAMPIONSHIP ANIMATION PREVIEW':'A TITLE EARNED. A MOMENT TO KEEP.'}</p>
+      <m.p variants={copy} className="champion-signoff">{v.demo?'CHAMPIONSHIP ANIMATION PREVIEW':'A TITLE EARNED. A MOMENT TO KEEP.'}</m.p>
     </>}
-  </div>;
+  </m.div>;
 }
