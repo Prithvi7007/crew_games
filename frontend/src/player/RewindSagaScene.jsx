@@ -1,5 +1,5 @@
-import React from 'react';
-import {m} from 'motion/react';
+import React, {useEffect, useState} from 'react';
+import {AnimatePresence, m} from 'motion/react';
 import {BadgeMedallion} from './TrophyRoom';
 
 const KEYS={mystery:'var(--crew-game-mystery,#55e6ac)',trivia:'var(--crew-game-trivia,#ffbd45)',word:'var(--crew-game-word,#55b9ff)',tick_tock:'var(--crew-game-tick-tock,#c55cff)'};
