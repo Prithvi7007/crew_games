@@ -33,29 +33,76 @@ function WeekLines({weeks,bestWeek,reduce}){
     <div className="saga-chart-legend"><span><i style={{background:KEYS.word}}/>YOUR SCORE</span><span><i style={{background:KEYS.trivia}}/>WEEKLY HIGHEST</span></div>
   </div>;
 }
-function Compare({games}){
- return <div className="saga-comparisons">{games.map(g=><div key={g.key} className="saga-comparison" style={{'--game':KEYS[g.key]}}>
-   <strong>{g.name}</strong><div className="saga-double">
-     <span>YOU <b>{g.mine===null?'—':num(g.mine)}</b><m.i initial={{scaleX:0}} animate={{scaleX:g.mine===null?0:Math.min(1,g.mine/100)}} transition={{duration:1.4}}/></span>
-     <span>CREW <b>{g.crew===null?'—':num(g.crew)}</b><m.i initial={{scaleX:0}} animate={{scaleX:g.crew===null?0:Math.min(1,g.crew/100)}} transition={{duration:1.5,delay:.18}}/></span>
-   </div><small>{g.mine===null?'No completed games':g.crew===null?'No other players to compare':g.mine>g.crew?'ABOVE CREW AVERAGE':g.mine===g.crew?'MATCHED CREW AVERAGE':'BELOW CREW AVERAGE'}</small>
- </div>)}</div>;
-}
-function GameDna({games,totalPoints}){
- const ring=(key)=><div className="saga-dna-ring" style={{background:'conic-gradient('+games.reduce((a,g)=>{const n=key==='gameShare'?g.gameShare:g.pointShare;return a+(a?',':'')+KEYS[g.key]+' '+(a.start||0)+'% '+n+'%';},'')+')'}}/>;
- // Animated compositional distribution: individual segments use the official four game hues.
- const visual=mode=><div className="saga-distribution">
-  {games.map(g=><m.div key={g.key} className="saga-distribution-part" title={g.name} style={{background:KEYS[g.key]}}
-    initial={{flexGrow:0,opacity:.1}} animate={{flexGrow:mode==='games'?g.gameShare:g.pointShare,opacity:1}}
-    transition={{duration:1.4,ease:[.22,1,.36,1]}}/>)}
- </div>;
- return <div className="saga-dna">
-   <div><h3>YOUR GAME MIX</h3>{visual('games')}
-    <div className="saga-dna-legend">{games.map(g=><span key={g.key} style={{'--game':KEYS[g.key]}}>{g.name}<b>{g.gameShare.toFixed(1)}%</b></span>)}</div>
+// One changing spotlight, never four comparison cards at once. Scene duration
+// is coordinated with the cinema's autoplay timer (3.8 s per played game).
+function Compare({games, reduce, playing}){
+ const shown=games.filter(g=>g.mine!==null);
+ const [step,setStep]=useState(0);
+ useEffect(()=>{
+   if(!playing||reduce||shown.length<2)return undefined;
+   const timer=window.setInterval(()=>setStep(current=>Math.min(current+1,shown.length-1)),3800);
+   return ()=>window.clearInterval(timer);
+ },[playing,reduce,shown.length]);
+ const game=shown[Math.min(step,shown.length-1)];
+ if(!game)return null;
+ const delta=game.crew===null?null:Math.round((game.mine-game.crew)*10)/10;
+ const message=delta===null?'NO PEER BENCHMARK AVAILABLE':
+   delta>0?'ABOVE THE CREW AVERAGE':delta<0?'BELOW THE CREW AVERAGE':'RIGHT ON THE CREW AVERAGE';
+ return <div className="saga-spotlight" style={{'--game':KEYS[game.key]}}>
+   <div className="saga-spotlight-picks" role="group" aria-label="Choose game comparison">
+    {shown.map((g,i)=><button key={g.key} type="button" className={'saga-spotlight-pick'+(step===i?' is-active':'')}
+       style={{'--pick':KEYS[g.key]}} onClick={()=>setStep(i)} aria-pressed={step===i}
+       aria-label={'Show '+g.name+' comparison'}>{g.name.split(' ')[0]}</button>)}
    </div>
-   {totalPoints>0&&<div><h3>WHERE THE POINTS CAME FROM</h3>{visual('points')}
-    <div className="saga-dna-legend">{games.map(g=><span key={g.key} style={{'--game':KEYS[g.key]}}>{g.name}<b>{g.pointShare.toFixed(1)}%</b></span>)}</div>
-   </div>}
+   <AnimatePresence mode="wait" initial={false}>
+    <m.div key={game.key} className="saga-spotlight-stage" initial={reduce?false:{opacity:0,y:18,filter:'blur(8px)'}}
+      animate={{opacity:1,y:0,filter:'blur(0px)'}} exit={reduce?{opacity:0}:{opacity:0,y:-16,filter:'blur(8px)'}}
+      transition={{duration:reduce?0:.48,ease:[.22,1,.36,1]}}>
+      <span className="saga-kicker">GAME {String(step+1).padStart(2,'0')} / {String(shown.length).padStart(2,'0')}</span>
+      <h2>{game.name}</h2>
+      <div className="saga-spotlight-scores">
+       {[
+          {label:'YOU',value:game.mine,lead:true},
+          {label:'CREW AVERAGE',value:game.crew,lead:false}
+       ].map(item=><div key={item.label} className={'saga-spotlight-score'+(item.lead?' is-you':'')}>
+         <div className="saga-spotlight-score-head"><span>{item.label}</span><strong>{item.value===null?'—':num(item.value)}</strong></div>
+         <div className="saga-spotlight-rail"><m.i initial={reduce?false:{scaleX:0}}
+            animate={{scaleX:item.value===null?0:Math.max(0,Math.min(1,item.value/100))}}
+            transition={{duration:reduce?0:1.25,delay:reduce?0:.18,ease:[.22,1,.36,1]}}/></div>
+        </div>)}
+      </div>
+      <div className="saga-spotlight-result" aria-live="polite">
+        {delta!==null&&<strong>{delta>0?'+':delta<0?'−':''}{num(Math.abs(delta))} <small>PTS</small></strong>}
+        <span>{message}</span>
+      </div>
+    </m.div>
+   </AnimatePresence>
+ </div>;
+}
+function GameDna({games,totalPoints,reduce}){
+ if(totalPoints<=0)return null;
+ const strongest=games.reduce((a,b)=>b.points>a.points?b:a,games[0]);
+ const tied=games.filter(g=>g.points===strongest.points).length>1;
+ return <div className="saga-dna-focus">
+   <span className="saga-kicker">YOUR POINTS · FOUR GAMES</span>
+   <div className="saga-dna-focus-bar" role="img"
+     aria-label={games.map(g=>g.name+': '+g.pointShare.toFixed(1)+'% of your points').join('; ')}>
+     {games.map((g,i)=><m.div key={g.key} className="saga-dna-focus-segment"
+       style={{background:KEYS[g.key]}} title={g.name+': '+g.pointShare.toFixed(1)+'%'}
+       initial={reduce?false:{flexGrow:0,opacity:.35}}
+       animate={{flexGrow:g.pointShare,opacity:1}}
+       transition={{duration:reduce?0:1.65,delay:reduce?0:.12*i,ease:[.22,1,.36,1]}}/>)}
+   </div>
+   <div className="saga-dna-focus-legend">
+     {games.map(g=><div key={g.key} style={{'--game':KEYS[g.key]}}>
+       <i aria-hidden="true"/><span>{g.name}</span><strong>{g.pointShare.toFixed(1)}%</strong>
+     </div>)}
+   </div>
+   <m.p className="saga-dna-focus-insight" initial={reduce?false:{opacity:0,y:10}}
+     animate={{opacity:1,y:0}} transition={{duration:reduce?0:.8,delay:reduce?0:1.7}}>
+     <strong>{strongest.name}</strong> {tied?'was one of your top point contributors.':'powered the largest share of your season.'}
+     <span> {strongest.pointShare.toFixed(1)}% of your total points.</span>
+   </m.p>
  </div>;
 }
 function Legacy({v,recap}){
@@ -67,7 +114,7 @@ function Legacy({v,recap}){
  {v.badges?.length>0&&<div>{v.badges.map(b=><Badge key={b.code} item={b} size="small"/>)}</div>}</div>
  </article>;
 }
-export default function RewindSagaScene({beat,recap,reduce}){
+export default function RewindSagaScene({beat,recap,reduce,playing}){
  const v=beat.visual||{};
  switch(beat.kind){
   case 'winner':return <div className="saga-winner"><div className="saga-particles" aria-hidden="true">{Array.from({length:22},(_,i)=><i key={i} style={{'--i':i}}/>)}</div><Center label="CREW · SEASON 01" value="✦" title={beat.headline}><p>{v.shared?'A SHARED FIRST PLACE':'YOU LED THE SEASON'}</p></Center></div>;
@@ -76,8 +123,8 @@ export default function RewindSagaScene({beat,recap,reduce}){
   case 'podium':return <Center label="THE PODIUM" value={v.count} title="Times among the weekly Top 3."><div className="saga-podium-weeks">{Array.from({length:v.weeksTotal},(_,i)=>{const w=v.weeks.find(x=>x.week===i+1);return <div key={i}><m.span className={'saga-podium-slot '+(w?'is-earned':'')} initial={{opacity:0,y:15}} animate={{opacity:1,y:0}} transition={{delay:i*.15}}>{w?'#'+w.place:'·'}</m.span><small>W{i+1}</small></div>})}</div><p>#{v.frequencyRank} for weekly podium appearances this season.</p></Center>;
   case 'weekly_trend':return <div className="saga-wide"><h1>{beat.headline}</h1><WeekLines weeks={v.weeks} bestWeek={v.bestWeek} reduce={reduce}/></div>;
   case 'peak_week':return <Center label="YOUR HIGHEST WEEK" value={num(v.score)} title={'Week '+v.week+'. Your moment.'}><p>{v.wasWeeklyLeader?'YOU MATCHED THE WEEKLY HIGH':'YOUR PERSONAL SEASON HIGH · POINTS'}</p></Center>;
-  case 'game_compare':return <div className="saga-wide"><h1>{beat.headline}</h1><Compare games={v.games}/><p className="saga-caveat">AVERAGE POINTS PER COMPLETED GAME · CREW = OTHER PLAYERS, EQUALLY WEIGHTED</p></div>;
-  case 'game_dna':return <div className="saga-wide"><h1>Your CREW DNA.</h1><GameDna games={v.games} totalPoints={v.totalPoints}/></div>;
+  case 'game_compare':return <div className="saga-wide saga-game-compare"><h1>Your game. Your edge.</h1><Compare games={v.games} reduce={reduce} playing={playing}/><p className="saga-caveat">AVERAGE POINTS PER COMPLETED GAME · CREW = OTHER PLAYERS</p></div>;
+  case 'game_dna':return <div className="saga-wide saga-game-dna"><h1>What powered your season.</h1><GameDna games={v.games} totalPoints={v.totalPoints} reduce={reduce}/></div>;
   case 'plot_twist':return <Center label="THE PLOT TWIST" value={beat.metric} title={beat.headline}><p>{beat.description}</p></Center>;
   case 'trophy_vault':return <div className="saga-vault"><Center label="THE TROPHY VAULT" value={num(v.badges.length)} title="Badges unlocked."/><div className="saga-vault-grid">{v.badges.map((b,i)=><m.div key={b.code} initial={{opacity:0,scale:.7}} animate={{opacity:1,scale:1}} transition={{duration:.7,delay:.12*i}}><Badge item={b} size="small"/>{v.celebrated?.includes(b.code)&&<small className="saga-already-celebrated">TITLE CELEBRATED</small>}</m.div>)}</div></div>;
   case 'legacy':return <Legacy v={v} recap={recap}/>;
