@@ -5,6 +5,13 @@
 {% block body_class %}crew-app-page {{ react_body_class }} react-player-page{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='react/player.css', v=react_css_version) }}">
+{% if react_payload.rewindSeasonSagaPreview or react_payload.rewindPlayerCinemaPreview %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rewind-director.css', v=director_css_version) }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rewind-cinema.css', v=cinema_css_version) }}">
+{% endif %}
+{% if react_payload.rewindSeasonSagaPreview %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rewind-saga.css', v=saga_css_version) }}">
+{% endif %}
 {% endblock %}
 {% block body %}
 <div id="crew-player-root" data-page="{{ react_page }}"></div>

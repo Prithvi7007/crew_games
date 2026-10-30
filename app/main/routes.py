@@ -48,7 +48,7 @@ def season_one_rewind():
                    if item["number"] == 1), None)
     if not season:
         abort(404)
-    # Restrict this experimental film to staff even after finalization.
+    # Studio controls remain staff-only; the finalized Saga is public to its own player.
     film_requested = request.args.get("prototype") == "1"
     film_preview = film_requested and user.get("role") in ("admin", "owner")
     if film_requested and not film_preview:
@@ -89,6 +89,10 @@ def season_one_rewind():
     story = build_season_rewind(profile_id, season, admin_preview=preview)
     if not story:
         abort(404)
+    # The cinematic Saga is the signed-in player's official public Rewind
+    # ONLY after an administrator has frozen the championship score cutoff.
+    # Preserve the existing staff-only film studio and comparison previews.
+    public_saga = story["finalized"] and not film_requested and not preview
     response = make_response(render_player(
         "rewind", "Season One Rewind", "crew-rewind-page",
         {
@@ -98,12 +102,12 @@ def season_one_rewind():
             "rewindStoryPreview": story_preview,
             "rewindStoryDirectorPreview": director_preview,
             "rewindPlayerCinemaPreview": cinema_preview,
-            "rewindSeasonSagaPreview": saga_preview,
+            "rewindSeasonSagaPreview": saga_preview or public_saga,
             "rewindPreviewPlayer": story["username"] if cross_player_preview else None,
         }, user,
     ))
-    if film_preview:
-        response.headers["Cache-Control"] = "private, no-store"
+    # The film contains personal game results, badges, rankings, and rivals.
+    response.headers["Cache-Control"] = "private, no-store"
     return response
 
 

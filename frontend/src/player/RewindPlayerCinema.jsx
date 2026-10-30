@@ -95,7 +95,10 @@ export default function RewindPlayerCinema({data}){
   const scene=beats[index];
   const last=index===beats.length-1;
   const previewPlayer=data.rewindPreviewPlayer;
-  const back='/rewind?preview=1&prototype=1&story='+(saga?'4':'3')+(previewPlayer?'&player='+encodeURIComponent(previewPlayer):'');
+  // A public player must never exit into the staff-only Film Lab.
+  const back=data.rewindFilmPrototype===true
+    ? '/rewind?preview=1&prototype=1&story='+(saga?'4':'3')+(previewPlayer?'&player='+encodeURIComponent(previewPlayer):'')
+    : '/home';
   const tone=TONES[scene?.kind]||TONES.opening;
   const go=useCallback(target=>{
     setIndex(i=>Math.max(0,Math.min(beats.length-1,target)));
@@ -141,9 +144,7 @@ export default function RewindPlayerCinema({data}){
       onPointerMove={e=>{if(e.pointerType==='mouse')reveal();}}
       onPointerDown={e=>{if(e.pointerType==='touch'&&!e.target.closest('button,a'))setChrome(v=>!v);}}
       onFocusCapture={reveal}>
-      <link rel="stylesheet" href="/static/css/rewind-director.css"/>
-      <link rel="stylesheet" href="/static/css/rewind-cinema.css"/>
-      {saga&&<link rel="stylesheet" href="/static/css/rewind-saga.css"/>}
+      {/* Saga CSS is loaded in the document head with a content fingerprint. */}
       <div className="rc-backdrop" aria-hidden="true"><div className="rc-vignette"/><div className="rc-grain"/></div>
       <AnimatePresence mode="wait" initial={false}>
         <m.section key={index} className="rc-frame" aria-live="polite"

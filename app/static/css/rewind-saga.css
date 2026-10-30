@@ -17,7 +17,7 @@
 .saga-winner .saga-kicker{color:var(--crew-game-trivia,#ffbd45)}
 .saga-winner{position:relative;isolation:isolate}
 .saga-particles{position:absolute;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
-.saga-particles i{position:absolute;top:-10%;left:calc(mod(var(--i)*37,100)*1%);width:6px;height:17px;transform:rotate(calc(var(--i)*24deg));background:var(--crew-game-trivia,#ffbd45);opacity:.55;animation:saga-fall calc(3s + var(--i)*.12s) linear infinite;animation-delay:calc(var(--i)*-.18s)}
+.saga-particles i{position:absolute;top:-10%;width:6px;height:17px;transform:rotate(calc(var(--i)*24deg));background:var(--crew-game-trivia,#ffbd45);opacity:.55;animation:saga-fall calc(3s + var(--i)*.12s) linear infinite;animation-delay:calc(var(--i)*-.18s)}
 @keyframes saga-fall{to{translate:0 110dvh;rotate:400deg;opacity:0}}
 .saga-award{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;min-height:58dvh}
 .saga-award .saga-kicker{color:var(--crew-game-trivia,#ffbd45)}
