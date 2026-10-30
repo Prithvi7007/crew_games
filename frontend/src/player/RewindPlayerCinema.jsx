@@ -143,7 +143,7 @@ export default function RewindPlayerCinema({data}){
       onFocusCapture={reveal}>
       <link rel="stylesheet" href="/static/css/rewind-director.css"/>
       <link rel="stylesheet" href="/static/css/rewind-cinema.css"/>
-      {saga&&<link rel="stylesheet" href="/static/css/rewind-saga.css"/>}
+      {/* Saga CSS is loaded in the document head with a content fingerprint. */}
       <div className="rc-backdrop" aria-hidden="true"><div className="rc-vignette"/><div className="rc-grain"/></div>
       <AnimatePresence mode="wait" initial={false}>
         <m.section key={index} className="rc-frame" aria-live="polite"

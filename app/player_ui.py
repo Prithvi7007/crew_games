@@ -12,7 +12,8 @@ from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.trophy_tour import tour_for_player
 
 
-_REACT_ASSET_DIR = Path(__file__).resolve().parent / "static" / "react"
+_STATIC_ASSET_DIR = Path(__file__).resolve().parent / "static"
+_REACT_ASSET_DIR = _STATIC_ASSET_DIR / "react"
 
 
 def json_safe(value):
@@ -36,6 +37,21 @@ def react_asset_version(filename):
     try:
         stat = path.stat()
         return _react_asset_digest(filename, stat.st_mtime_ns, stat.st_size)
+    except OSError:
+        return "missing"
+
+
+@lru_cache(maxsize=16)
+def _static_asset_digest(filename, mtime_ns, size):
+    return sha256((_STATIC_ASSET_DIR / filename).read_bytes()).hexdigest()[:12]
+
+
+def static_asset_version(filename):
+    """Fingerprint a non-bundled asset to invalidate the 24-hour browser cache."""
+    path = _STATIC_ASSET_DIR / filename
+    try:
+        stat = path.stat()
+        return _static_asset_digest(filename, stat.st_mtime_ns, stat.st_size)
     except OSError:
         return "missing"
 
@@ -68,4 +84,6 @@ def render_player(page, title, body_class, payload, user, nav_points=None):
         react_payload=data,
         react_js_version=react_asset_version("player.js"),
         react_css_version=react_asset_version("player.css"),
+        saga_css_version=(static_asset_version("css/rewind-saga.css")
+                          if data.get("rewindSeasonSagaPreview") is True else None),
     )
