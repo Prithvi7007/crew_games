@@ -13,14 +13,7 @@
 .saga-center p{font-size:clamp(14px,1.6vw,20px);line-height:1.5;color:var(--saga-muted);max-width:650px;margin:0}
 .saga-center>small{color:var(--crew-game-trivia,#ffbd45);font-weight:900;letter-spacing:.15em}
 .saga-huge{font:950 clamp(96px,23vmin,260px)/.95 var(--crew-font-display,Manrope,sans-serif);color:var(--crew-game-word,#55b9ff);letter-spacing:-.085em;font-variant-numeric:tabular-nums;text-shadow:0 5px 65px color-mix(in srgb,var(--crew-game-word,#55b9ff) 23%,transparent)}
-.saga-winner .saga-huge,.saga-peak_week .saga-huge{color:var(--crew-game-trivia,#ffbd45)}
-.saga-winner .saga-kicker{color:var(--crew-game-trivia,#ffbd45)}
-.saga-winner{position:relative;isolation:isolate}
-.saga-particles{position:absolute;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
-.saga-particles i{position:absolute;top:-10%;width:6px;height:17px;transform:rotate(calc(var(--i)*24deg));background:var(--crew-game-trivia,#ffbd45);opacity:.55;animation:saga-fall calc(3s + var(--i)*.12s) linear infinite;animation-delay:calc(var(--i)*-.18s)}
-@keyframes saga-fall{to{translate:0 110dvh;rotate:400deg;opacity:0}}
-.saga-award{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;min-height:58dvh}
-.saga-award .saga-kicker{color:var(--crew-game-trivia,#ffbd45)}
+.saga-peak_week .saga-huge{color:var(--crew-game-trivia,#ffbd45)}
 .saga-badge{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}
 .saga-badge .trophy-medallion{display:inline-grid;place-items:center;width:clamp(140px,24vmin,260px);height:clamp(140px,24vmin,260px);flex-shrink:0}
 .saga-badge .trophy-medallion svg{width:100%;height:100%}
@@ -120,7 +113,6 @@
 .saga-vault-grid{max-height:45dvh}
 .saga-legacy{gap:15px;padding:22px}
 }
-@media(prefers-reduced-motion:reduce){.saga-particles i{animation:none;opacity:.15}}
 
 /* Staff-only animation demos reuse the real champion scenes. */
 .rc-champion-preview{position:absolute;z-index:12;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);box-sizing:border-box;width:min(360px,calc(100% - 150px));display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 12px;border:1px solid rgba(255,189,69,.3);border-radius:12px;background:rgba(2,7,11,.94);text-align:center}
@@ -128,3 +120,76 @@
 .rc-champion-preview select{box-sizing:border-box;max-width:100%;width:220px;min-height:36px;padding:6px 12px;border:1px solid var(--crew-color-line,#273d54);border-radius:8px;background:#101d2b;color:var(--saga-text);font:750 12px/1.3 var(--crew-font-body,Inter,sans-serif);cursor:pointer}
 .rc-champion-preview select:focus-visible{outline:2px solid var(--crew-game-word,#55b9ff);outline-offset:3px}
 .saga-champion-demo .rc-frame{padding-top:max(112px,12vh)}
+
+/* A neutral cover precedes every championship reveal. */
+.champion-cover{width:min(100%,960px);min-height:min(58dvh,600px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left;gap:28px}
+.champion-cover-kicker{margin:0;color:var(--crew-color-text,#f5f8ff);font-size:11px;font-weight:800;letter-spacing:.22em}
+.champion-cover-kicker span{color:var(--crew-color-muted,#98acc2);margin-left:20px;font-weight:600;letter-spacing:.13em}
+.saga-film .champion-cover h1{font-size:clamp(54px,9vw,118px);font-weight:800;line-height:1.01;letter-spacing:-.07em;margin:0}
+.champion-cover h1 em{font-style:normal;color:var(--crew-game-word,#55b9ff)}
+.champion-cover-footer{display:flex;flex-direction:column;gap:14px;padding-top:7px}
+.champion-cover-footer>span{color:var(--crew-color-text,#f5f8ff);font-size:clamp(15px,1.8vw,22px);font-weight:700}
+.champion-cover-footer>small{color:var(--crew-color-muted,#98acc2);font-size:9px;letter-spacing:.19em}
+.saga-film.rc-winner:not(.rc-showing-cover) .rc-backdrop,.saga-film.rc-winner_badge .rc-backdrop{background:radial-gradient(ellipse at 76% 45%,color-mix(in srgb,var(--champion-accent) 15%,transparent),transparent 58%),linear-gradient(125deg,#02070b 15%,#08111b 70%,#02070b)}
+.champion-stage{position:relative;isolation:isolate;width:min(100%,1050px);min-height:min(61dvh,620px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;color:var(--crew-color-text,#f5f8ff)}
+.champion-overture{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;text-align:center;font:800 clamp(15px,2.1vw,27px)/1.35 var(--crew-font-display,Manrope,sans-serif);letter-spacing:.16em;color:var(--champion-accent);pointer-events:none;animation:champion-overture 1.8s both}
+.champion-lockup{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.55fr);gap:clamp(30px,5vw,80px);align-items:center;width:100%}
+.champion-copy{text-align:left;min-width:0}
+.champion-kicker{margin:0 0 24px;color:var(--champion-accent);font-size:10px;letter-spacing:.22em;font-weight:800;animation:champion-rise .7s 1.45s both}
+.saga-film .champion-name{font-size:clamp(50px,6.4vw,92px);font-weight:800;line-height:1.05;letter-spacing:-.065em;margin:0 0 25px;max-width:100%;overflow-wrap:anywhere;text-wrap:balance;animation:champion-rise 1.05s 1.9s both}
+.champion-title{font:800 clamp(16px,2.1vw,28px)/1.3 var(--crew-font-display,Manrope,sans-serif);letter-spacing:.07em;color:var(--champion-accent);margin:0 0 17px;text-wrap:balance;animation:champion-rise .85s 2.4s both}
+.champion-result{font-size:10px;letter-spacing:.18em;line-height:1.6;color:var(--crew-color-muted,#98acc2);font-weight:700;margin:0;animation:champion-rise .7s 2.9s both}
+.champion-insignia{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;width:clamp(210px,25vw,300px);max-width:100%;justify-self:center;animation:champion-medal-in 1.5s 1.6s both}
+.champion-insignia .trophy-medallion{display:grid;place-items:center;width:100%;height:auto;aspect-ratio:1;filter:drop-shadow(0 18px 55px color-mix(in srgb,var(--champion-accent) 22%,transparent))}
+.champion-insignia .trophy-medallion svg{display:block;width:100%;height:100%}
+.champion-badge-season{font-size:9px;font-weight:800;letter-spacing:.25em;color:var(--champion-accent)}
+.champion-signoff{margin:20px 0 0;font-size:9px;line-height:1.5;letter-spacing:.19em;color:var(--crew-color-muted,#98acc2);font-weight:700;text-align:center;animation:champion-rise .7s 3.45s both}
+.champion-closeup{gap:20px;text-align:center}
+.champion-closeup .champion-kicker{margin:0;animation-delay:.15s}
+.champion-closeup .champion-insignia{width:clamp(185px,26vmin,270px);animation-delay:.35s}
+.saga-film .champion-badge-name{font:800 clamp(25px,4vw,48px)/1.13 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.045em;margin:0;text-wrap:balance;animation:champion-rise .8s .85s both}
+.champion-badge-owner{display:flex;align-items:center;justify-content:center;gap:17px;flex-wrap:wrap;margin:0;color:var(--crew-color-text,#f5f8ff);font-size:13px;font-weight:700;animation:champion-rise .8s 1.2s both}
+.champion-badge-owner span{font-size:9px;letter-spacing:.2em;color:var(--champion-accent)}
+.champion-closeup .champion-signoff{margin-top:0;animation-delay:1.55s}
+.champion-stage .champion-kicker,.champion-stage .champion-name,.champion-stage .champion-title,.champion-stage .champion-result,.champion-stage .champion-insignia,.champion-stage .champion-signoff,.champion-stage .champion-badge-name,.champion-stage .champion-badge-owner,.champion-stage .champion-overture{animation-play-state:var(--champion-play,running)}
+@keyframes champion-overture{0%{opacity:0;transform:translateY(14px)}22%,66%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-16px)}}
+@keyframes champion-rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes champion-medal-in{from{opacity:0;transform:translateY(30px) scale(.78) rotate(-6deg)}to{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+@media(max-width:650px){
+.champion-cover{min-height:53dvh;gap:24px}
+.saga-film .champion-cover h1{font-size:clamp(48px,13vw,75px)}
+.champion-cover-kicker{font-size:9px;letter-spacing:.13em}
+.champion-cover-kicker span{margin-left:12px}
+.champion-cover-footer>small{font-size:8px;letter-spacing:.12em}
+.champion-stage{min-height:54dvh;gap:20px}
+.champion-lockup{grid-template-columns:1fr;gap:26px}
+.champion-copy{order:2;text-align:center}
+.champion-winner .champion-insignia{order:1;width:clamp(145px,40vw,190px);gap:10px}
+.champion-kicker{margin-bottom:16px;font-size:9px}
+.saga-film .champion-name{font-size:clamp(35px,10.4vw,54px);margin-bottom:15px;line-height:1.08}
+.champion-title{font-size:15px;letter-spacing:.035em;margin-bottom:12px}
+.champion-result{font-size:8px;letter-spacing:.12em}
+.champion-badge-season{font-size:8px}
+.champion-signoff{margin-top:5px;font-size:8px;letter-spacing:.12em}
+.champion-closeup{gap:18px}
+.saga-film .champion-badge-name{font-size:28px}
+.champion-closeup .champion-insignia{width:190px}
+.champion-overture{font-size:14px;letter-spacing:.12em}
+}
+@media(max-height:600px) and (min-width:651px){
+.champion-stage{min-height:45dvh;gap:15px}
+.champion-insignia{width:180px}
+.saga-film .champion-name{font-size:48px;margin-bottom:14px}
+.champion-kicker{margin-bottom:14px}
+.champion-closeup .champion-insignia{width:140px}
+.saga-film .champion-badge-name{font-size:28px}
+.champion-closeup{gap:10px}
+}
+@media(prefers-reduced-motion:reduce){
+.champion-overture{display:none}
+.champion-stage .champion-kicker,.champion-stage .champion-name,.champion-stage .champion-title,.champion-stage .champion-result,.champion-stage .champion-insignia,.champion-stage .champion-signoff,.champion-stage .champion-badge-name,.champion-stage .champion-badge-owner{animation:none;opacity:1;transform:none}
+}
+
+/* A paused visit is a readable still; a completed finale holds its full reveal. */
+:is(.champion-stage.is-reduced,.champion-stage.is-still,.rc-is-finished .champion-stage) .champion-overture{display:none}
+:is(.champion-stage.is-reduced,.champion-stage.is-still,.rc-is-finished .champion-stage) :is(.champion-kicker,.champion-name,.champion-title,.champion-result,.champion-insignia,.champion-signoff,.champion-badge-name,.champion-badge-owner){animation:none;opacity:1;transform:none}

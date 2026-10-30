@@ -396,15 +396,23 @@ def test_champion_animation_previews_use_real_titles_and_badges(ui, monkeypatch,
     assert selector.locator("option").count() == 6
     assert page.locator(".rc-part").inner_text() == "01 / 10"
     assert page.get_by_text("ANIMATION DEMO · NO AWARD GRANTED", exact=True).is_visible()
+    assert page.get_by_role("heading", name="SEASON 01 CHAMPION", exact=True).count() == 0
+    assert page.locator(".champion-insignia").count() == 0
     page.get_by_role("button", name="BEGIN YOUR REWIND").click()
     page.get_by_role("heading", name="SEASON 01 CHAMPION", exact=True).click()
+    assert page.locator(".champion-name").inner_text() == "BrowserTester"
     page.keyboard.press("ArrowRight")
-    page.locator(".saga-award").wait_for(timeout=12000)
+    page.locator(".champion-closeup").wait_for(timeout=12000)
     page.locator(".rc-frame").hover()
     page.get_by_role("button", name="THE STORY BEHIND THIS MOMENT").click()
     sheet = page.get_by_role("dialog", name="How this moment was calculated")
     assert "Animation preview only." in sheet.locator("small").inner_text()
     page.get_by_role("button", name="Close evidence").click()
+    page.get_by_role("button", name="Previous chapter").click()
+    page.locator(".champion-winner.is-still").wait_for(timeout=12000)
+    assert page.locator(".champion-cover").count() == 0
+    assert page.get_by_role("button", name="PLAY", exact=False).is_visible()
+    assert page.locator(".champion-name").evaluate("el => getComputedStyle(el).opacity") == "1"
 
     for key, title, badge in (
         ("season", "SEASON 01 CHAMPION", "Season Champion"),
@@ -415,21 +423,62 @@ def test_champion_animation_previews_use_real_titles_and_badges(ui, monkeypatch,
     ):
         selector.select_option(key)
         page.wait_for_url("**&champion=" + key)
-        heading = page.get_by_role("heading", name=title, exact=True)
-        heading.wait_for(timeout=12000)
-        assert selector.input_value() == key
-        assert page.locator(".rc-part").inner_text() == "01 / 02"
-        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+        page.locator(".champion-cover").wait_for(timeout=12000)
+        assert page.get_by_role("heading", name=title, exact=True).count() == 0
+        assert page.locator(".champion-insignia").count() == 0
         box = selector.bounding_box()
         assert box and 0 <= box["x"] < box["x"] + box["width"] <= viewport["width"]
-        assert box["y"] + box["height"] < heading.bounding_box()["y"]
         page.get_by_role("button", name="BEGIN YOUR REWIND").click()
+        heading = page.get_by_role("heading", name=title, exact=True)
+        heading.wait_for(timeout=12000)
+        assert page.locator(".champion-name").inner_text() == "BrowserTester"
+        assert page.locator(".champion-winner").get_attribute("data-game") == key
+        assert page.locator(".champion-insignia svg").count() == 1
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+        page.locator(".rc-frame").hover()
+        page.get_by_role("button", name="PAUSE", exact=False).click()
+        assert page.locator(".champion-cover").count() == 0
+        assert page.locator(".rc-start-wrap").count() == 0
+        assert page.locator(".champion-name").evaluate(
+            "el => getComputedStyle(el).animationPlayState"
+        ) == "paused"
+        page.get_by_role("button", name="PLAY", exact=False).click()
         heading.click()
         page.keyboard.press("ArrowRight")
-        page.locator(".saga-award .saga-badge strong").wait_for(timeout=12000)
-        assert page.locator(".saga-award .saga-badge strong").inner_text() == badge
-        assert page.locator(".saga-award .trophy-medallion svg").is_visible()
+        page.get_by_role("heading", name=badge, exact=True).wait_for(timeout=12000)
+        assert page.locator(".champion-closeup .champion-insignia svg").is_visible()
+        page.locator(".rc-frame").hover()
+        page.get_by_role("button", name="PAUSE", exact=False).click()
+        assert page.locator(".champion-closeup .champion-insignia").evaluate(
+            "el => getComputedStyle(el).animationPlayState"
+        ) == "paused"
+        assert page.locator(".rc-finale-actions").count() == 0
+        page.get_by_role("button", name="PLAY", exact=False).click()
         assert page.get_by_text("ANIMATION DEMO · NO AWARD GRANTED", exact=True).is_visible()
         page.get_by_role("button", name="WATCH AGAIN").click()
-        page.get_by_role("heading", name=title, exact=True).wait_for(timeout=12000)
+        page.locator(".champion-cover").wait_for(timeout=12000)
+        assert page.get_by_role("heading", name=title, exact=True).count() == 0
     assert errors == []
+
+
+def test_champion_reduced_motion_does_not_skip_the_first_reveal(ui, monkeypatch):
+    from datetime import date
+
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 10, 30))
+    page, base_url = ui
+    page.emulate_media(reduced_motion="reduce")
+    page.goto(
+        base_url + "/rewind?preview=1&prototype=1&story=5&champion=season",
+        wait_until="domcontentloaded",
+    )
+    page.locator(".champion-cover").wait_for(timeout=12000)
+    page.get_by_role("button", name="EXPLORE YOUR STORY").click()
+    page.get_by_role("heading", name="SEASON 01 CHAMPION", exact=True).wait_for(timeout=12000)
+    assert page.locator(".rc-part").inner_text() == "01 / 02"
+    assert page.locator(".champion-winner.is-reduced").count() == 1
+    assert page.locator(".champion-name").inner_text() == "BrowserTester"
+    assert not page.locator(".champion-overture").is_visible()
+    page.get_by_role("button", name="NEXT", exact=False).click()
+    page.get_by_role("heading", name="Season Champion", exact=True).wait_for(timeout=12000)
+    page.get_by_role("button", name="WATCH AGAIN").click()
+    page.locator(".champion-cover").wait_for(timeout=12000)
