@@ -152,6 +152,8 @@
 .champion-badge-owner span{font-size:9px;letter-spacing:.2em;color:var(--champion-accent)}
 .champion-closeup .champion-signoff{margin-top:0;animation-delay:1.55s}
 .champion-stage .champion-kicker,.champion-stage .champion-name,.champion-stage .champion-title,.champion-stage .champion-result,.champion-stage .champion-insignia,.champion-stage .champion-signoff,.champion-stage .champion-badge-name,.champion-stage .champion-badge-owner,.champion-stage .champion-overture{animation-play-state:var(--champion-play,running)}
+.champion-stage.is-motion .champion-kicker,.champion-stage.is-motion .champion-name,.champion-stage.is-motion .champion-title,.champion-stage.is-motion .champion-result,.champion-stage.is-motion .champion-insignia,.champion-stage.is-motion .champion-signoff,.champion-stage.is-motion .champion-badge-name,.champion-stage.is-motion .champion-badge-owner,.champion-stage.is-motion .champion-overture{animation:none}
+.champion-stage.is-motion .champion-overture{inset:0 0 auto;min-height:2rem}
 @keyframes champion-overture{0%{opacity:0;transform:translateY(14px)}22%,66%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-16px)}}
 @keyframes champion-rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 @keyframes champion-medal-in{from{opacity:0;transform:translateY(30px) scale(.78) rotate(-6deg)}to{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
