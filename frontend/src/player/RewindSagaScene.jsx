@@ -117,7 +117,7 @@ function Legacy({v,recap}){
 export default function RewindSagaScene({beat,recap,reduce,playing}){
  const v=beat.visual||{};
  switch(beat.kind){
-  case 'winner':return <div className="saga-winner"><div className="saga-particles" aria-hidden="true">{Array.from({length:22},(_,i)=><i key={i} style={{'--i':i}}/>)}</div><Center label="CREW · SEASON 01" value="✦" title={beat.headline}><p>{v.shared?'A SHARED FIRST PLACE':'YOU LED THE SEASON'}</p></Center></div>;
+  case 'winner':return <div className="saga-winner"><div className="saga-particles" aria-hidden="true">{Array.from({length:22},(_,i)=><i key={i} style={{'--i':i,left:((i*37)%100)+'%'}}/>)}</div><Center label="CREW · SEASON 01" value="✦" title={beat.headline}><p>{v.shared?'A SHARED FIRST PLACE':'YOU LED THE SEASON'}</p></Center></div>;
   case 'winner_badge':return <div className="saga-award"><span className="saga-kicker">THE OFFICIAL BADGE</span><m.div initial={{scale:.4,opacity:0,rotate:-18}} animate={{scale:1,opacity:1,rotate:0}} transition={reveal}><Badge item={v.badge}/></m.div></div>;
   case 'welcome':return <Center label="CREW · SEASON 01" value="01" title={beat.headline}><p>{recap.username}, this story belongs to you.</p></Center>;
   case 'podium':return <Center label="THE PODIUM" value={v.count} title="Times among the weekly Top 3."><div className="saga-podium-weeks">{Array.from({length:v.weeksTotal},(_,i)=>{const w=v.weeks.find(x=>x.week===i+1);return <div key={i}><m.span className={'saga-podium-slot '+(w?'is-earned':'')} initial={{opacity:0,y:15}} animate={{opacity:1,y:0}} transition={{delay:i*.15}}>{w?'#'+w.place:'·'}</m.span><small>W{i+1}</small></div>})}</div><p>#{v.frequencyRank} for weekly podium appearances this season.</p></Center>;

@@ -84,6 +84,10 @@ def render_player(page, title, body_class, payload, user, nav_points=None):
         react_payload=data,
         react_js_version=react_asset_version("player.js"),
         react_css_version=react_asset_version("player.css"),
+        director_css_version=(static_asset_version("css/rewind-director.css")
+                              if data.get("rewindSeasonSagaPreview") is True or data.get("rewindPlayerCinemaPreview") is True else None),
+        cinema_css_version=(static_asset_version("css/rewind-cinema.css")
+                            if data.get("rewindSeasonSagaPreview") is True or data.get("rewindPlayerCinemaPreview") is True else None),
         saga_css_version=(static_asset_version("css/rewind-saga.css")
                           if data.get("rewindSeasonSagaPreview") is True else None),
     )
