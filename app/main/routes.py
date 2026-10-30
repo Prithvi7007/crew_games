@@ -65,7 +65,8 @@ def season_one_rewind():
     story_preview = request.args.get("story") == "2"
     director_preview = request.args.get("story") == "3"
     cinema_preview = request.args.get("story") == "4"
-    if (story_preview or director_preview or cinema_preview) and (
+    saga_preview = request.args.get("story") == "5"
+    if (story_preview or director_preview or cinema_preview or saga_preview) and (
         not film_preview or not preview or analysis_preview
     ):
         abort(404)
@@ -97,6 +98,7 @@ def season_one_rewind():
             "rewindStoryPreview": story_preview,
             "rewindStoryDirectorPreview": director_preview,
             "rewindPlayerCinemaPreview": cinema_preview,
+            "rewindSeasonSagaPreview": saga_preview,
             "rewindPreviewPlayer": story["username"] if cross_player_preview else None,
         }, user,
     ))
