@@ -14,7 +14,9 @@ const motionIn={opacity:0,y:22,filter:'blur(9px)'};
 const motionOut={opacity:0,y:-18,filter:'blur(8px)'};
 const smooth={duration:.85,ease:[.22,1,.36,1]};
 const fmt=v=>String(v??'').replace(/\s+pts?$/i,'');
-const secFor=beat=>Math.min(11000,Math.max(7200,6800+(beat?.headline?.length||0)*30));
+const secFor=beat=>beat?.kind==='game_compare'
+  ? 1800+Math.max(1,(beat.visual?.games||[]).filter(g=>g.mine!==null).length)*3800
+  :Math.min(11000,Math.max(7200,6800+(beat?.headline?.length||0)*30));
 const noRepeat=(beat)=>{
   const v=beat.visual||{};
   switch(beat.kind){
@@ -149,7 +151,7 @@ export default function RewindPlayerCinema({data}){
           animate={{opacity:1,scale:1,filter:'blur(0px)'}}
           exit={reduce?{opacity:0}:{opacity:0,scale:.985,filter:'blur(13px)'}}
           transition={{duration:reduce?0:.75,ease:[.22,1,.36,1]}}>
-          {saga?<RewindSagaScene beat={scene} recap={recap} reduce={reduce}/>:<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>}
+          {saga?<RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing}/>:<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>}
         </m.section>
       </AnimatePresence>
 

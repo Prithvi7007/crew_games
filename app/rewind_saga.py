@@ -184,7 +184,7 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
             {"games": comparisons},
         ))
 
-    # 5. Two independent denominators: completion share and earned-points share.
+    # 5. Points contribution only. The redundant participation chart is intentionally removed.
     breakdown = []
     for key, label in GAMES:
         played = len(per_game[me][key])
@@ -194,12 +194,12 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
             "gameShare": round(100 * played / all_plays[me], 2) if all_plays[me] else 0,
             "pointShare": round(100 * points / all_points[me], 2) if all_points[me] > 0 else 0,
         })
-    if all_plays[me]:
+    if all_points[me] > 0:
         chapters.append(beat(
-            "game_dna", "YOUR GAME DNA", "Where your season came from.",
-            all_plays[me], "Two different stories: what you played and where you earned points.",
-            "Game share: completions in a game / all own completions. "
-            "Points share: points in a game / all own points (only when positive).",
+            "game_dna", "YOUR GAME DNA", "Where your points came from.",
+            all_points[me], "Your four games' contributions to your total Season 01 points.",
+            "Points share: points in a game / all eligible own points. "
+            "No participation comparison is shown.",
             {"games": breakdown, "totalPlayed": all_plays[me],
              "totalPoints": all_points[me]},
         ))
