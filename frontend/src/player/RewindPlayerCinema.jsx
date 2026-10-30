@@ -15,6 +15,12 @@ const TONES={
 const motionIn={opacity:0,y:22,filter:'blur(9px)'};
 const motionOut={opacity:0,y:-18,filter:'blur(8px)'};
 const smooth={duration:.85,ease:[.22,1,.36,1]};
+const chapterVariants={
+  enter:direction=>({opacity:0,x:direction*32,scale:.985}),
+  center:{opacity:1,x:0,scale:1},
+  exit:direction=>({opacity:0,x:-direction*24,scale:1.012}),
+};
+const chapterTransition={duration:.58,ease:[.22,1,.36,1]};
 const fmt=v=>String(v??'').replace(/\s+pts?$/i,'');
 const secFor=beat=>beat?.kind==='winner'?9800:beat?.kind==='winner_badge'?8200:beat?.kind==='game_compare'
   ? 1800+Math.max(1,(beat.visual?.games||[]).filter(g=>g.mine!==null).length)*3800
@@ -90,6 +96,8 @@ export default function RewindPlayerCinema({data}){
   const beats=story.beats||[];
   const [{index,started,playing,finished},dispatch]=useReducer(playbackReducer,undefined,initialPlayback);
   const sceneClock=useRef({index:0,elapsed:0});
+  const previousIndex=useRef(0);
+  const direction=index>=previousIndex.current?1:-1;
   const [chrome,setChrome]=useState(false);
   const [evidence,setEvidence]=useState(false);
   const hideRef=useRef(null);
@@ -114,15 +122,16 @@ export default function RewindPlayerCinema({data}){
     window.location.assign(url.pathname+url.search);
   };
   const go=useCallback(target=>{
+    previousIndex.current=index;
     dispatch({type:'go',index:target,count:beats.length});
     setEvidence(false);
     setChrome(false);
-  },[beats.length]);
+  },[beats.length,index]);
   const forward=useCallback(()=>{if(last){dispatch({type:'finish'});setEvidence(false);setChrome(true);}else go(index+1);},[go,index,last]);
   const backward=useCallback(()=>go(index-1),[go,index]);
   const begin=useCallback(()=>{dispatch({type:'begin',reduced:reduce});setChrome(Boolean(reduce));},[reduce]);
   const pause=useCallback(()=>{dispatch({type:'toggle'});setChrome(true);},[]);
-  const restart=useCallback(()=>{sceneClock.current={index:0,elapsed:0};dispatch({type:'restart'});setEvidence(false);setChrome(false);},[]);
+  const restart=useCallback(()=>{previousIndex.current=index;sceneClock.current={index:0,elapsed:0};dispatch({type:'restart'});setEvidence(false);setChrome(false);},[index]);
   const reveal=useCallback(()=>{setChrome(true);},[]);
 
   // Motion timers are tied to the active chapter and are cancelled on every
@@ -132,7 +141,7 @@ export default function RewindPlayerCinema({data}){
     if(!playing||reduce||(last&&!finalBadge)||evidence||!scene)return undefined;
     const began=window.performance.now();
     const remaining=remainingChapterTime(scene.kind,secFor(scene),sceneClock.current.elapsed);
-    const t=window.setTimeout(()=>dispatch(last?{type:'finish'}:{type:'go',index:index+1,count:beats.length}),remaining);
+    const t=window.setTimeout(()=>{previousIndex.current=index;dispatch(last?{type:'finish'}:{type:'go',index:index+1,count:beats.length});},remaining);
     return ()=>{
       window.clearTimeout(t);
       if(sceneClock.current.index===index)sceneClock.current.elapsed+=window.performance.now()-began;
@@ -171,12 +180,14 @@ export default function RewindPlayerCinema({data}){
       </aside>}
       {/* Saga CSS is loaded in the document head with a content fingerprint. */}
       <div className="rc-backdrop" aria-hidden="true"><div className="rc-vignette"/><div className="rc-grain"/></div>
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="sync" initial={false} custom={direction}>
         <m.section key={showCover?'cover':index} className="rc-frame" aria-live="polite"
-          initial={reduce?false:{opacity:0,scale:1.025,filter:'blur(13px)'}}
-          animate={{opacity:1,scale:1,filter:'blur(0px)'}}
-          exit={reduce?{opacity:0}:{opacity:0,scale:.985,filter:'blur(13px)'}}
-          transition={{duration:reduce?0:.75,ease:[.22,1,.36,1]}}>
+          custom={direction}
+          variants={chapterVariants}
+          initial={reduce?false:'enter'}
+          animate="center"
+          exit={reduce?{opacity:0}:'exit'}
+          transition={reduce?{duration:0}:chapterTransition}>
           {showCover?<ChampionCover player={recap.username}/>:saga?<RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing}/>:<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>}
         </m.section>
       </AnimatePresence>

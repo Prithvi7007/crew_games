@@ -44,7 +44,11 @@ def test_cinema_has_safe_controls_and_does_not_fabricate_player_data():
     assert "aria-live=\"polite\"" in film
     assert "role=\"dialog\"" in film
     assert "setEvidence(true)" in film
-    assert "mode=\"wait\"" in film
+    # Cinematic chapters crossfade rather than leaving a blank gap.
+    assert 'mode="sync"' in film
+    assert "custom={direction}" in film
+    assert "variants={chapterVariants}" in film
+    assert "exit={reduce?{opacity:0}:'exit'}" in film
     assert "SamIam" not in film and "Juliet" not in film
 
 
