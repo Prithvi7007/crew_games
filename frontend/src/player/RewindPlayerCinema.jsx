@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {AnimatePresence, LazyMotion, MotionConfig, domAnimation, m, useReducedMotion} from 'motion/react';
 import RewindDirectorScenes from './RewindDirectorScenes';
+import RewindSagaScene from './RewindSagaScene';
 
 const TONES={
   opening:['#a5dfff','#536dce'], rivalry:['#93f2e0','#b48aee'],
@@ -80,7 +81,8 @@ function FilmMoment({beat,recap,player,reduce}){
 
 export default function RewindPlayerCinema({data}){
   const recap=data.rewind||{};
-  const story=recap.cinematicStory||{beats:[],player:recap.username};
+  const saga=data.rewindSeasonSagaPreview===true;
+  const story=(saga?recap.seasonSaga:recap.cinematicStory)||{beats:[],player:recap.username};
   const beats=story.beats||[];
   const [index,setIndex]=useState(0);
   const [playing,setPlaying]=useState(false);
@@ -91,7 +93,7 @@ export default function RewindPlayerCinema({data}){
   const scene=beats[index];
   const last=index===beats.length-1;
   const previewPlayer=data.rewindPreviewPlayer;
-  const back='/rewind?preview=1&prototype=1&story=3'+(previewPlayer?'&player='+encodeURIComponent(previewPlayer):'');
+  const back='/rewind?preview=1&prototype=1&story='+(saga?'4':'3')+(previewPlayer?'&player='+encodeURIComponent(previewPlayer):'');
   const tone=TONES[scene?.kind]||TONES.opening;
   const go=useCallback(target=>{
     setIndex(i=>Math.max(0,Math.min(beats.length-1,target)));
@@ -132,13 +134,14 @@ export default function RewindPlayerCinema({data}){
   if(!scene)return <main className="rc-empty"><h1>No season story yet.</h1><a href={back}>Back to Rewind</a></main>;
   const controls=chrome||(!playing&&index>0);
   return <LazyMotion features={domAnimation} strict><MotionConfig reducedMotion="user">
-    <main className={'rc-film rc-'+scene.kind+(playing?' rc-is-playing':'')} style={{'--rc-light':tone[0],'--rc-glow':tone[1]}}
+    <main className={'rc-film rc-'+scene.kind+(playing?' rc-is-playing':'')+(saga?' saga-film':'')} style={{'--rc-light':tone[0],'--rc-glow':tone[1]}}
       aria-label={'Season 01 cinematic Rewind for '+story.player}
       onPointerMove={e=>{if(e.pointerType==='mouse')reveal();}}
       onPointerDown={e=>{if(e.pointerType==='touch'&&!e.target.closest('button,a'))setChrome(v=>!v);}}
       onFocusCapture={reveal}>
       <link rel="stylesheet" href="/static/css/rewind-director.css"/>
       <link rel="stylesheet" href="/static/css/rewind-cinema.css"/>
+      {saga&&<link rel="stylesheet" href="/static/css/rewind-saga.css"/>}
       <div className="rc-backdrop" aria-hidden="true"><div className="rc-vignette"/><div className="rc-grain"/></div>
       <AnimatePresence mode="wait" initial={false}>
         <m.section key={index} className="rc-frame" aria-live="polite"
@@ -146,7 +149,7 @@ export default function RewindPlayerCinema({data}){
           animate={{opacity:1,scale:1,filter:'blur(0px)'}}
           exit={reduce?{opacity:0}:{opacity:0,scale:.985,filter:'blur(13px)'}}
           transition={{duration:reduce?0:.75,ease:[.22,1,.36,1]}}>
-          <FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>
+          {saga?<RewindSagaScene beat={scene} recap={recap} reduce={reduce}/>:<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>}
         </m.section>
       </AnimatePresence>
 

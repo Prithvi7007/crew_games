@@ -1,0 +1,101 @@
+/* Season 01 Saga — inherit CREW's actual palette and badge visual grammar. */
+.saga-film{--saga-bg:var(--crew-color-bg,#02070b);--saga-text:var(--crew-color-text,#f5f8ff);--saga-muted:var(--crew-color-muted,#98acc2);background:var(--saga-bg);color:var(--saga-text);font-family:var(--crew-font-body,Inter,sans-serif)}
+.saga-film .rc-frame{padding:clamp(48px,7vh,84px) clamp(22px,6vw,95px) clamp(95px,13vh,120px);overflow:auto;scrollbar-width:none}
+.saga-film .rc-frame::-webkit-scrollbar{display:none}
+.saga-film .rc-backdrop{background:radial-gradient(ellipse at 80% 27%,color-mix(in srgb,var(--crew-game-word,#55b9ff) 13%,transparent),transparent 50%),radial-gradient(ellipse at 20% 80%,color-mix(in srgb,var(--crew-game-tick-tock,#c55cff) 11%,transparent),transparent 60%),var(--saga-bg)}
+.saga-film .rc-frame>div{width:min(100%,1100px);max-width:100%;margin:auto}
+.saga-film .rc-progress span{background:var(--crew-game-word,#55b9ff)}
+.saga-film .rc-start,.saga-film .rc-action-main{background:var(--crew-game-word,#55b9ff);color:#04101c}
+.saga-film h1{font-family:var(--crew-font-display,Manrope,sans-serif);font-size:clamp(35px,5.2vw,78px);line-height:1.03;letter-spacing:-.075em;overflow-wrap:anywhere;margin:0;text-wrap:balance}
+.saga-kicker{color:var(--crew-game-word,#55b9ff);font-size:clamp(10px,1.1vw,14px);font-weight:900;letter-spacing:.19em}
+.saga-center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:clamp(10px,2vh,23px);min-height:min(62dvh,650px)}
+.saga-center h1{max-width:860px}
+.saga-center p{font-size:clamp(14px,1.6vw,20px);line-height:1.5;color:var(--saga-muted);max-width:650px;margin:0}
+.saga-center>small{color:var(--crew-game-trivia,#ffbd45);font-weight:900;letter-spacing:.15em}
+.saga-huge{font:950 clamp(96px,23vmin,260px)/.95 var(--crew-font-display,Manrope,sans-serif);color:var(--crew-game-word,#55b9ff);letter-spacing:-.085em;font-variant-numeric:tabular-nums;text-shadow:0 5px 65px color-mix(in srgb,var(--crew-game-word,#55b9ff) 23%,transparent)}
+.saga-winner .saga-huge,.saga-peak_week .saga-huge{color:var(--crew-game-trivia,#ffbd45)}
+.saga-winner .saga-kicker{color:var(--crew-game-trivia,#ffbd45)}
+.saga-winner{position:relative;isolation:isolate}
+.saga-particles{position:absolute;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
+.saga-particles i{position:absolute;top:-10%;left:calc(mod(var(--i)*37,100)*1%);width:6px;height:17px;transform:rotate(calc(var(--i)*24deg));background:var(--crew-game-trivia,#ffbd45);opacity:.55;animation:saga-fall calc(3s + var(--i)*.12s) linear infinite;animation-delay:calc(var(--i)*-.18s)}
+@keyframes saga-fall{to{translate:0 110dvh;rotate:400deg;opacity:0}}
+.saga-award{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;min-height:58dvh}
+.saga-award .saga-kicker{color:var(--crew-game-trivia,#ffbd45)}
+.saga-badge{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}
+.saga-badge .trophy-medallion{display:inline-grid;place-items:center;width:clamp(140px,24vmin,260px);height:clamp(140px,24vmin,260px);flex-shrink:0}
+.saga-badge .trophy-medallion svg{width:100%;height:100%}
+.saga-badge strong{font:850 clamp(16px,2.4vw,29px)/1.1 var(--crew-font-display,Manrope,sans-serif);text-wrap:balance}
+.saga-badge small{font-size:10px;letter-spacing:.19em;color:var(--crew-game-trivia,#ffbd45);font-weight:900}
+.saga-badge-small .trophy-medallion{width:clamp(58px,7vw,87px);height:clamp(58px,7vw,87px)}
+.saga-badge-small strong{font-size:11px;max-width:125px;line-height:1.25}
+.saga-badge-small small{font-size:9px}
+.saga-podium-weeks{display:flex;justify-content:center;gap:clamp(8px,1.5vw,20px);width:min(100%,700px)}
+.saga-podium-weeks>div{flex:1;min-width:0;display:grid;gap:8px}
+.saga-podium-slot{display:grid;place-items:center;min-height:clamp(60px,10vw,100px);border:1px solid var(--crew-color-line,#273d54);border-radius:14px;background:rgba(140,175,210,.065);color:#6c8296;font-weight:950;font-size:clamp(20px,4vw,42px)}
+.saga-podium-slot.is-earned{color:var(--crew-game-trivia,#ffbd45);border-color:color-mix(in srgb,var(--crew-game-trivia,#ffbd45) 55%,transparent);background:color-mix(in srgb,var(--crew-game-trivia,#ffbd45) 9%,transparent)}
+.saga-podium-weeks small{color:var(--saga-muted);font-size:12px;font-weight:800}
+.saga-wide{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,4vh,35px);width:100%;min-height:58dvh}
+.saga-wide>h1{text-align:center;font-size:clamp(32px,4.7vw,65px)}
+.saga-chart{width:min(100%,980px)}
+.saga-chart svg{display:block;width:100%;height:min(41dvh,410px);overflow:visible}
+.saga-chart-legend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:28px;color:#b8c8d8;font-size:11px;font-weight:900;letter-spacing:.14em}
+.saga-chart-legend>span{display:flex;gap:9px;align-items:center}
+.saga-chart-legend i{width:20px;height:4px;border-radius:4px}
+.saga-comparisons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(12px,2vw,26px);width:min(100%,950px)}
+.saga-comparison{border:1px solid color-mix(in srgb,var(--game) 25%,transparent);border-radius:16px;padding:clamp(15px,2.5vw,24px);background:color-mix(in srgb,var(--game) 6%,transparent)}
+.saga-comparison>strong{display:block;font-size:clamp(15px,1.8vw,20px);margin-bottom:12px;color:var(--game)}
+.saga-double{display:grid;gap:13px}
+.saga-double>span{position:relative;display:grid;grid-template-columns:1fr auto;gap:6px;padding-bottom:9px;color:#b5c8db;font-size:10px;font-weight:900;letter-spacing:.08em}
+.saga-double b{font-size:16px;color:#fff}
+.saga-double i{position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--game);border-radius:3px;transform-origin:left}
+.saga-double>span:nth-child(2) i{background:var(--crew-color-muted,#748da2)}
+.saga-comparison>small{display:block;margin-top:10px;color:#a9bace;font-size:9px;font-weight:800;letter-spacing:.09em}
+.saga-caveat{font-size:10px;color:var(--saga-muted);text-align:center;letter-spacing:.08em;max-width:700px}
+.saga-dna{display:grid;grid-template-columns:1fr 1fr;gap:clamp(22px,5vw,68px);width:min(100%,980px)}
+.saga-dna h3{font-size:13px;letter-spacing:.15em;color:var(--saga-muted);margin:0 0 21px}
+.saga-distribution{display:flex;gap:3px;height:clamp(30px,5vh,52px);width:100%;overflow:hidden;border-radius:12px}
+.saga-distribution-part{min-width:0;flex-basis:0;transform-origin:left;min-height:100%}
+.saga-dna-legend{display:grid;gap:11px;margin-top:23px}
+.saga-dna-legend>span{display:flex;align-items:center;justify-content:space-between;gap:15px;color:#c8d8e6;font-size:13px}
+.saga-dna-legend>span:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--game)}
+.saga-dna-legend>span b{margin-left:auto;font-variant-numeric:tabular-nums}
+.saga-vault{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(7px,2vh,20px)}
+.saga-vault .saga-center{min-height:0;gap:8px}
+.saga-vault .saga-huge{font-size:clamp(54px,9vh,100px)}
+.saga-vault .saga-center h1{font-size:clamp(27px,4.3vw,55px)}
+.saga-vault-grid{width:min(100%,1050px);display:flex;justify-content:center;align-items:start;flex-wrap:wrap;gap:clamp(8px,2vw,20px);max-height:min(46dvh,430px);overflow:auto;scrollbar-width:thin;padding:10px}
+.saga-vault-grid>div{flex:0 0 clamp(80px,11vw,130px)}
+.saga-already-celebrated{font-size:8px;color:var(--crew-game-trivia,#ffbd45);letter-spacing:.08em;display:block;text-align:center;margin-top:6px}
+.saga-legacy{max-width:550px!important;width:min(100%,550px)!important;border:1px solid rgba(85,185,255,.28);border-radius:25px;padding:clamp(20px,3.3vw,36px);background:radial-gradient(ellipse at 80% 20%,rgba(85,185,255,.16),transparent 65%),linear-gradient(155deg,#111e30,#08101d);box-shadow:0 40px 140px rgba(0,0,0,.32);display:flex;flex-direction:column;gap:25px}
+.saga-legacy>header{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:11px;font-weight:900;letter-spacing:.13em;color:var(--crew-game-word,#55b9ff)}
+.saga-legacy>header span{color:var(--crew-game-trivia,#ffbd45)}
+.saga-legacy-body{text-align:center}
+.saga-legacy-body h1{margin:15px 0 6px;font-size:clamp(36px,5vw,60px)}
+.saga-legacy-body p{font-size:11px;font-weight:800;letter-spacing:.11em;color:#b5c9df}
+.saga-legacy-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:23px 0;border-block:1px solid rgba(165,200,239,.15)}
+.saga-legacy-stats>div{display:flex;flex-direction:column;align-items:center;gap:5px}
+.saga-legacy-stats strong{font:900 clamp(28px,4vw,45px)/1.1 var(--crew-font-display,Manrope,sans-serif)}
+.saga-legacy-stats small{color:var(--saga-muted);font-size:10px;letter-spacing:.12em;font-weight:800}
+.saga-legacy-foot{text-align:center;font-size:10px;letter-spacing:.11em;color:var(--crew-game-trivia,#ffbd45);font-weight:900}
+.saga-legacy-foot>div{display:flex;justify-content:center;align-items:start;gap:18px;margin-top:20px}
+.saga-legacy-foot .saga-badge-small strong,.saga-legacy-foot .saga-badge-small small{display:none}
+.saga-film.rc-season_two .saga-huge{color:var(--crew-game-tick-tock,#c55cff)}
+@media(max-width:650px){
+.saga-film .rc-frame{padding:70px 20px 125px}
+.saga-center{min-height:55dvh}
+.saga-huge{font-size:clamp(80px,24vw,130px)}
+.saga-wide{gap:18px}
+.saga-comparisons{grid-template-columns:1fr 1fr;gap:9px}
+.saga-comparison{padding:11px}
+.saga-comparison>strong{font-size:12px}
+.saga-double b{font-size:13px}
+.saga-chart svg{height:30dvh}
+.saga-dna{grid-template-columns:1fr;gap:25px}
+.saga-dna h3{margin-bottom:9px}
+.saga-dna-legend{grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:9px}
+.saga-dna-legend>span{font-size:11px}
+.saga-podium-slot{min-height:56px}
+.saga-vault-grid{max-height:45dvh}
+.saga-legacy{gap:15px;padding:22px}
+}
+@media(prefers-reduced-motion:reduce){.saga-particles i{animation:none;opacity:.15}}

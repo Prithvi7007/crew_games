@@ -12,6 +12,7 @@ from app.db import get_db
 from app.rewind_insights import build_rewind_insights
 from app.rewind_analytics import build_rewind_analytics
 from app.rewind_story import build_rewind_story
+from app.rewind_saga import build_season_saga
 from app.schedule import get_week_start
 
 _GAME_NAMES = {
@@ -213,6 +214,14 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
         )},
         "champion": champion,
     }
+    result["seasonSaga"] = build_season_saga(
+        result, completions, profile_id=profile_id,
+        season_start=season["start_date"],
+        weeks_total=season["weeks_total"],
+        names=profile_names,
+        official_winners=winners,
+        awarded_codes=awarded_codes,
+    )
     result["cinematicStory"] = build_rewind_story(
         result, completions, profile_id=profile_id,
         season_start=season["start_date"],
