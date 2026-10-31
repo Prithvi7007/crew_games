@@ -788,6 +788,19 @@ def test_nonwinner_honors_precede_personal_story_and_login(ui, app, monkeypatch,
     page.keyboard.press("ArrowRight")
     page.locator(".rc-welcome").wait_for()
     assert "BrowserTester, this story belongs to you." in page.locator(".saga-center").inner_text()
+    for _ in range(3):
+        if page.locator(".rc-weekly_trend").count():
+            break
+        page.keyboard.press("ArrowRight")
+    chart = page.locator(".saga-chart")
+    chart.wait_for()
+    assert chart.locator(".saga-chart-legend > span").all_text_contents() == [
+        "YOUR SCORE", "WEEKLY HIGHEST", "CREW AVERAGE",
+    ]
+    assert "CREW average 380 points from 2 other players" in chart.get_attribute("aria-label")
+    assert chart.locator(".saga-chart-crew-point").count() == 1
+    assert "NaN" not in chart.locator(".saga-chart-crew-line").get_attribute("d")
+    assert chart.locator(".saga-chart-crew-point").evaluate("el => getComputedStyle(el).opacity") == "1"
     assert not errors
 
     # An unconsumed login premiere uses the same opening and still offers skip.
@@ -797,4 +810,3 @@ def test_nonwinner_honors_precede_personal_story_and_login(ui, app, monkeypatch,
     page.locator(".champion-cover").wait_for(state="detached")
     page.get_by_role("button", name="SKIP REWIND", exact=False).click()
     page.wait_for_url("**/home")
-

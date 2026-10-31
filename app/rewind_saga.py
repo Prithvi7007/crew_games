@@ -144,10 +144,17 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
         for pos, pid in enumerate(active[:3], 1):
             podiums[pid].append({"week": week, "place": pos,
                                 "points": per_week[week][pid]["points"]})
+        peer_totals = [
+            data["points"] for pid, data in per_week[week].items()
+            if pid != me and data["played"]
+            and (peer_ids is None or pid in peer_ids)
+        ]
         weekly.append({
             "week": week,
             "mine": per_week[week][me]["points"],
             "highest": per_week[week][active[0]]["points"] if active else 0,
+            "crew": round(sum(peer_totals) / len(peer_totals), 1) if peer_totals else None,
+            "peerPlayers": len(peer_totals),
             "played": per_week[week][me]["played"],
         })
     frequencies = sorted(
@@ -169,15 +176,18 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
              "frequencyRank": podium_rank, "weeksTotal": weeks_total},
         ))
 
-    # 3. Show own weekly points against the true weekly highest. Peak is
+    # 3. Show own weekly points against the weekly highest and peer average. Peak is
     # the maximum own weekly total, never confused with "won the week".
     best = max(weekly, key=lambda w: (w["mine"], -w["week"])) if weekly else None
     if best and any(w["played"] for w in weekly):
         chapters.append(beat(
             "weekly_trend", "THE SIX-WEEK JOURNEY", "Every week changed the picture.",
-            str(weeks_total), "Your weekly totals alongside the highest score achieved by anyone that week.",
+            str(weeks_total), "Your weekly totals alongside the weekly highest and other active players' average.",
             "Game-date week; eligible completion points. The highest is the week's highest "
-            "player total, not a theoretical maximum.",
+            "player total, not a theoretical maximum. CREW is the mean weekly total of "
+            "other player accounts with at least one eligible completion that week; "
+            "owner/admin accounts are excluded. Zero-score completions count. "
+            "Weeks without peer completions have no benchmark, not a zero average.",
             {"weeks": weekly, "bestWeek": best["week"]},
         ))
         chapters.append(beat(

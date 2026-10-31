@@ -22,21 +22,34 @@ function Center({label,title,value,children,time}){
 }
 function WeekLines({weeks,bestWeek,time}){
   const highestPath=useTransform(time,[250,2450],[0,1]);
+  const crewPathLength=useTransform(time,[400,2800],[0,1]);
+  const crewDots=useTransform(time,[2600,3250],[0,1]);
   const minePath=useTransform(time,[550,3150],[0,1]);
-  const max=Math.max(1,...weeks.map(w=>w.highest));
+  const max=Math.max(1,...weeks.flatMap(w=>[w.highest,w.mine,Number.isFinite(w.crew)?w.crew:0]));
   const at=(w,i,key)=>[(i/(Math.max(1,weeks.length-1)))*780+30,250-(w[key]/max)*195];
   const points=key=>weeks.map((w,i)=>at(w,i,key).join(',')).join(' ');
-  return <div className="saga-chart" role="img" aria-label="Animated weekly player score compared with highest CREW player score">
-    <svg viewBox="0 0 840 315" preserveAspectRatio="xMidYMid meet">
+  const hasCrew=weeks.some(w=>Number.isFinite(w.crew));
+  const crewPath=weeks.map((w,i)=>Number.isFinite(w.crew)?
+    (i>0&&Number.isFinite(weeks[i-1].crew)?'L':'M')+at(w,i,'crew').join(','):'').join(' ');
+  const weekLabel=w=>'Week '+w.week+': you '+num(w.mine)+' points; highest '+num(w.highest)+
+    (Number.isFinite(w.crew)?'; CREW average '+num(w.crew)+' points from '+w.peerPlayers+' other player'+(w.peerPlayers===1?'':'s'): '; no CREW benchmark')+'.';
+  return <div className="saga-chart" role="img" aria-label={'Weekly points: your score, weekly highest and CREW average. '+weeks.map(weekLabel).join(' ')}>
+    <svg viewBox="0 0 840 315" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       {[0,.25,.5,.75,1].map(v=><line key={v} x1="30" x2="810" y1={250-195*v} y2={250-195*v} stroke="#617080" strokeOpacity=".21"/>)}
       <m.polyline points={points('highest')} fill="none" stroke="var(--crew-game-trivia,#ffbd45)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" style={{pathLength:highestPath}}/>
+      {hasCrew&&<m.path className="saga-chart-crew-line" d={crewPath} fill="none" stroke={KEYS.mystery} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" style={{pathLength:crewPathLength}}/>}
       <m.polyline points={points('mine')} fill="none" stroke="var(--crew-game-word,#55b9ff)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" style={{pathLength:minePath}}/>
       {weeks.map((w,i)=><g key={w.week}>
+        <title>{weekLabel(w)}</title>
+        {Number.isFinite(w.crew)&&<m.rect className="saga-chart-crew-point" x={at(w,i,'crew')[0]-5} y={at(w,i,'crew')[1]-5} width="10" height="10" fill={KEYS.mystery} stroke="var(--saga-bg)" strokeWidth="2" style={{opacity:crewDots}}/>}
         <circle cx={at(w,i,'mine')[0]} cy={at(w,i,'mine')[1]} r={w.week===bestWeek?9:5} fill="var(--crew-game-word,#55b9ff)"/>
         <text x={at(w,i,'mine')[0]} y="288" textAnchor="middle" fill="#adc3d7" fontSize="17">W{w.week}</text>
       </g>)}
     </svg>
-    <div className="saga-chart-legend"><span><i style={{background:KEYS.word}}/>YOUR SCORE</span><span><i style={{background:KEYS.trivia}}/>WEEKLY HIGHEST</span></div>
+    <div className="saga-chart-legend"><span><i style={{background:KEYS.word}}/>YOUR SCORE</span><span><i style={{background:KEYS.trivia}}/>WEEKLY HIGHEST</span><span><i className="saga-chart-key-crew" style={{background:KEYS.mystery}}/>CREW AVERAGE</span></div>
+    <p className="saga-chart-note">WEEKLY POINTS · {hasCrew?'CREW = OTHER ACTIVE PLAYER ACCOUNTS':'CREW AVERAGE UNAVAILABLE: NO OTHER PLAYER COMPLETIONS'}
+      {hasCrew&&weeks.some(w=>!Number.isFinite(w.crew))&&<span>GAPS = NO PEER PLAYS</span>}
+    </p>
   </div>;
 }
 // The spotlight and the chapter deadline read the same elapsed MotionValue.
@@ -136,4 +149,3 @@ export default function RewindSagaScene({beat,recap,reduce,playing,time,seek}){
   default:return null;
  }
 }
-
