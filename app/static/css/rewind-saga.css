@@ -205,3 +205,27 @@
 .rc-preview-combine{font-size:10px}
 .saga-staff-preview .rc-frame{padding-top:245px}
 }
+
+/* Championship celebration stays behind the player and follows Motion's clock. */
+.champion-celebration{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;border-radius:30px}
+.champion-halo-position{position:absolute;left:76%;top:44%;width:clamp(250px,36vw,460px);aspect-ratio:1;transform:translate(-50%,-50%)}
+.champion-halo{position:absolute;inset:0;border:1px solid color-mix(in srgb,var(--champion-accent) 48%,transparent);border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--champion-accent) 24%,transparent),transparent 68%);box-shadow:0 0 65px color-mix(in srgb,var(--champion-accent) 12%,transparent)}
+.champion-halo::before,.champion-halo::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.champion-halo::before{inset:11%;border:1px solid color-mix(in srgb,var(--champion-accent) 32%,transparent)}
+.champion-halo::after{inset:-6%;background:repeating-conic-gradient(from 12deg,transparent 0deg 27deg,color-mix(in srgb,var(--champion-accent) 55%,transparent) 28deg 29deg,transparent 30deg);mask:radial-gradient(transparent 57%,#000 58%,#000 66%,transparent 67%)}
+.champion-confetti{position:absolute;bottom:12%;left:4%;width:5px;height:12px;border-radius:1px;background:var(--confetti-color);opacity:0}
+.champion-confetti[data-side="right"]{left:auto;right:4%}
+.champion-confetti:nth-of-type(3n){width:4px;height:19px}
+.champion-confetti:nth-of-type(5n){width:7px;height:7px;border-radius:50%}
+.champion-badge-lift{position:relative;width:100%;aspect-ratio:1;display:grid;place-items:center}
+.champion-badge-polish{position:absolute;inset:5%;overflow:hidden;border-radius:50%;pointer-events:none}
+.champion-badge-shine{position:absolute;top:-20%;bottom:-20%;left:-35%;width:32%;background:linear-gradient(90deg,transparent,rgba(255,247,220,.8),transparent);opacity:0}
+.champion-closeup .champion-halo-position{left:50%;top:42%;width:clamp(240px,36vmin,360px)}
+@media(max-width:650px){
+.champion-winner .champion-halo-position{left:50%;top:clamp(80px,24vw,115px);width:clamp(225px,65vw,290px)}
+.champion-confetti{width:4px;height:10px}
+.champion-confetti:nth-of-type(3n){height:15px}
+}
+@media(prefers-reduced-motion:reduce){
+.champion-confetti,.champion-badge-polish{display:none}
+}
