@@ -90,8 +90,9 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
         query_args,
     ).fetchall()
 
-    all_profiles = db.execute("SELECT id, username FROM profiles").fetchall()
+    all_profiles = db.execute("SELECT id, username, role FROM profiles").fetchall()
     profile_names = {int(p["id"]): p["username"] for p in all_profiles}
+    benchmark_profile_ids = {int(p["id"]) for p in all_profiles if p["role"] == "player"}
     if int(profile_id) not in profile_names:
         return None
 
@@ -190,6 +191,7 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
             season_start=season["start_date"],
             weeks_total=season["weeks_total"], signature=strongest,
             rank=rank, participants=len(totals),
+            benchmark_profile_ids=benchmark_profile_ids,
             points=totals[int(profile_id)]["points"],
         ),
         "analyticsStory": build_rewind_analytics(
@@ -197,6 +199,7 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
             season_start=season["start_date"],
             weeks_total=season["weeks_total"],
             profile_names=profile_names, rank=rank,
+            benchmark_profile_ids=benchmark_profile_ids,
         ),
         "bestWeek": best_week,
         "weeklyScores": [
@@ -221,6 +224,7 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
         names=profile_names,
         official_winners=winners,
         awarded_codes=awarded_codes,
+        benchmark_profile_ids=benchmark_profile_ids,
     )
     result["cinematicStory"] = build_rewind_story(
         result, completions, profile_id=profile_id,

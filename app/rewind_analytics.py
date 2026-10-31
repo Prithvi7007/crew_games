@@ -42,7 +42,7 @@ def _place(totals, games_played, names, user_id):
 
 
 def build_rewind_analytics(mine, completions, *, profile_id, season_start,
-                           weeks_total, profile_names, rank):
+                           weeks_total, profile_names, rank, benchmark_profile_ids=None):
     """Generate substantive, sampled stories; omit claims without enough data.
 
     Peer game comparisons are within the same game type and average *per
@@ -50,6 +50,7 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
     peer. A 'what if' rank is an explicit counterfactual, not historic rank.
     """
     me = int(profile_id)
+    peer_ids = None if benchmark_profile_ids is None else set(benchmark_profile_ids)
     first_monday = get_week_start(season_start)
     half = max(1, (int(weeks_total) + 1) // 2)
     own_by_game = defaultdict(list)
@@ -96,7 +97,7 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
         game = row["game_key"]
         day = str(row["game_date"])
         peers = [score for pid, score in event_players[(game, day)].items()
-                 if pid != me]
+                 if pid != me and (peer_ids is None or pid in peer_ids)]
         if len(peers) < 3:
             continue
         score = int(row["score"])
@@ -119,7 +120,7 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
             f"{peers_count} other players who completed that exact puzzle.",
             f"Your score was {margin:g} points above that puzzle's peer median.",
             "Same game, same puzzle date; compares one score per other player. "
-            "Minimum three other players.",
+            "Minimum three other player accounts; owner/admin accounts excluded.",
         ))
         cards[-1]["comparison"] = {
             "game": GAMES[game], "score": score, "peerMedian": peer_median,
@@ -132,7 +133,8 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
         if len(scores) < 2:
             continue
         peers = [mean(games[game]) for pid, games in by_player_game.items()
-                 if pid != me and games.get(game)]
+                 if pid != me and games.get(game)
+                 and (peer_ids is None or pid in peer_ids)]
         if len(peers) < 3:
             continue
         mine_avg = mean(scores)
@@ -154,7 +156,8 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
             f"players; this was your best relative matchup among "
             f"{len(benchmarks)} comparable game types.",
             "Each competitor contributes one per-game average, regardless "
-            "of number of attempts. No cross-game scoring comparison.",
+            "of number of attempts. Player accounts only; owners/admins excluded. "
+            "No cross-game scoring comparison.",
         ))
         cards[-1]["comparison"] = {
             "game": GAMES[game], "mine": round(mine_avg, 1),
@@ -253,7 +256,8 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
             ))
 
     # 6. Reliability compared with active peers; ties are not 'outpaced'.
-    peer_weeks = [len(weeks) for pid, weeks in player_weeks.items() if pid != me]
+    peer_weeks = [len(weeks) for pid, weeks in player_weeks.items()
+                  if pid != me and (peer_ids is None or pid in peer_ids)]
     if len(peer_weeks) >= 3 and sample["weeksActive"] >= 2:
         beat = sum(sample["weeksActive"] > other for other in peer_weeks)
         if beat > 0:
@@ -267,7 +271,8 @@ def build_rewind_analytics(mine, completions, *, profile_id, season_start,
                 f"The other active players' median was "
                 f"{median(peer_weeks):g} weeks.",
                 "Participation compares distinct scheduled puzzle weeks. "
-                "Tied players are not counted as beaten.",
+                "Tied players are not counted as beaten. Player accounts only; "
+                "owner/admin accounts excluded.",
             ))
 
     return {
