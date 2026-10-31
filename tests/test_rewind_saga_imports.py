@@ -12,18 +12,18 @@ def test_game_comparison_runtime_dependencies_are_imported():
     saga = (ROOT / "frontend/src/player/RewindSagaScene.jsx").read_text(
         encoding="utf-8"
     )
-    assert "import React, {useEffect, useState} from 'react';" in saga
-    assert "import {AnimatePresence, m} from 'motion/react';" in saga
-    assert "function Compare({games, reduce, playing})" in saga
-    assert "const [step,setStep]=useState(0)" in saga
-    assert "useEffect(()=>{" in saga
-    assert '<AnimatePresence mode="wait" initial={false}>' in saga
+    assert "import React, {useRef, useState} from 'react';" in saga
+    assert "import {m, useMotionValueEvent, useTransform} from 'motion/react';" in saga
+    assert "function Compare({games, reduce, playing, time, seek})" in saga
+    assert "const [step,setStep]=useState(()=>comparisonIndex(time.get(),shown.length))" in saga
+    assert "useMotionValueEvent(time," in saga
+    assert "comparisonSeek" in saga
 
 
 def test_comparison_chapter_is_still_wired_in_the_film():
     cinema = (ROOT / "frontend/src/player/RewindPlayerCinema.jsx").read_text(
         encoding="utf-8"
     )
-    assert "game_compare" in cinema
-    assert "3800" in cinema
-    assert "<RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing}/>" in cinema
+    assert "RewindChapter" in cinema
+    assert "time={time} seek={seek}" in cinema
+    assert "<RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing} time={time} seek={seek}/>" in cinema

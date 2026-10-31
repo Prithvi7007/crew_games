@@ -1,4 +1,6 @@
 import React, {useState} from 'react';
+import {m,useTransform} from 'motion/react';
+import {Reveal} from './RewindMotion';
 import {BadgeMedallion, badgeFromAwardCode} from './TrophyRoom';
 
 const COLORS = {
@@ -22,8 +24,9 @@ export function ChampionCover({player}) {
   </div>;
 }
 
-export default function ChampionReveal({beat,recap,reduce,playing}) {
+export default function ChampionReveal({beat,recap,reduce,playing,time}) {
   const [still]=useState(()=>!playing);
+  const overture=useTransform(time,[0,400,1200,1800],[0,1,1,0]);
   const v=beat.visual||{};
   const closeup=beat.kind==='winner_badge';
   const game=v.gameKey||v.badge?.gameKey;
@@ -34,26 +37,26 @@ export default function ChampionReveal({beat,recap,reduce,playing}) {
   return <div className={'champion-stage '+(closeup?'champion-closeup':'champion-winner')+(reduce?' is-reduced':'')+(still?' is-still':'')}
     style={theme} data-game={game||'season'} aria-label={closeup?'Championship badge reveal':'Champion reveal'}>
     {closeup?<>
-      <p className="champion-kicker">{v.demo?'THE BADGE REVEAL':'YOUR CHAMPIONSHIP BADGE'}</p>
-      {badge&&<div className="champion-insignia"><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></div>}
-      <h1 className="champion-badge-name">{badge?.name||beat.headline}</h1>
-      <p className="champion-badge-owner">{recap.username}<span>SEASON 01</span></p>
-      <p className="champion-signoff">{v.demo?'ANIMATION PREVIEW':'EARNED. PRESERVED. YOURS.'}</p>
+      <Reveal as="p" time={time} start={closeup?150:1450} duration={700} className="champion-kicker">{v.demo?'THE BADGE REVEAL':'YOUR CHAMPIONSHIP BADGE'}</Reveal>
+      {badge&&<Reveal as="div" time={time} start={closeup?350:1600} duration={1500} className="champion-insignia"><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></Reveal>}
+      <Reveal as="h1" time={time} start={850} duration={800} className="champion-badge-name">{badge?.name||beat.headline}</Reveal>
+      <Reveal as="p" time={time} start={1200} duration={800} className="champion-badge-owner">{recap.username}<span>SEASON 01</span></Reveal>
+      <Reveal as="p" time={time} start={closeup?1550:3450} duration={700} className="champion-signoff">{v.demo?'ANIMATION PREVIEW':'EARNED. PRESERVED. YOURS.'}</Reveal>
     </>:<>
-      <p className="champion-overture" aria-hidden="true">{game?'YOUR GAME. YOUR MOMENT.':'SIX WEEKS IN THE MAKING.'}</p>
+      <m.p style={{opacity:overture}} className="champion-overture" aria-hidden="true">{game?'YOUR GAME. YOUR MOMENT.':'SIX WEEKS IN THE MAKING.'}</m.p>
       <div className="champion-lockup">
         <div className="champion-copy">
-          <p className="champion-kicker">CREW / SEASON 01</p>
-          <h1 className="champion-name">{recap.username}</h1>
-          <h2 className="champion-title">{beat.headline}</h2>
-          <p className="champion-result">{caption}</p>
+          <Reveal as="p" time={time} start={closeup?150:1450} duration={700} className="champion-kicker">CREW / SEASON 01</Reveal>
+          <Reveal as="h1" time={time} start={1900} duration={1050} className="champion-name">{recap.username}</Reveal>
+          <Reveal as="h2" time={time} start={2400} duration={850} className="champion-title">{beat.headline}</Reveal>
+          <Reveal as="p" time={time} start={2900} duration={700} className="champion-result">{caption}</Reveal>
         </div>
-        {badge&&<div className="champion-insignia" aria-label={badge.name+' badge'}>
+        {badge&&<Reveal as="div" time={time} start={closeup?350:1600} duration={1500} className="champion-insignia" aria-label={badge.name+' badge'}>
           <BadgeMedallion badge={badge} size="normal" seasonNumber={1}/>
           <span className="champion-badge-season">SEASON 01</span>
-        </div>}
+        </Reveal>}
       </div>
-      <p className="champion-signoff">{v.demo?'CHAMPIONSHIP ANIMATION PREVIEW':'A TITLE EARNED. A MOMENT TO KEEP.'}</p>
+      <Reveal as="p" time={time} start={closeup?1550:3450} duration={700} className="champion-signoff">{v.demo?'CHAMPIONSHIP ANIMATION PREVIEW':'A TITLE EARNED. A MOMENT TO KEEP.'}</Reveal>
     </>}
   </div>;
 }

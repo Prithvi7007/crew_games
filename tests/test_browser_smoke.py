@@ -439,9 +439,9 @@ def test_champion_animation_previews_use_real_titles_and_badges(ui, monkeypatch,
         page.get_by_role("button", name="PAUSE", exact=False).click()
         assert page.locator(".champion-cover").count() == 0
         assert page.locator(".rc-start-wrap").count() == 0
-        assert page.locator(".champion-name").evaluate(
-            "el => getComputedStyle(el).animationPlayState"
-        ) == "paused"
+        paused = page.locator(".champion-name").evaluate("el => [getComputedStyle(el).opacity, getComputedStyle(el).transform]")
+        page.wait_for_timeout(300)
+        assert page.locator(".champion-name").evaluate("el => [getComputedStyle(el).opacity, getComputedStyle(el).transform]") == paused
         page.get_by_role("button", name="PLAY", exact=False).click()
         heading.click()
         page.keyboard.press("ArrowRight")
@@ -449,9 +449,9 @@ def test_champion_animation_previews_use_real_titles_and_badges(ui, monkeypatch,
         assert page.locator(".champion-closeup .champion-insignia svg").is_visible()
         page.locator(".rc-frame").hover()
         page.get_by_role("button", name="PAUSE", exact=False).click()
-        assert page.locator(".champion-closeup .champion-insignia").evaluate(
-            "el => getComputedStyle(el).animationPlayState"
-        ) == "paused"
+        paused = page.locator(".champion-closeup .champion-insignia").evaluate("el => [getComputedStyle(el).opacity, getComputedStyle(el).transform]")
+        page.wait_for_timeout(300)
+        assert page.locator(".champion-closeup .champion-insignia").evaluate("el => [getComputedStyle(el).opacity, getComputedStyle(el).transform]") == paused
         assert page.locator(".rc-finale-actions").count() == 0
         page.get_by_role("button", name="PLAY", exact=False).click()
         assert page.get_by_text("ANIMATION DEMO · NO AWARD GRANTED", exact=True).is_visible()
@@ -482,3 +482,26 @@ def test_champion_reduced_motion_does_not_skip_the_first_reveal(ui, monkeypatch)
     page.get_by_role("heading", name="Season Champion", exact=True).wait_for(timeout=12000)
     page.get_by_role("button", name="WATCH AGAIN").click()
     page.locator(".champion-cover").wait_for(timeout=12000)
+
+
+def test_champion_paused_visit_can_replay_and_early_finish_holds_complete_badge(ui, monkeypatch):
+    from datetime import date
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 10, 30))
+    page, base_url = ui
+    page.goto(base_url + "/rewind?preview=1&prototype=1&story=5&champion=all")
+    page.get_by_role("button", name="BEGIN YOUR REWIND").click()
+    page.locator(".champion-winner").wait_for()
+    page.keyboard.press("Space")
+    page.keyboard.press("ArrowRight")
+    page.locator(".champion-closeup").wait_for()
+    page.keyboard.press("Space")
+    page.wait_for_timeout(400)
+    assert page.locator(".rc-part").inner_text() == "02 / 10"
+    page.get_by_role("combobox", name="Champion animation preview").select_option("season")
+    page.get_by_role("button", name="BEGIN YOUR REWIND").click()
+    page.locator(".champion-winner").wait_for()
+    page.keyboard.press("ArrowRight")
+    page.locator(".champion-closeup").wait_for()
+    page.keyboard.press("ArrowRight")
+    page.get_by_role("button", name="WATCH AGAIN").wait_for()
+    page.wait_for_function("() => [...document.querySelectorAll('.champion-closeup .champion-insignia, .champion-badge-name')].every(el => getComputedStyle(el).opacity === '1')")

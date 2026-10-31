@@ -3,8 +3,8 @@ export function initialPlayback() {
   return {index:0, started:false, playing:false, finished:false};
 }
 
-export function remainingChapterTime(kind, duration, elapsed) {
-  return kind==='winner'||kind==='winner_badge' ? Math.max(0,duration-elapsed) : duration;
+export function remainingChapterTime(duration, elapsed) {
+  return Math.max(0,duration-elapsed);
 }
 
 export function playbackReducer(state, action) {

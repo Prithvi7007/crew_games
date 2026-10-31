@@ -2,8 +2,9 @@ import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react
 import {AnimatePresence, LazyMotion, MotionConfig, domAnimation, m, useReducedMotion} from 'motion/react';
 import RewindDirectorScenes from './RewindDirectorScenes';
 import RewindSagaScene from './RewindSagaScene';
+import RewindChapter from './RewindMotion';
 import {ChampionCover, championAccent} from './ChampionReveal';
-import {initialPlayback, playbackReducer, remainingChapterTime} from './rewindPlayback';
+import {initialPlayback, playbackReducer} from './rewindPlayback';
 
 const TONES={
   opening:['#a5dfff','#536dce'], rivalry:['#93f2e0','#b48aee'],
@@ -15,16 +16,7 @@ const TONES={
 const motionIn={opacity:0,y:22,filter:'blur(9px)'};
 const motionOut={opacity:0,y:-18,filter:'blur(8px)'};
 const smooth={duration:.85,ease:[.22,1,.36,1]};
-const chapterVariants={
-  enter:direction=>({opacity:0,x:direction*32,scale:.985}),
-  center:{opacity:1,x:0,scale:1},
-  exit:direction=>({opacity:0,x:-direction*24,scale:1.012}),
-};
-const chapterTransition={duration:.58,ease:[.22,1,.36,1]};
 const fmt=v=>String(v??'').replace(/\s+pts?$/i,'');
-const secFor=beat=>beat?.kind==='winner'?9800:beat?.kind==='winner_badge'?8200:beat?.kind==='game_compare'
-  ? 1800+Math.max(1,(beat.visual?.games||[]).filter(g=>g.mine!==null).length)*3800
-  :Math.min(11000,Math.max(7200,6800+(beat?.headline?.length||0)*30));
 const noRepeat=(beat)=>{
   const v=beat.visual||{};
   switch(beat.kind){
@@ -95,7 +87,6 @@ export default function RewindPlayerCinema({data}){
   const story=(saga?recap.seasonSaga:recap.cinematicStory)||{beats:[],player:recap.username};
   const beats=story.beats||[];
   const [{index,started,playing,finished},dispatch]=useReducer(playbackReducer,undefined,initialPlayback);
-  const sceneClock=useRef({index:0,elapsed:0});
   const previousIndex=useRef(0);
   const direction=index>=previousIndex.current?1:-1;
   const [chrome,setChrome]=useState(false);
@@ -131,22 +122,9 @@ export default function RewindPlayerCinema({data}){
   const backward=useCallback(()=>go(index-1),[go,index]);
   const begin=useCallback(()=>{dispatch({type:'begin',reduced:reduce});setChrome(Boolean(reduce));},[reduce]);
   const pause=useCallback(()=>{dispatch({type:'toggle'});setChrome(true);},[]);
-  const restart=useCallback(()=>{previousIndex.current=index;sceneClock.current={index:0,elapsed:0};dispatch({type:'restart'});setEvidence(false);setChrome(false);},[index]);
+  const restart=useCallback(()=>{dispatch({type:'restart'});setEvidence(false);setChrome(false);},[]);
   const reveal=useCallback(()=>{setChrome(true);},[]);
 
-  // Motion timers are tied to the active chapter and are cancelled on every
-  // transition, unmount, manual pause and evidence disclosure.
-  useEffect(()=>{
-    if(sceneClock.current.index!==index)sceneClock.current={index,elapsed:0};
-    if(!playing||reduce||(last&&!finalBadge)||evidence||!scene)return undefined;
-    const began=window.performance.now();
-    const remaining=remainingChapterTime(scene.kind,secFor(scene),sceneClock.current.elapsed);
-    const t=window.setTimeout(()=>{previousIndex.current=index;dispatch(last?{type:'finish'}:{type:'go',index:index+1,count:beats.length});},remaining);
-    return ()=>{
-      window.clearTimeout(t);
-      if(sceneClock.current.index===index)sceneClock.current.elapsed+=window.performance.now()-began;
-    };
-  },[playing,reduce,index,last,finalBadge,evidence,scene,beats.length]);
   useEffect(()=>{if(last&&(!finalBadge||reduce))dispatch({type:'finish'});},[last,finalBadge,reduce]);
   useEffect(()=>{
     if(!chrome||!playing||evidence)return undefined;
@@ -156,6 +134,7 @@ export default function RewindPlayerCinema({data}){
   useEffect(()=>{
     const handler=e=>{
       if(e.key==='Escape'){setEvidence(false);setChrome(false);return;}
+      if(evidence)return;
       if(e.target?.closest?.('button,a,input,textarea,select,[contenteditable=true]'))return;
       if(e.key==='ArrowRight'){e.preventDefault();forward();}
       else if(e.key==='ArrowLeft'){e.preventDefault();backward();}
@@ -163,7 +142,7 @@ export default function RewindPlayerCinema({data}){
     };
     window.addEventListener('keydown',handler);
     return ()=>window.removeEventListener('keydown',handler);
-  },[forward,backward,begin,pause,started]);
+  },[forward,backward,begin,pause,started,evidence]);
   if(!scene)return <main className="rc-empty"><h1>No season story yet.</h1><a href={back}>Back to Rewind</a></main>;
   const controls=chrome||!playing;
   return <LazyMotion features={domAnimation} strict><MotionConfig reducedMotion="user">
@@ -181,15 +160,12 @@ export default function RewindPlayerCinema({data}){
       {/* Saga CSS is loaded in the document head with a content fingerprint. */}
       <div className="rc-backdrop" aria-hidden="true"><div className="rc-vignette"/><div className="rc-grain"/></div>
       <AnimatePresence mode="sync" initial={false} custom={direction}>
-        <m.section key={showCover?'cover':index} className="rc-frame" aria-live="polite"
-          custom={direction}
-          variants={chapterVariants}
-          initial={reduce?false:'enter'}
-          animate="center"
-          exit={reduce?{opacity:0}:'exit'}
-          transition={reduce?{duration:0}:chapterTransition}>
-          {showCover?<ChampionCover player={recap.username}/>:saga?<RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing}/>:<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>}
-        </m.section>
+        <RewindChapter key={started?'chapter-'+index:'cover'} beat={scene} direction={direction}
+          playing={started&&playing&&(!last||finalBadge)&&!evidence} reduce={reduce} finished={finished} onFinish={forward}>
+          {({time,seek})=>showCover?<ChampionCover player={recap.username}/>:saga?
+            <RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing} time={time} seek={seek}/>
+            :<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>}
+        </RewindChapter>
       </AnimatePresence>
 
       {!started&&index===0&&<div className="rc-start-wrap">
