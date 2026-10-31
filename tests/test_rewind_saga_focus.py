@@ -12,15 +12,15 @@ def test_score_comparison_reveals_one_game_at_a_time_and_waits_for_all_four():
     scene=source("frontend/src/player/RewindSagaScene.jsx")
     film=source("frontend/src/player/RewindPlayerCinema.jsx")
     css=source("app/static/css/rewind-saga.css")
-    assert "function Compare({games, reduce, playing})" in scene
+    assert "function Compare({games, reduce, playing, time, seek})" in scene
     assert "saga-spotlight-stage" in scene
-    assert "AnimatePresence mode=\"wait\" initial={false}" in scene
-    assert "setStep(current=>Math.min(current+1,shown.length-1))" in scene
-    assert "window.clearInterval(timer)" in scene
+    assert "comparisonIndex(value,shown.length)" in scene
+    assert "seek(comparisonSeek(i,reduce||!playing))" in scene
     assert "aria-pressed={step===i}" in scene
     assert "role=\"group\" aria-label=\"Choose game comparison\"" in scene
     assert "playing={playing}" in film
-    assert "game_compare" in film and "3800" in film
+    assert "RewindChapter" in film
+    assert "COMPARE_STEP_MS=3800" in source("frontend/src/player/rewindTimeline.js")
     assert ".saga-spotlight-pick:focus-visible" in css
     assert ".saga-spotlight-stage" in css
     assert ".saga-comparisons{" not in css

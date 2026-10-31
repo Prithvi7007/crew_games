@@ -58,11 +58,9 @@ test('replay restores the neutral cover', () => {
   assert.deepEqual(playbackReducer(replayed,{type:'begin',reduced:false}),state());
 });
 
-test('only championship scenes retain elapsed chapter time on resume', () => {
-  assert.equal(playback.remainingChapterTime('winner',9800,2300),7500);
-  assert.equal(playback.remainingChapterTime('winner_badge',8200,9000),0);
-  // Compare owns a 3800ms interval that restarts on resume. Keep its original
-  // full outer timeout, so frequent pauses cannot skip the later games.
-  assert.equal(playback.remainingChapterTime('game_compare',17000,15000),17000);
-  assert.equal(playback.remainingChapterTime('weekly_trend',7600,6000),7600);
+test('every chapter resumes from its remaining time rather than starting over', () => {
+  assert.equal(playback.remainingChapterTime(9800,2300),7500);
+  assert.equal(playback.remainingChapterTime(8200,9000),0);
+  assert.equal(playback.remainingChapterTime(17000,15000),2000);
+  assert.equal(playback.remainingChapterTime(7600,6000),1600);
 });
