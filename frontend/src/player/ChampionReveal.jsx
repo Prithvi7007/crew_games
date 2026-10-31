@@ -33,7 +33,7 @@ export default function ChampionReveal({beat,recap,reduce,playing,time}) {
   const source=v.badge||badgeFromAwardCode(v.badgeCode);
   const badge=source?{...source,gameKey:game,vertical:'leaderboard'}:null;
   const theme={'--champion-accent':championAccent(beat),'--champion-play':playing?'running':'paused'};
-  const caption=v.shared?'A SHARED FIRST PLACE':game?'YOU LED '+NAMES[game]:'YOU LED THE CREW';
+  const caption=v.provisional?(v.shared?'CURRENTLY SHARING THE LEAD':game?'CURRENTLY LEADING '+NAMES[game]:'CURRENTLY LEADING THE CREW'):v.shared?'A SHARED FIRST PLACE':game?'YOU LED '+NAMES[game]:'YOU LED THE CREW';
   return <div className={'champion-stage '+(closeup?'champion-closeup':'champion-winner')+(reduce?' is-reduced':'')+(still?' is-still':'')}
     style={theme} data-game={game||'season'} aria-label={closeup?'Championship badge reveal':'Champion reveal'}>
     {closeup?<>
@@ -41,7 +41,7 @@ export default function ChampionReveal({beat,recap,reduce,playing,time}) {
       {badge&&<Reveal as="div" time={time} start={closeup?350:1600} duration={1500} className="champion-insignia"><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></Reveal>}
       <Reveal as="h1" time={time} start={850} duration={800} className="champion-badge-name">{badge?.name||beat.headline}</Reveal>
       <Reveal as="p" time={time} start={1200} duration={800} className="champion-badge-owner">{recap.username}<span>SEASON 01</span></Reveal>
-      <Reveal as="p" time={time} start={closeup?1550:3450} duration={700} className="champion-signoff">{v.demo?'ANIMATION PREVIEW':'EARNED. PRESERVED. YOURS.'}</Reveal>
+      <Reveal as="p" time={time} start={closeup?1550:3450} duration={700} className="champion-signoff">{v.provisional?'PROVISIONAL · NO AWARD GRANTED':v.demo?'ANIMATION PREVIEW':'EARNED. PRESERVED. YOURS.'}</Reveal>
     </>:<>
       <m.p style={{opacity:overture}} className="champion-overture" aria-hidden="true">{game?'YOUR GAME. YOUR MOMENT.':'SIX WEEKS IN THE MAKING.'}</m.p>
       <div className="champion-lockup">
@@ -56,7 +56,7 @@ export default function ChampionReveal({beat,recap,reduce,playing,time}) {
           <span className="champion-badge-season">SEASON 01</span>
         </Reveal>}
       </div>
-      <Reveal as="p" time={time} start={closeup?1550:3450} duration={700} className="champion-signoff">{v.demo?'CHAMPIONSHIP ANIMATION PREVIEW':'A TITLE EARNED. A MOMENT TO KEEP.'}</Reveal>
+      <Reveal as="p" time={time} start={closeup?1550:3450} duration={700} className="champion-signoff">{v.provisional?'CURRENT LEADER · RESULTS NOT FINAL':v.demo?'CHAMPIONSHIP ANIMATION PREVIEW':'A TITLE EARNED. A MOMENT TO KEEP.'}</Reveal>
     </>}
   </div>;
 }

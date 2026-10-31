@@ -187,3 +187,21 @@
 
 
 .champion-stage.is-reduced .champion-overture{display:none}
+
+/* Staff controls stay outside the chapter lifecycle and reserve stage space. */
+.rc-preview-controls{width:min(650px,calc(100% - 128px));gap:9px}
+.rc-preview-selects{display:flex;gap:12px;width:100%;text-align:left}
+.rc-preview-selects>label{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0;font:700 10px/1.3 var(--crew-font-body,Inter,sans-serif);color:var(--saga-muted)}
+.rc-preview-controls select{width:100%;min-height:40px}
+.rc-preview-combine{display:flex;align-items:center;gap:8px;min-height:30px;font:700 11px/1.4 var(--crew-font-body,Inter,sans-serif);color:var(--saga-text);cursor:pointer;text-align:left}
+.rc-preview-combine input{width:17px;height:17px;flex-shrink:0;accent-color:var(--crew-game-word,#55b9ff)}
+.rc-preview-combine input:focus-visible{outline:2px solid var(--crew-game-word,#55b9ff);outline-offset:3px}
+.saga-staff-preview .rc-frame{padding-top:max(172px,19vh)}
+@media(max-width:650px){
+.rc-preview-controls{width:calc(100% - 100px);padding:9px 10px}
+.rc-preview-selects{gap:7px;flex-wrap:wrap}
+.rc-preview-selects>label{flex-basis:100%}
+.rc-preview-controls>strong{font-size:8px}
+.rc-preview-combine{font-size:10px}
+.saga-staff-preview .rc-frame{padding-top:245px}
+}

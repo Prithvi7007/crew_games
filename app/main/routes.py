@@ -6,6 +6,7 @@ from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
 from app.season_rewind import build_season_rewind, rewind_url
 from app.rewind_champion_preview import CHAMPION_PREVIEW_SELECTIONS, build_champion_preview
+from app.rewind_combined_preview import build_combined_preview, rewind_preview_players
 from app.badge_display import with_public_equipped_badges
 from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.trophy_tour import complete_tour, earned_tour_payload
@@ -71,6 +72,13 @@ def season_one_rewind():
         not film_preview or not preview or analysis_preview
     ):
         abort(404)
+    combined_preview = request.args.get("combined") == "1"
+    if "combined" in request.args and (
+        not (saga_preview and film_preview and preview)
+        or len(request.args.getlist("combined")) != 1
+        or not combined_preview
+    ):
+        abort(404)
     # Demo scenes are available only in the explicit staff Saga preview.
     # Reject the parameter everywhere else, even on finalized public Rewinds.
     champion_preview = request.args.get("champion")
@@ -87,6 +95,7 @@ def season_one_rewind():
     if cross_player_preview and (
         not film_preview or not preview
         or not requested_player or len(requested_player) > 80
+        or len(request.args.getlist("player")) != 1
     ):
         abort(404)
     profile_id = user["profile_id"]
@@ -99,7 +108,13 @@ def season_one_rewind():
     story = build_season_rewind(profile_id, season, admin_preview=preview)
     if not story:
         abort(404)
-    if champion_preview:
+    combined_controls = None
+    if combined_preview:
+        combined_saga, combined_controls = build_combined_preview(
+            story, profile_id=profile_id, season=season, selection=champion_preview,
+        )
+        story = {**story, "seasonSaga": combined_saga}
+    elif champion_preview:
         # Replace only this response's scenes; real results and awards stay intact.
         story = {**story, "seasonSaga": build_champion_preview(
             champion_preview, story["username"],
@@ -119,7 +134,11 @@ def season_one_rewind():
             "rewindPlayerCinemaPreview": cinema_preview,
             "rewindSeasonSagaPreview": saga_preview or public_saga,
             "rewindChampionPreview": (
-                story["seasonSaga"]["championPreview"] if champion_preview else None
+                story["seasonSaga"].get("championPreview") if champion_preview else None
+            ),
+            "rewindCombinedPreview": combined_controls,
+            "rewindPreviewPlayers": (
+                rewind_preview_players() if saga_preview and film_preview and preview else None
             ),
             "rewindPreviewPlayer": story["username"] if cross_player_preview else None,
         }, user,
