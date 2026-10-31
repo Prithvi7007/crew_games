@@ -393,7 +393,7 @@ def test_champion_animation_previews_use_real_titles_and_badges(ui, monkeypatch,
     )
     selector = page.get_by_role("combobox", name="Champion animation preview")
     selector.wait_for(timeout=12000)
-    assert selector.locator("option").count() == 6
+    assert selector.locator("option").count() == 7
     assert page.locator(".rc-part").inner_text() == "01 / 10"
     assert page.get_by_text("ANIMATION DEMO · NO AWARD GRANTED", exact=True).is_visible()
     assert page.get_by_role("heading", name="SEASON 01 CHAMPION", exact=True).count() == 0
@@ -505,3 +505,50 @@ def test_champion_paused_visit_can_replay_and_early_finish_holds_complete_badge(
     page.keyboard.press("ArrowRight")
     page.get_by_role("button", name="WATCH AGAIN").wait_for()
     page.wait_for_function("() => [...document.querySelectorAll('.champion-closeup .champion-insignia, .champion-badge-name')].every(el => getComputedStyle(el).opacity === '1')")
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900}, {"width": 390, "height": 844},
+])
+def test_combined_rewind_switches_players_and_preserves_full_story(ui, app, viewport):
+    from app.db import finalize_game_stats, profile_user_key
+    from unittest.mock import patch
+    from datetime import date
+
+    with app.app_context():
+        other = create_profile(
+            "CombinedBrowserPlayer", generate_password_hash("browser-test-passphrase"),
+            "⭐", generate_password_hash("browser-test-recovery"),
+        )
+        finalize_game_stats(profile_user_key(other["id"]), "word", "2026-10-21", 80, True)
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="reduce")
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    with patch("app.main.routes.crew_today", return_value=date(2026, 10, 30)):
+        page.goto(base_url + "/rewind?preview=1&prototype=1&story=5&combined=1")
+        player_select = page.get_by_role("combobox", name="Preview player", exact=True)
+        player_select.select_option("CombinedBrowserPlayer")
+        page.wait_for_url("**/*player=CombinedBrowserPlayer")
+        page.get_by_role("checkbox", name="Combine championship preview with Rewind").check()
+        assert page.get_by_role("combobox", name="Preview player", exact=True).input_value() == "CombinedBrowserPlayer"
+        page.get_by_role("button", name="EXPLORE YOUR STORY").click()
+        assert page.locator(".champion-name").inner_text() == "CombinedBrowserPlayer"
+        # Results preview has two earned-in-preview leader openings (four scenes).
+        for _ in range(4):
+            page.get_by_role("button", name="Next chapter", exact=True).click()
+        page.locator("main.rc-podium .saga-podium-weeks").wait_for(state="visible")
+        assert page.get_by_role("combobox", name="Preview player", exact=True).is_visible()
+        page.get_by_role("combobox", name="Champion animation preview", exact=True).select_option("all")
+        page.wait_for_url("**/*champion=all")
+        assert page.get_by_role("checkbox", name="Combine championship preview with Rewind").is_checked()
+        assert page.get_by_role("button", name="EXPLORE YOUR STORY").is_visible()
+        page.get_by_role("combobox", name="Preview player", exact=True).select_option("BrowserTester")
+        page.wait_for_url("**/*player=BrowserTester*")
+        assert page.get_by_role("combobox", name="Champion animation preview", exact=True).input_value() == "all"
+        assert page.get_by_role("button", name="EXPLORE YOUR STORY").is_visible()
+        controls = page.locator(".rc-preview-controls").bounding_box()
+        assert controls["x"] >= 0
+        assert controls["x"] + controls["width"] <= viewport["width"]
+        assert not errors

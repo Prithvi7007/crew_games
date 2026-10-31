@@ -100,6 +100,9 @@ export default function RewindPlayerCinema({data}){
   const championScene=saga&&['winner','winner_badge'].includes(scene?.kind);
   const previewPlayer=data.rewindPreviewPlayer;
   const championPreview=data.rewindChampionPreview;
+  const combinedPreview=data.rewindCombinedPreview;
+  const previewPlayers=data.rewindPreviewPlayers;
+  const previewMode=combinedPreview||championPreview;
   // A public player must never exit into the staff-only Film Lab.
   const back=championPreview
     ? '/rewind?preview=1&prototype=1&story=5'+(previewPlayer?'&player='+encodeURIComponent(previewPlayer):'')
@@ -107,9 +110,11 @@ export default function RewindPlayerCinema({data}){
     ? '/rewind?preview=1&prototype=1&story='+(saga?'4':'3')+(previewPlayer?'&player='+encodeURIComponent(previewPlayer):'')
     : '/home';
   const tone=TONES[scene?.kind]||TONES.opening;
-  const chooseChampion=event=>{
+  // A fresh document resets the chapter clock, controls and pending animations.
+  const changePreview=(key,value)=>{
     const url=new URL(window.location.href);
-    url.searchParams.set('champion',event.target.value);
+    if(value===null)url.searchParams.delete(key);
+    else url.searchParams.set(key,value);
     window.location.assign(url.pathname+url.search);
   };
   const go=useCallback(target=>{
@@ -146,16 +151,32 @@ export default function RewindPlayerCinema({data}){
   if(!scene)return <main className="rc-empty"><h1>No season story yet.</h1><a href={back}>Back to Rewind</a></main>;
   const controls=chrome||!playing;
   return <LazyMotion features={domAnimation} strict><MotionConfig reducedMotion="user">
-    <main className={'rc-film rc-'+scene.kind+(playing?' rc-is-playing':'')+(saga?' saga-film':'')+(championPreview?' saga-champion-demo':'')+(showCover?' rc-showing-cover':'')+(finished?' rc-is-finished':'')} style={{'--rc-light':tone[0],'--rc-glow':tone[1],...(championScene?{'--champion-accent':championAccent(scene)}:{})}}
+    <main className={'rc-film rc-'+scene.kind+(playing?' rc-is-playing':'')+(saga?' saga-film':'')+(previewPlayers?' saga-staff-preview':'')+(championPreview?' saga-champion-demo':'')+(showCover?' rc-showing-cover':'')+(finished?' rc-is-finished':'')} style={{'--rc-light':tone[0],'--rc-glow':tone[1],...(championScene?{'--champion-accent':championAccent(scene)}:{})}}
       aria-label={(championPreview?'Champion animation preview for ':'Season 01 cinematic Rewind for ')+story.player}
       onPointerMove={e=>{if(e.pointerType==='mouse')reveal();}}
       onPointerDown={e=>{if(e.pointerType==='touch'&&!e.target.closest('button,a,select'))setChrome(v=>!v);}}
       onFocusCapture={reveal}>
-      {championPreview&&<aside className="rc-champion-preview" aria-label="Animation demo controls">
-        <strong>ANIMATION DEMO · NO AWARD GRANTED</strong>
-        <select aria-label="Champion animation preview" value={championPreview.selection} onChange={chooseChampion}>
-          {championPreview.options.map(option=><option key={option.key} value={option.key}>{option.label}</option>)}
-        </select>
+      {previewPlayers&&<aside className="rc-champion-preview rc-preview-controls" aria-label="Rewind preview controls">
+        <strong>{combinedPreview?.status|| (championPreview?'ANIMATION DEMO · NO AWARD GRANTED':'SEASON REWIND · STAFF PREVIEW')}</strong>
+        <div className="rc-preview-selects">
+          <label>Player
+            <select aria-label="Preview player" value={recap.username} onChange={event=>changePreview('player',event.target.value)}>
+              {previewPlayers.map(name=><option key={name} value={name}>{name}</option>)}
+            </select>
+          </label>
+          {previewMode&&<label>Championship opening
+            <select aria-label="Champion animation preview" value={previewMode.selection}
+              onChange={event=>changePreview('champion',event.target.value==='results'?null:event.target.value)}>
+              {!combinedPreview&&<option value="results">Player's championships</option>}
+              {previewMode.options.map(option=><option key={option.key} value={option.key}>{option.label}</option>)}
+            </select>
+          </label>}
+        </div>
+        <label className="rc-preview-combine">
+          <input type="checkbox" checked={Boolean(combinedPreview)}
+            onChange={event=>changePreview('combined',event.target.checked?'1':null)}/>
+          Combine championship preview with Rewind
+        </label>
       </aside>}
       {/* Saga CSS is loaded in the document head with a content fingerprint. */}
       <div className="rc-backdrop" aria-hidden="true"><div className="rc-vignette"/><div className="rc-grain"/></div>
@@ -214,7 +235,9 @@ export default function RewindPlayerCinema({data}){
             <h2>{scene.headline}</h2>
             <p>{scene.description}</p>
             <p className="rc-sheet-source">{scene.evidence}</p>
-            <small>{championPreview
+            <small>{combinedPreview
+              ? combinedPreview.status+'. Scores, rankings and earned awards are unchanged.'
+              : championPreview
               ? 'Animation preview only. Real scores, rankings, and badge awards are unchanged.'
               : 'Based only on cutoff-eligible completed Season 01 games. Hypothetical rankings are not historical standings.'}</small>
           </m.section>
