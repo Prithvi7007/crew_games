@@ -478,6 +478,8 @@ def test_champion_reduced_motion_does_not_skip_the_first_reveal(ui, monkeypatch)
     assert page.locator(".champion-winner.is-reduced").count() == 1
     assert page.locator(".champion-name").inner_text() == "BrowserTester"
     assert not page.locator(".champion-overture").is_visible()
+    assert page.locator(".champion-confetti, .champion-badge-shine").count() == 0
+    assert page.locator(".champion-badge-lift").evaluate("el => getComputedStyle(el).transform") == "none"
     page.get_by_role("button", name="NEXT", exact=False).click()
     page.get_by_role("heading", name="Season Champion", exact=True).wait_for(timeout=12000)
     page.get_by_role("button", name="WATCH AGAIN").click()
@@ -552,3 +554,55 @@ def test_combined_rewind_switches_players_and_preserves_full_story(ui, app, view
         assert controls["x"] >= 0
         assert controls["x"] + controls["width"] <= viewport["width"]
         assert not errors
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900},
+    {"width": 390, "height": 844},
+])
+def test_champion_celebration_follows_playback_clock(ui, monkeypatch, viewport):
+    from datetime import date
+
+    page, base_url = ui
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 10, 30))
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="no-preference")
+    page.goto(base_url + "/rewind?preview=1&prototype=1&story=5&champion=season")
+    page.locator(".champion-cover").wait_for()
+    assert page.locator(".champion-celebration").count() == 0
+    page.get_by_role("button", name="BEGIN YOUR REWIND").click()
+    page.wait_for_function(
+        "() => [...document.querySelectorAll('.champion-confetti')]"
+        ".some(el => Number(getComputedStyle(el).opacity) > .2)"
+    )
+    assert page.locator(".champion-confetti").count() == 36
+    assert page.locator(".champion-celebration").get_attribute("aria-hidden") == "true"
+    assert page.locator(".champion-celebration").evaluate(
+        "el => getComputedStyle(el).pointerEvents"
+    ) == "none"
+
+    page.keyboard.press("Space")
+    page.wait_for_timeout(80)
+    effects = page.locator(
+        ".champion-winner .champion-confetti, .champion-winner .champion-halo, "
+        ".champion-winner .champion-badge-lift, .champion-winner .champion-badge-shine"
+    )
+    snapshot = "els => els.map(el => [getComputedStyle(el).transform, getComputedStyle(el).opacity])"
+    paused = effects.evaluate_all(snapshot)
+    page.wait_for_timeout(350)
+    assert effects.evaluate_all(snapshot) == paused
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+
+    page.keyboard.press("Space")
+    page.wait_for_timeout(200)
+    assert effects.evaluate_all(snapshot) != paused
+    page.keyboard.press("ArrowRight")
+    page.locator(".champion-closeup").wait_for()
+    page.keyboard.press("ArrowRight")
+    page.get_by_role("button", name="WATCH AGAIN").click()
+    page.locator(".champion-cover").wait_for()
+    page.wait_for_function("() => document.querySelectorAll(\'.champion-celebration\').length === 0")
+    page.get_by_role("button", name="BEGIN YOUR REWIND").click()
+    page.locator(".champion-winner").wait_for()
+    assert page.locator(".champion-confetti").evaluate_all(
+        "els => els.every(el => Number(getComputedStyle(el).opacity) === 0)"
+    )

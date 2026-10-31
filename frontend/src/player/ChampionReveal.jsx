@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {m,useTransform} from 'motion/react';
 import {Reveal} from './RewindMotion';
+import ChampionCelebration, {ChampionBadgeMotion} from './ChampionCelebration';
 import {BadgeMedallion, badgeFromAwardCode} from './TrophyRoom';
 
 const COLORS = {
@@ -36,9 +37,10 @@ export default function ChampionReveal({beat,recap,reduce,playing,time}) {
   const caption=v.provisional?(v.shared?'CURRENTLY SHARING THE LEAD':game?'CURRENTLY LEADING '+NAMES[game]:'CURRENTLY LEADING THE CREW'):v.shared?'A SHARED FIRST PLACE':game?'YOU LED '+NAMES[game]:'YOU LED THE CREW';
   return <div className={'champion-stage '+(closeup?'champion-closeup':'champion-winner')+(reduce?' is-reduced':'')+(still?' is-still':'')}
     style={theme} data-game={game||'season'} aria-label={closeup?'Championship badge reveal':'Champion reveal'}>
+    <ChampionCelebration time={time} closeup={closeup} reduce={reduce}/>
     {closeup?<>
       <Reveal as="p" time={time} start={closeup?150:1450} duration={700} className="champion-kicker">{v.demo?'THE BADGE REVEAL':'YOUR CHAMPIONSHIP BADGE'}</Reveal>
-      {badge&&<Reveal as="div" time={time} start={closeup?350:1600} duration={1500} className="champion-insignia"><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></Reveal>}
+      {badge&&<Reveal as="div" time={time} start={closeup?350:1600} duration={1500} className="champion-insignia"><ChampionBadgeMotion time={time} closeup={closeup} reduce={reduce}><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></ChampionBadgeMotion></Reveal>}
       <Reveal as="h1" time={time} start={850} duration={800} className="champion-badge-name">{badge?.name||beat.headline}</Reveal>
       <Reveal as="p" time={time} start={1200} duration={800} className="champion-badge-owner">{recap.username}<span>SEASON 01</span></Reveal>
       <Reveal as="p" time={time} start={closeup?1550:3450} duration={700} className="champion-signoff">{v.provisional?'PROVISIONAL · NO AWARD GRANTED':v.demo?'ANIMATION PREVIEW':'EARNED. PRESERVED. YOURS.'}</Reveal>
@@ -52,7 +54,7 @@ export default function ChampionReveal({beat,recap,reduce,playing,time}) {
           <Reveal as="p" time={time} start={2900} duration={700} className="champion-result">{caption}</Reveal>
         </div>
         {badge&&<Reveal as="div" time={time} start={closeup?350:1600} duration={1500} className="champion-insignia" aria-label={badge.name+' badge'}>
-          <BadgeMedallion badge={badge} size="normal" seasonNumber={1}/>
+          <ChampionBadgeMotion time={time} closeup={closeup} reduce={reduce}><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></ChampionBadgeMotion>
           <span className="champion-badge-season">SEASON 01</span>
         </Reveal>}
       </div>
