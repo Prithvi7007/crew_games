@@ -14,7 +14,13 @@
 {% endif %}
 {% endblock %}
 {% block body %}
-<div id="crew-player-root" data-page="{{ react_page }}"></div>
+<div id="crew-player-root" data-page="{{ react_page }}">
+{% if react_payload.rewindLoginLaunch %}
+  <p class="rewind-loading-return">Your Season 1 Rewind is loading.
+    <a href="{{ react_payload.rewindLoginLaunch.returnUrl }}">Continue to CREW</a>
+  </p>
+{% endif %}
+</div>
 <script nonce="{{ csp_nonce }}" id="player-state" type="application/json">{{ react_payload|tojson }}</script>
 {% endblock %}
 {% block scripts %}

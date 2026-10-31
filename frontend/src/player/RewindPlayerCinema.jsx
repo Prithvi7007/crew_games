@@ -5,6 +5,7 @@ import RewindSagaScene from './RewindSagaScene';
 import RewindChapter from './RewindMotion';
 import {ChampionCover, championAccent} from './ChampionReveal';
 import {initialPlayback, playbackReducer} from './rewindPlayback';
+import useRewindCompletion from './useRewindCompletion';
 
 const TONES={
   opening:['#a5dfff','#536dce'], rivalry:['#93f2e0','#b48aee'],
@@ -83,6 +84,10 @@ function FilmMoment({beat,recap,player,reduce}){
 
 export default function RewindPlayerCinema({data}){
   const recap=data.rewind||{};
+  const loginLaunch=data.rewindLoginLaunch||null;
+  const completeRewind=useRewindCompletion(data.rewindCompletionUrl);
+  const autoStarted=useRef(false);
+  const leaving=useRef(false);
   const saga=data.rewindSeasonSagaPreview===true;
   const story=(saga?recap.seasonSaga:recap.cinematicStory)||{beats:[],player:recap.username};
   const beats=story.beats||[];
@@ -104,7 +109,7 @@ export default function RewindPlayerCinema({data}){
   const previewPlayers=data.rewindPreviewPlayers;
   const previewMode=combinedPreview||championPreview;
   // A public player must never exit into the staff-only Film Lab.
-  const back=championPreview
+  const back=loginLaunch?loginLaunch.returnUrl:championPreview
     ? '/rewind?preview=1&prototype=1&story=5'+(previewPlayer?'&player='+encodeURIComponent(previewPlayer):'')
     : data.rewindFilmPrototype===true
     ? '/rewind?preview=1&prototype=1&story='+(saga?'4':'3')+(previewPlayer?'&player='+encodeURIComponent(previewPlayer):'')
@@ -119,10 +124,10 @@ export default function RewindPlayerCinema({data}){
   };
   const go=useCallback(target=>{
     previousIndex.current=index;
-    dispatch({type:'go',index:target,count:beats.length});
+    dispatch({type:'go',index:target,count:beats.length,holdFinal:Boolean(loginLaunch)});
     setEvidence(false);
     setChrome(false);
-  },[beats.length,index]);
+  },[beats.length,index,loginLaunch]);
   const forward=useCallback(()=>{if(last){dispatch({type:'finish'});setEvidence(false);setChrome(true);}else go(index+1);},[go,index,last]);
   const backward=useCallback(()=>go(index-1),[go,index]);
   const begin=useCallback(()=>{dispatch({type:'begin',reduced:reduce});setChrome(Boolean(reduce));},[reduce]);
@@ -130,7 +135,26 @@ export default function RewindPlayerCinema({data}){
   const restart=useCallback(()=>{dispatch({type:'restart'});setEvidence(false);setChrome(false);},[]);
   const reveal=useCallback(()=>{setChrome(true);},[]);
 
-  useEffect(()=>{if(last&&(!finalBadge||reduce))dispatch({type:'finish'});},[last,finalBadge,reduce]);
+  const leave=useCallback(async action=>{
+    if(leaving.current)return;
+    leaving.current=true;
+    await completeRewind(action);
+    window.location.assign(back);
+  },[back,completeRewind]);
+
+  useEffect(()=>{
+    if(loginLaunch&&typeof reduce==='boolean'&&!autoStarted.current){
+      autoStarted.current=true;begin();
+    }
+  },[loginLaunch,reduce,begin]);
+  useEffect(()=>{
+    if(last&&!loginLaunch&&(!finalBadge||reduce))dispatch({type:'finish'});
+  },[last,finalBadge,reduce,loginLaunch]);
+  useEffect(()=>{
+    if(!finished)return;
+    if(loginLaunch){void leave('finished');}
+    else {void completeRewind('finished');}
+  },[finished,loginLaunch,leave,completeRewind]);
   useEffect(()=>{
     if(!chrome||!playing||evidence)return undefined;
     hideRef.current=window.setTimeout(()=>setChrome(false),3000);
@@ -182,22 +206,22 @@ export default function RewindPlayerCinema({data}){
       <div className="rc-backdrop" aria-hidden="true"><div className="rc-vignette"/><div className="rc-grain"/></div>
       <AnimatePresence mode="sync" initial={false} custom={direction}>
         <RewindChapter key={started?'chapter-'+index:'cover'} beat={scene} direction={direction}
-          playing={started&&playing&&(!last||finalBadge)&&!evidence} reduce={reduce} finished={finished} onFinish={forward}>
+          playing={started&&playing&&(!last||finalBadge||Boolean(loginLaunch))&&!evidence} reduce={reduce} finished={finished} onFinish={forward}>
           {({time,seek})=>showCover?<ChampionCover player={recap.username}/>:saga?
             <RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing} time={time} seek={seek}/>
             :<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>}
         </RewindChapter>
       </AnimatePresence>
 
-      {!started&&index===0&&<div className="rc-start-wrap">
+      {!loginLaunch&&!started&&index===0&&<div className="rc-start-wrap">
         <button type="button" className="rc-start" onClick={begin}>
           <span className="rc-play-symbol">▶</span> {reduce?'EXPLORE YOUR STORY':'BEGIN YOUR REWIND'}
         </button>
         <span className="rc-start-hint">A STORY WRITTEN BY YOUR GAMES</span>
       </div>}
-      {last&&finished&&<div className="rc-finale-actions">
+      {last&&finished&&!loginLaunch&&<div className="rc-finale-actions">
         <button type="button" className="rc-start" onClick={restart}>↻ WATCH AGAIN</button>
-        <a className="rc-finale-link" href={back}>BACK TO REWIND</a>
+        <a className="rc-finale-link" href={back} onClick={event=>{event.preventDefault();void leave('finished');}}>BACK TO REWIND</a>
       </div>}
 
       <AnimatePresence>
@@ -211,8 +235,12 @@ export default function RewindPlayerCinema({data}){
         </m.div>}
       </AnimatePresence>
 
+      {loginLaunch&&<button type="button" className="rc-login-skip"
+        onClick={()=>{void leave(finished?'finished':'skipped');}}>
+        {finished?'CONTINUE TO CREW':'SKIP REWIND'} <span aria-hidden="true">→</span>
+      </button>}
       <div className={'rc-minimal-tools'+(controls||!playing?' rc-tools-visible':'')}>
-        <button type="button" className="rc-close" onClick={e=>{e.stopPropagation();window.location.assign(back);}} aria-label="Exit the film">✕</button>
+        {!loginLaunch&&<button type="button" className="rc-close" onClick={e=>{e.stopPropagation();void leave(finished?'finished':'skipped');}} aria-label="Exit the film">✕</button>}
         <span className="rc-part" aria-label={'Chapter '+(index+1)+' of '+beats.length}>{String(index+1).padStart(2,'0')} / {String(beats.length).padStart(2,'0')}</span>
       </div>
       {index>0&&!last&&<button type="button" className={'rc-evidence-trigger'+(controls?' rc-trigger-visible':'')}

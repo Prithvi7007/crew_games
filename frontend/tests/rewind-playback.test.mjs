@@ -64,3 +64,9 @@ test('every chapter resumes from its remaining time rather than starting over', 
   assert.equal(playback.remainingChapterTime(17000,15000),2000);
   assert.equal(playback.remainingChapterTime(7600,6000),1600);
 });
+
+test('a login premiere holds the final paused chapter until explicit completion', () => {
+  const last=playbackReducer(state({playing:false}),{type:'go',index:9,count:10,holdFinal:true});
+  assert.deepEqual(last,state({index:9,playing:false,finished:false}));
+  assert.deepEqual(playbackReducer(last,{type:'finish'}),state({index:9,playing:false,finished:true}));
+});
