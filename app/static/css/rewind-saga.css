@@ -31,9 +31,13 @@
 .saga-wide>h1{text-align:center;font-size:clamp(32px,4.7vw,65px)}
 .saga-chart{width:min(100%,980px)}
 .saga-chart svg{display:block;width:100%;height:min(41dvh,410px);overflow:visible}
-.saga-chart-legend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:28px;color:#b8c8d8;font-size:11px;font-weight:900;letter-spacing:.14em}
+.saga-chart-legend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px 24px;color:#b8c8d8;font-size:11px;font-weight:900;letter-spacing:.14em}
 .saga-chart-legend>span{display:flex;gap:9px;align-items:center}
 .saga-chart-legend i{width:20px;height:4px;border-radius:4px}
+.saga-chart-key-crew{position:relative}
+.saga-chart-key-crew::after{content:"";position:absolute;width:8px;height:8px;left:6px;top:-2px;background:inherit;border:1px solid var(--saga-bg);border-radius:0}
+.saga-chart-note{font-size:9px;font-weight:800;letter-spacing:.09em;line-height:1.6;color:var(--saga-muted);text-align:center;margin:16px auto 0;text-wrap:balance}
+.saga-chart-note span{display:block}
 .saga-game-compare,.saga-game-dna{gap:clamp(15px,3vh,30px)}
 .saga-game-compare>h1,.saga-game-dna>h1{font-size:clamp(33px,4.5vw,64px)}
 .saga-spotlight{width:min(100%,820px);display:flex;flex-direction:column;align-items:center;gap:24px}
@@ -320,4 +324,3 @@
   .honors-master h1{font-size:36px}
   .honors-master-winners strong{font-size:30px}
 }
-
