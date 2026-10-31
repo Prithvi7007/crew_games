@@ -133,11 +133,11 @@
 .saga-film.rc-winner:not(.rc-showing-cover) .rc-backdrop,.saga-film.rc-winner_badge .rc-backdrop{background:radial-gradient(ellipse at 76% 45%,color-mix(in srgb,var(--champion-accent) 15%,transparent),transparent 58%),linear-gradient(125deg,#02070b 15%,#08111b 70%,#02070b)}
 .champion-stage{position:relative;isolation:isolate;width:min(100%,1050px);min-height:min(61dvh,620px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;color:var(--crew-color-text,#f5f8ff)}
 .champion-overture{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;text-align:center;font:800 clamp(15px,2.1vw,27px)/1.35 var(--crew-font-display,Manrope,sans-serif);letter-spacing:.16em;color:var(--champion-accent);pointer-events:none}
-.champion-lockup{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.55fr);gap:clamp(30px,5vw,80px);align-items:center;width:100%}
-.champion-copy{text-align:left;min-width:0}
+.champion-lockup{display:flex;flex-direction:column;align-items:center;gap:20px;width:100%}
+.champion-copy{text-align:center;min-width:0;width:100%}
 .champion-kicker{margin:0 0 24px;color:var(--champion-accent);font-size:10px;letter-spacing:.22em;font-weight:800}
-.saga-film .champion-name{font-size:clamp(50px,6.4vw,92px);font-weight:800;line-height:1.05;letter-spacing:-.065em;margin:0 0 25px;max-width:100%;overflow-wrap:anywhere;text-wrap:balance}
-.champion-title{font:800 clamp(16px,2.1vw,28px)/1.3 var(--crew-font-display,Manrope,sans-serif);letter-spacing:.07em;color:var(--champion-accent);margin:0 0 17px;text-wrap:balance}
+.saga-film .champion-name{font-size:clamp(46px,7vw,100px);font-weight:850;line-height:1.1;letter-spacing:-.065em;margin:0 0 10px;max-width:100%;overflow-wrap:anywhere;text-wrap:balance}
+.champion-title{font:850 clamp(25px,3.8vw,52px)/1.14 var(--crew-font-display,Manrope,sans-serif);letter-spacing:-.025em;color:var(--champion-accent);margin:0;text-wrap:balance;overflow-wrap:anywhere}
 .champion-result{font-size:10px;letter-spacing:.18em;line-height:1.6;color:var(--crew-color-muted,#98acc2);font-weight:700;margin:0}
 .champion-insignia{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;width:clamp(210px,25vw,300px);max-width:100%;justify-self:center}
 .champion-insignia .trophy-medallion{display:grid;place-items:center;width:100%;height:auto;aspect-ratio:1;filter:drop-shadow(0 18px 55px color-mix(in srgb,var(--champion-accent) 22%,transparent))}
@@ -158,12 +158,12 @@
 .champion-cover-kicker span{margin-left:12px}
 .champion-cover-footer>small{font-size:8px;letter-spacing:.12em}
 .champion-stage{min-height:54dvh;gap:20px}
-.champion-lockup{grid-template-columns:1fr;gap:26px}
-.champion-copy{order:2;text-align:center}
-.champion-winner .champion-insignia{order:1;width:clamp(145px,40vw,190px);gap:10px}
+.champion-lockup{gap:16px}
+.champion-copy{order:0;text-align:center}
+.champion-winner .champion-insignia{width:clamp(130px,34vw,165px);gap:10px}
 .champion-kicker{margin-bottom:16px;font-size:9px}
-.saga-film .champion-name{font-size:clamp(35px,10.4vw,54px);margin-bottom:15px;line-height:1.08}
-.champion-title{font-size:15px;letter-spacing:.035em;margin-bottom:12px}
+.saga-film .champion-name{font-size:clamp(34px,10vw,54px);margin-bottom:8px;line-height:1.12}
+.champion-title{font-size:clamp(22px,6.3vw,32px);letter-spacing:-.025em;margin:0}
 .champion-result{font-size:8px;letter-spacing:.12em}
 .champion-badge-season{font-size:8px}
 .champion-signoff{margin-top:5px;font-size:8px;letter-spacing:.12em}
@@ -208,8 +208,7 @@
 
 /* Championship celebration stays behind the player and follows Motion's clock. */
 .champion-celebration{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;border-radius:30px}
-.champion-halo-position{position:absolute;left:76%;top:44%;width:clamp(250px,36vw,460px);aspect-ratio:1;transform:translate(-50%,-50%)}
-.champion-halo{position:absolute;inset:0;border:1px solid color-mix(in srgb,var(--champion-accent) 48%,transparent);border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--champion-accent) 24%,transparent),transparent 68%);box-shadow:0 0 65px color-mix(in srgb,var(--champion-accent) 12%,transparent)}
+.champion-halo{position:absolute;inset:-19%;z-index:-1;border:1px solid color-mix(in srgb,var(--champion-accent) 48%,transparent);border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--champion-accent) 24%,transparent),transparent 68%);box-shadow:0 0 65px color-mix(in srgb,var(--champion-accent) 12%,transparent)}
 .champion-halo::before,.champion-halo::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
 .champion-halo::before{inset:11%;border:1px solid color-mix(in srgb,var(--champion-accent) 32%,transparent)}
 .champion-halo::after{inset:-6%;background:repeating-conic-gradient(from 12deg,transparent 0deg 27deg,color-mix(in srgb,var(--champion-accent) 55%,transparent) 28deg 29deg,transparent 30deg);mask:radial-gradient(transparent 57%,#000 58%,#000 66%,transparent 67%)}
@@ -217,15 +216,40 @@
 .champion-confetti[data-side="right"]{left:auto;right:4%}
 .champion-confetti:nth-of-type(3n){width:4px;height:19px}
 .champion-confetti:nth-of-type(5n){width:7px;height:7px;border-radius:50%}
-.champion-badge-lift{position:relative;width:100%;aspect-ratio:1;display:grid;place-items:center}
+.champion-badge-lift{position:relative;isolation:isolate;width:100%;aspect-ratio:1;display:grid;place-items:center}
 .champion-badge-polish{position:absolute;inset:5%;overflow:hidden;border-radius:50%;pointer-events:none}
 .champion-badge-shine{position:absolute;top:-20%;bottom:-20%;left:-35%;width:32%;background:linear-gradient(90deg,transparent,rgba(255,247,220,.8),transparent);opacity:0}
-.champion-closeup .champion-halo-position{left:50%;top:42%;width:clamp(240px,36vmin,360px)}
 @media(max-width:650px){
-.champion-winner .champion-halo-position{left:50%;top:clamp(80px,24vw,115px);width:clamp(225px,65vw,290px)}
 .champion-confetti{width:4px;height:10px}
 .champion-confetti:nth-of-type(3n){height:15px}
 }
 @media(prefers-reduced-motion:reduce){
 .champion-confetti,.champion-badge-polish{display:none}
+}
+
+/* Awards choreography: anticipation, masked name/title, badge impact, quiet hold. */
+.champion-line{overflow:hidden;padding-bottom:.07em}
+.champion-line-inner{display:block}
+.champion-winner .champion-insignia{width:clamp(170px,22vmin,235px)}
+.champion-winner .champion-kicker{margin-bottom:12px}
+.champion-winner .champion-signoff{margin-top:0}
+.champion-stage-lights{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.champion-beam{position:absolute;bottom:0;width:38%;height:115%;transform-origin:50% 100%;clip-path:polygon(48% 100%,0 0,100% 0,52% 100%);background:linear-gradient(0deg,color-mix(in srgb,var(--champion-accent) 24%,transparent),transparent 94%);opacity:0}
+.champion-beam-left{left:2%}
+.champion-beam-right{right:2%}
+.champion-floor-light{position:absolute;bottom:4%;left:14%;width:72%;height:1px;box-shadow:0 -6px 32px var(--champion-accent);background:linear-gradient(90deg,transparent,var(--champion-accent),transparent);opacity:0}
+.champion-impact-ring{position:absolute;inset:-8%;border:1px solid color-mix(in srgb,var(--champion-accent) 70%,transparent);border-radius:50%;z-index:-1;pointer-events:none;opacity:0}
+@media(max-width:650px){
+.champion-winner .champion-insignia{width:clamp(130px,34vw,165px)}
+.champion-winner .champion-kicker{margin-bottom:9px}
+.champion-stage{gap:15px}
+}
+@media(max-height:600px) and (min-width:651px){
+.champion-winner .champion-insignia{width:135px}
+.champion-winner .champion-lockup{gap:10px}
+.champion-winner .champion-name{font-size:44px;margin-bottom:5px}
+.champion-winner .champion-title{font-size:30px}
+}
+@media(prefers-reduced-motion:reduce){
+.champion-stage-lights,.champion-impact-ring{display:none}
 }
