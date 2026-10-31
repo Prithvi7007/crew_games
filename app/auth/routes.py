@@ -1,3 +1,4 @@
+from app.rewind_login import premiere_destination, safe_local_target
 import base64
 import hashlib
 import hmac
@@ -99,10 +100,7 @@ def current_user_key():
 
 
 def _safe_next(default_endpoint="main.home"):
-    target = request.args.get("next", "")
-    if target.startswith("/") and not target.startswith("//"):
-        return target
-    return url_for(default_endpoint)
+    return safe_local_target(request.args.get("next", ""), url_for(default_endpoint))
 
 
 def _profile_session(profile):
@@ -212,7 +210,8 @@ def login():
             clear_rate_limits(*policies)
             audit_security_event("player_login_success", username)
             _sign_in(profile)
-            return redirect(_safe_next())
+            target = _safe_next()
+            return redirect(premiere_destination(profile["id"], target) or target)
 
         record_rate_limit_failures(*policies)
         audit_security_event("player_login_failure", username)

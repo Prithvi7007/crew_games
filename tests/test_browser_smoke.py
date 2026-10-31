@@ -660,3 +660,69 @@ def test_champion_masked_name_can_pause_mid_reveal_and_wrap(ui, app, monkeypatch
         box = page.locator(selector).bounding_box()
         assert box and box["x"] >= 0 and box["x"] + box["width"] <= viewport["width"]
     assert errors == []
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900},
+    {"width": 390, "height": 844},
+])
+def test_login_rewind_autoplays_once_and_skip_returns_to_home(ui, app, monkeypatch, viewport):
+    from datetime import date
+    from app.championships import finalize_season_championships
+    from app.db import finalize_game_stats, get_profile_by_username, get_season_for_date, profile_user_key
+    from app.rewind_login import rewind_completed
+
+    page, base_url = ui
+    with app.app_context():
+        pid = int(get_profile_by_username("BrowserTester")["id"])
+        finalize_game_stats(profile_user_key(pid), "trivia", "2026-10-20", 80, True)
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 11, 2))
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="no-preference")
+    page.goto(base_url + "/home")
+    page.wait_for_url("**/rewind?intro=1")
+    page.locator(".rc-is-playing .champion-winner").wait_for()
+    assert page.get_by_role("button", name="BEGIN YOUR REWIND").count() == 0
+    skip = page.get_by_role("button", name="SKIP REWIND", exact=False)
+    assert skip.is_visible()
+    box = skip.bounding_box()
+    assert box and box["x"] >= 0 and box["x"] + box["width"] <= viewport["width"]
+    skip.click()
+    page.wait_for_url("**/home")
+    with app.app_context():
+        assert rewind_completed(pid)
+    page.goto(base_url + "/home")
+    assert page.url.endswith("/home")
+    page.context.clear_cookies()
+    page.goto(base_url + "/login")
+    page.locator('input[name="username"]').fill("BrowserTester")
+    page.locator('input[name="password"]').fill("browser-test-passphrase")
+    page.locator('form:has(input[name="username"]) button[type="submit"]').click()
+    page.wait_for_url("**/home")
+
+
+def test_login_rewind_reduced_motion_starts_with_readable_manual_chapters(ui, app, monkeypatch):
+    from datetime import date
+    from app.championships import finalize_season_championships
+    from app.db import finalize_game_stats, get_profile_by_username, get_season_for_date, profile_user_key
+
+    page, base_url = ui
+    with app.app_context():
+        pid = int(get_profile_by_username("BrowserTester")["id"])
+        finalize_game_stats(profile_user_key(pid), "word", "2026-10-21", 60, True)
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 11, 2))
+    page.emulate_media(reduced_motion="reduce")
+    page.goto(base_url + "/home")
+    page.wait_for_url("**/rewind?intro=1")
+    page.locator(".champion-winner.is-reduced").wait_for()
+    assert page.locator(".champion-name").evaluate("el => getComputedStyle(el).opacity") == "1"
+    assert page.locator(".rc-is-playing").count() == 0
+    assert page.get_by_role("button", name="EXPLORE YOUR STORY").count() == 0
+    page.get_by_role("button", name="NEXT", exact=False).click()
+    page.locator(".champion-closeup").wait_for()
+    page.get_by_role("button", name="SKIP REWIND", exact=False).click()
+    page.wait_for_url("**/home")

@@ -124,8 +124,9 @@ def test_admin_settings_show_seeded_season(app):
     html = response.get_data(as_text=True)
     assert "SEASON MANAGEMENT" in html
     assert "Launch Season" in html
-    assert "Sep 21" in html
-    assert "Oct 30" in html
+    # The schedule inputs remain present during the offseason too.
+    assert 'value="2026-09-21"' in html
+    assert 'value="2026-10-30"' in html
 
 
 def test_admin_can_create_next_season(app):

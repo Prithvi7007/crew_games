@@ -18,7 +18,7 @@ export function playbackReducer(state, action) {
     case 'go': {
       if(!state.started||action.count<1)return state;
       const index=Math.max(0,Math.min(action.count-1,action.index));
-      return {...state,index,finished:index===action.count-1&&!state.playing};
+      return {...state,index,finished:index===action.count-1&&!state.playing&&!action.holdFinal};
     }
     case 'finish':
       return state.finished&&!state.playing ? state : {...state,playing:false,finished:true};

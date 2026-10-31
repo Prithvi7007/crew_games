@@ -1,3 +1,5 @@
+from sqlalchemy.exc import SQLAlchemyError
+from app.rewind_login import complete_rewind, premiere_destination, premiere_payload
 from datetime import timedelta
 
 from flask import Blueprint, abort, current_app, jsonify, make_response, redirect, request, session, url_for
@@ -127,6 +129,8 @@ def season_one_rewind():
         "rewind", "Season One Rewind", "crew-rewind-page",
         {
             "rewind": story,
+            "rewindLoginLaunch": premiere_payload(user["profile_id"], season["id"]) if public_saga else None,
+            "rewindCompletionUrl": url_for("main.complete_rewind_view") if public_saga else None,
             "rewindFilmPrototype": film_preview,
             "rewindAnalyticsPreview": analysis_preview,
             "rewindStoryPreview": story_preview,
@@ -148,6 +152,27 @@ def season_one_rewind():
     return response
 
 
+@main_bp.post("/api/rewind/completion")
+@login_required
+def complete_rewind_view():
+    payload = request.get_json(silent=True)
+    if (not isinstance(payload, dict) or set(payload) != {"action"}
+            or payload.get("action") not in ("finished", "skipped")):
+        return jsonify({"ok": False}), 400
+    try:
+        complete_rewind(session["user"]["profile_id"], payload["action"])
+    except ValueError:
+        return jsonify({"ok": False}), 404
+    except SQLAlchemyError:
+        from app.db import get_db
+        get_db().rollback()
+        current_app.logger.exception("Unable to save optional Rewind completion")
+        return jsonify({"ok": False}), 503
+    response = jsonify({"ok": True})
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @main_bp.get("/")
 def index():
     session.clear()
@@ -158,6 +183,10 @@ def index():
 @login_required
 def home():
     user = session["user"]
+    if not request.args:
+        premiere = premiere_destination(user["profile_id"])
+        if premiere:
+            return redirect(premiere)
     user_key = current_user_key()
     today = crew_today()
     weekly = get_weekly_points(user_key, today)
