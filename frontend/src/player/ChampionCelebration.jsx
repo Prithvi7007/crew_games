@@ -18,27 +18,26 @@ function ConfettiPiece({time,index,start}) {
 }
 
 export default function ChampionCelebration({time,closeup,reduce}) {
-  const start=closeup?350:1900;
-  const opacity=useTransform(time,[start,start+1000,start+2600,start+5200],[0,.8,.55,.28]);
-  const scale=useTransform(time,[start,start+1300,start+5200],[.65,1.12,1]);
-  const rotate=useTransform(time,[start,start+5200],[-12,12]);
   return <div className="champion-celebration" aria-hidden="true">
-    <div className="champion-halo-position">
-      <m.div className="champion-halo" style={reduce?{opacity:.35}:{opacity,scale,rotate}}/>
-    </div>
     {!reduce&&Array.from({length:closeup?18:36},(_,index)=>
-      <ConfettiPiece key={index} time={time} index={index} start={closeup?1100:2850}/>)}
+      <ConfettiPiece key={index} time={time} index={index} start={closeup?1100:3150}/>)}
   </div>;
 }
 
 export function ChampionBadgeMotion({time,closeup,reduce,children}) {
-  const start=closeup?350:1600;
-  const scale=useTransform(time,[start,start+700,start+1100,start+1500],[.76,1.08,.985,1]);
-  const rotate=useTransform(time,[start,start+700,start+1100,start+1500],[-7,2,-.5,0]);
-  const shineStart=closeup?1900:3450;
+  const start=closeup?350:2600;
+  const impact=closeup?1100:3150;
+  const scale=useTransform(time,[start,start+750,start+1150,start+1500],[.45,1.12,.985,1]);
+  const rotate=useTransform(time,[start,start+750,start+1150,start+1500],[-9,2,-.5,0]);
+  const halo=useTransform(time,[start,start+750,start+2000,start+4000],[0,.8,.45,.25]);
+  const ringScale=useTransform(time,[impact,impact+1800],[.8,1.85]);
+  const ringOpacity=useTransform(time,[impact,impact+150,impact+1450,impact+1800],[0,.7,.2,0]);
+  const shineStart=closeup?1900:4300;
   const x=useTransform(time,[shineStart,shineStart+1300],['0%','520%']);
   const opacity=useTransform(time,[shineStart,shineStart+200,shineStart+1050,shineStart+1300],[0,.55,.4,0]);
   return <m.div className="champion-badge-lift" style={reduce?undefined:{scale,rotate}}>
+    <m.div className="champion-halo" aria-hidden="true" style={{opacity:reduce ? .35 : halo}}/>
+    {!reduce&&<m.i className="champion-impact-ring" aria-hidden="true" style={{scale:ringScale,opacity:ringOpacity}}/>}
     {children}
     {!reduce&&<span className="champion-badge-polish" aria-hidden="true">
       <m.i className="champion-badge-shine" style={{x,opacity,rotate:20}}/>

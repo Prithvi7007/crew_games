@@ -478,7 +478,8 @@ def test_champion_reduced_motion_does_not_skip_the_first_reveal(ui, monkeypatch)
     assert page.locator(".champion-winner.is-reduced").count() == 1
     assert page.locator(".champion-name").inner_text() == "BrowserTester"
     assert not page.locator(".champion-overture").is_visible()
-    assert page.locator(".champion-confetti, .champion-badge-shine").count() == 0
+    assert page.locator(".champion-confetti, .champion-badge-shine, .champion-stage-lights, .champion-impact-ring").count() == 0
+    assert page.locator(".champion-line-inner").evaluate_all("els => els.every(el => getComputedStyle(el).transform === \'none\')")
     assert page.locator(".champion-badge-lift").evaluate("el => getComputedStyle(el).transform") == "none"
     page.get_by_role("button", name="NEXT", exact=False).click()
     page.get_by_role("heading", name="Season Champion", exact=True).wait_for(timeout=12000)
@@ -584,7 +585,9 @@ def test_champion_celebration_follows_playback_clock(ui, monkeypatch, viewport):
     page.wait_for_timeout(80)
     effects = page.locator(
         ".champion-winner .champion-confetti, .champion-winner .champion-halo, "
-        ".champion-winner .champion-badge-lift, .champion-winner .champion-badge-shine"
+        ".champion-winner .champion-badge-lift, .champion-winner .champion-badge-shine, "
+        ".champion-winner .champion-line-inner, .champion-winner .champion-beam, "
+        ".champion-winner .champion-floor-light, .champion-winner .champion-impact-ring"
     )
     snapshot = "els => els.map(el => [getComputedStyle(el).transform, getComputedStyle(el).opacity])"
     paused = effects.evaluate_all(snapshot)
@@ -606,3 +609,54 @@ def test_champion_celebration_follows_playback_clock(ui, monkeypatch, viewport):
     assert page.locator(".champion-confetti").evaluate_all(
         "els => els.every(el => Number(getComputedStyle(el).opacity) === 0)"
     )
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900},
+    {"width": 390, "height": 844},
+])
+def test_champion_masked_name_can_pause_mid_reveal_and_wrap(ui, app, monkeypatch, viewport):
+    from datetime import date
+
+    name = "ChampionNameForCrew"
+    with app.app_context():
+        create_profile(name, generate_password_hash("test-password"), "⭐",
+                       generate_password_hash("test-recovery"))
+    page, base_url = ui
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 10, 30))
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="no-preference")
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(base_url + "/rewind?preview=1&prototype=1&story=5&champion=season&player=" + name)
+    page.get_by_role("button", name="BEGIN YOUR REWIND").click()
+    page.wait_for_function(
+        "() => { const el = document.querySelector('.champion-name'); "
+        "if (!el) return false; const opacity = Number(getComputedStyle(el).opacity); "
+        "const offset = new DOMMatrixReadOnly(getComputedStyle(el.firstElementChild).transform).m42; "
+        "return opacity > .5 && offset > 1; }"
+    )
+    page.keyboard.press("Space")
+    page.wait_for_timeout(80)
+    line = page.locator(".champion-name .champion-line-inner")
+    paused = line.evaluate("el => getComputedStyle(el).transform")
+    page.wait_for_timeout(350)
+    assert line.evaluate("el => getComputedStyle(el).transform") == paused
+    page.keyboard.press("Space")
+    page.wait_for_function(
+        "() => { const el = document.querySelector('.champion-title'); "
+        "const badge = document.querySelector('.champion-insignia'); "
+        "return el && badge && Number(getComputedStyle(el).opacity) === 1 "
+        "&& Number(getComputedStyle(badge).opacity) === 1 "
+        "&& new DOMMatrixReadOnly(getComputedStyle(el.firstElementChild).transform).m42 === 0; }"
+    )
+    page.keyboard.press("Space")
+    assert page.locator(".champion-name").inner_text() == name
+    assert page.locator(".champion-title").inner_text() == "SEASON 01 CHAMPION"
+    assert page.locator(".champion-insignia svg").count() == 1
+    assert page.locator(".champion-stage-lights").get_attribute("aria-hidden") == "true"
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+    for selector in (".champion-name", ".champion-title", ".champion-insignia"):
+        box = page.locator(selector).bounding_box()
+        assert box and box["x"] >= 0 and box["x"] + box["width"] <= viewport["width"]
+    assert errors == []
