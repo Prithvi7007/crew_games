@@ -8,6 +8,7 @@ from datetime import date
 
 from app.badges import BADGES_BY_CODE, CHAMPIONSHIP_CODES
 from app.schedule import get_week_start
+from app.rewind_honors import build_honors_visuals
 
 GAMES = (
     ("mystery", "Mystery Monday"),
@@ -39,9 +40,10 @@ def beat(kind, label, title, metric, description, evidence, visual=None):
 
 
 def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
-                      names, official_winners, awarded_codes):
+                      names, official_winners, awarded_codes, benchmark_profile_ids=None):
     """Personalize all nine conceptual acts; omit unsupported accolades."""
     me = int(profile_id)
+    peer_ids = None if benchmark_profile_ids is None else set(benchmark_profile_ids)
     first = get_week_start(season_start)
     per_week = defaultdict(lambda: defaultdict(lambda: {"points": 0, "played": 0}))
     per_game = defaultdict(lambda: defaultdict(list))
@@ -98,6 +100,29 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
                         "vertical": badge.vertical}},
         ))
     if not official_codes:
+        is_official_winner = any(
+            int(w["profile_id"]) == me
+            for winners in official_winners.values() for w in winners
+        )
+        if recap["finalized"] and not is_official_winner:
+            honors = build_honors_visuals(all_points, names, official_winners, viewer_id=me)
+            if honors["podium"]:
+                chapters.append(beat(
+                    "season_podium", "THE SEASON HONORS", "The Season 01 podium.",
+                    "TOP 3", "The season's leading point totals. A moment for the CREW.",
+                    "Positive cutoff-eligible season totals. Equal point totals share "
+                    "a podium place; all ties within the Top 3 places are shown.",
+                    {"podium": honors["podium"]},
+                ))
+            for master in honors["masters"]:
+                chapters.append(beat(
+                    "season_game_master", "THE GAME MASTERS", master["badge"]["name"],
+                    "S01", "Meet the official season game master" +
+                    ("s." if len(master["winners"]) > 1 else "."),
+                    "Winner names and points come from the approved Season 01 "
+                    "championship snapshot. Shared first places retain every winner.",
+                    master,
+                ))
         chapters.append(beat(
             "welcome", "CREW / SEASON 01", "Your season. Your story.", "01",
             "Every week had a story. This one belongs to you.",
@@ -169,7 +194,8 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
     for key, label in GAMES:
         own = per_game[me][key]
         peers = [sum(games[key]) / len(games[key])
-                 for pid, games in per_game.items() if pid != me and games[key]]
+                 for pid, games in per_game.items() if pid != me and games[key]
+                 and (peer_ids is None or pid in peer_ids)]
         comparisons.append({
             "key": key, "name": label, "mine": round(sum(own) / len(own), 1) if own else None,
             "crew": round(sum(peers) / len(peers), 1) if peers else None,
@@ -180,7 +206,8 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
             "game_compare", "YOU VS. THE CREW", "Four games. Your signature.",
             "04", "Average points per completed game, compared with other CREW players.",
             "Own average per completed game. CREW benchmark: mean of other active "
-            "players' per-game averages, equally weighted by player.",
+            "player accounts' per-game averages, equally weighted by player. "
+            "Owner/admin accounts are excluded from this benchmark.",
             {"games": comparisons},
         ))
 

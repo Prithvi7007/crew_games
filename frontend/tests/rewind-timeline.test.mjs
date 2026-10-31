@@ -108,9 +108,27 @@ test('a new paused champion or badge is immediately readable',()=>{
   assert.equal(initialChapterTime({kind:'winner_badge'},false),8200);
 });
 
+test('season honors allow a complete reveal, and tied winners receive reading time',()=>{
+  const podium={kind:'season_podium',visual:{podium:[{players:[{},{}]},{players:[{}]},{players:[{},{}]}]}};
+  assert.equal(chapterDuration(podium),12000);
+  assert.equal(chapterDuration({kind:'season_podium',visual:{podium:[{players:[{}]}]}}),10000);
+  assert.equal(initialChapterTime(podium,false),12000);
+  assert.equal(initialChapterTime(podium,true),0);
+  const master={kind:'season_game_master',visual:{winners:[{},{}]}};
+  assert.equal(chapterDuration(master),7800);
+  assert.equal(initialChapterTime(master,false),7800);
+  assert.equal(resumeChapterTime(master,7800,true),0);
+  const h=harness();const stop=h.run(chapterDuration(master));
+  h.advance(1700);stop();h.advance(20000);
+  assert.equal(h.elapsed.get(),1700);assert.equal(h.finished,0);
+  h.run(chapterDuration(master));h.advance(6100);
+  assert.equal(h.finished,1);
+});
+
 test('playing a paused visit replays its reveal instead of immediately skipping it',()=>{
   assert.equal(resumeChapterTime({kind:'winner'},9800,true),0);
   assert.equal(resumeChapterTime({kind:'weekly_trend'},7600,true),0);
   assert.equal(resumeChapterTime({kind:'game_compare',visual:{games:[{mine:80},{mine:0},{mine:64}]}},9400,true),7600);
   assert.equal(resumeChapterTime({kind:'winner'},2300,false),2300);
 });
+

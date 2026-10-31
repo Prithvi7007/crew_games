@@ -89,8 +89,9 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
             r = state(client.get("/rewind"))["rewind"]
             assert r["username"] == "LaunchNewcomer" and r["rank"] is None
             assert [b["kind"] for b in r["seasonSaga"]["beats"]] == [
-                "welcome", "legacy", "season_two"
+                "season_podium", "season_game_master", "welcome", "legacy", "season_two"
             ]
+            assert r["seasonSaga"]["beats"][0]["visual"]["podium"][0]["players"][0]["name"] == "LaunchChampion"
             assert state(client.get("/rewind?preview=1"))["rewindSeasonSagaPreview"] is True
 
             login(client, admin)
@@ -111,3 +112,4 @@ def test_public_cinema_exit_and_fingerprint_in_head():
     for name in ("rewind-director.css", "rewind-cinema.css", "rewind-saga.css"):
         assert name in head
         assert f'<link rel="stylesheet" href="/static/css/{name}"/>' not in film
+

@@ -726,3 +726,75 @@ def test_login_rewind_reduced_motion_starts_with_readable_manual_chapters(ui, ap
     page.locator(".champion-closeup").wait_for()
     page.get_by_role("button", name="SKIP REWIND", exact=False).click()
     page.wait_for_url("**/home")
+
+
+@pytest.mark.parametrize("viewport,reduced", [
+    ({"width": 1440, "height": 900}, False),
+    ({"width": 390, "height": 844}, False),
+    ({"width": 390, "height": 844}, True),
+])
+def test_nonwinner_honors_precede_personal_story_and_login(ui, app, monkeypatch, viewport, reduced):
+    from datetime import date
+    from app.championships import finalize_season_championships
+    from app.db import finalize_game_stats, get_profile_by_username, get_season_for_date, profile_user_key
+
+    page, base_url = ui
+    with app.app_context():
+        podium = [("HonorsFirst", 100), ("HonorsSecond", 90)]
+        for name, _ in podium:
+            create_profile(name, generate_password_hash("honors-password"), "⭐", generate_password_hash("honors-key"))
+        for name, score in podium + [("BrowserTester", 80)]:
+            pid = int(get_profile_by_username(name)["id"])
+            for game, day in (("mystery", "2026-10-19"), ("trivia", "2026-10-20"),
+                              ("word", "2026-10-21"), ("tick_tock", "2026-10-22")):
+                finalize_game_stats(profile_user_key(pid), game, day, score, True)
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 11, 2))
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="reduce" if reduced else "no-preference")
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(base_url + "/rewind")
+    page.locator(".champion-cover").wait_for()
+    assert page.locator(".honors-podium").count() == 0
+    page.get_by_role("button", name="EXPLORE YOUR STORY" if reduced else "BEGIN YOUR REWIND").click()
+    page.locator(".honors-podium").wait_for()
+    page.wait_for_function("[...document.querySelectorAll('.honors-players')].every(el => +getComputedStyle(el).opacity === 1)")
+    assert page.locator(".honors-place-1 .honors-player").inner_text() == "HonorsFirst"
+    assert page.locator(".honors-place-2 .honors-player").inner_text() == "HonorsSecond"
+    assert "BrowserTester" in page.locator(".honors-place-3 .honors-player.is-you").inner_text()
+    assert "320" in page.locator(".honors-place-3 .honors-points").inner_text()
+    boxes = [page.locator(".honors-place-" + str(place)).bounding_box() for place in (1, 2, 3)]
+    assert boxes[1]["x"] < boxes[0]["x"] < boxes[2]["x"]
+    for box in boxes:
+        assert box and 0 <= box["x"] < box["x"] + box["width"] <= viewport["width"]
+    if not reduced:
+        page.locator(".honors-heading").hover()
+        page.get_by_role("button", name="PAUSE", exact=False).click()
+        before = page.locator(".honors-platform-fill").evaluate_all("els => els.map(el => getComputedStyle(el).transform)")
+        page.wait_for_timeout(450)
+        assert before == page.locator(".honors-platform-fill").evaluate_all("els => els.map(el => getComputedStyle(el).transform)")
+        assert page.locator(".rc-season_podium").count() == 1
+    for game, title in (("mystery", "Season Mystery Master"), ("trivia", "Season Trivia Master"),
+                        ("word", "Season Wordle Master"), ("tick_tock", "Season Tick-Tock Master")):
+        page.keyboard.press("ArrowRight")
+        stage = page.locator('.honors-master[data-game="' + game + '"]')
+        stage.wait_for()
+        assert stage.get_by_role("heading", name=title, exact=True).is_visible()
+        assert stage.locator(".honors-master-winners strong").inner_text() == "HonorsFirst"
+        assert stage.locator(".honors-master-badge .trophy-medallion").count() == 1
+        assert page.locator(".champion-winner").count() == 0
+    page.keyboard.press("ArrowRight")
+    page.locator(".rc-welcome").wait_for()
+    assert "BrowserTester, this story belongs to you." in page.locator(".saga-center").inner_text()
+    assert not errors
+
+    # An unconsumed login premiere uses the same opening and still offers skip.
+    page.goto(base_url + "/home")
+    page.wait_for_url("**/rewind?intro=1")
+    page.locator(".honors-podium").wait_for()
+    page.locator(".champion-cover").wait_for(state="detached")
+    page.get_by_role("button", name="SKIP REWIND", exact=False).click()
+    page.wait_for_url("**/home")
+

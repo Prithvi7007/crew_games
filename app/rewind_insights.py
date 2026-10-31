@@ -18,9 +18,11 @@ _GAME_NAMES = {
 
 
 def build_rewind_insights(mine, completions, *, profile_id, season_start,
-                          weeks_total, signature, rank, participants, points):
+                          weeks_total, signature, rank, participants, points,
+                          benchmark_profile_ids=None):
     """Return descriptive evidence, not predictions or invented precision."""
     me = int(profile_id)
+    peer_ids = None if benchmark_profile_ids is None else set(benchmark_profile_ids)
     week_zero = get_week_start(season_start)
     half = max(1, (int(weeks_total) + 1) // 2)
     first, second = [], []
@@ -32,7 +34,8 @@ def build_rewind_insights(mine, completions, *, profile_id, season_start,
     for row in completions:
         pid, game = int(row["profile_id"]), row["game_key"]
         if pid != me:
-            peer_by_game[game][pid].append(int(row["score"]))
+            if peer_ids is None or pid in peer_ids:
+                peer_by_game[game][pid].append(int(row["score"]))
             continue
 
         score = int(row["score"])

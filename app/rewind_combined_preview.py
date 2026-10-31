@@ -57,7 +57,7 @@ def build_combined_preview(recap, *, profile_id, season, selection=None):
         return saga, controls
 
     # Keep all analytics, badge collections and the closing chapters intact.
-    rest = [b for b in saga["beats"] if b["kind"] not in ("winner", "winner_badge", "welcome")]
+    rest = [b for b in saga["beats"] if b["kind"] not in ("winner", "winner_badge", "welcome", "season_podium", "season_game_master")]
     beats = opening + rest
     return {
         **saga, "beats": beats, "count": len(beats), "demo": True,

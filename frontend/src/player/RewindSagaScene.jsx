@@ -2,6 +2,7 @@ import React, {useRef, useState} from 'react';
 import {m, useMotionValueEvent, useTransform} from 'motion/react';
 import {BadgeMedallion} from './TrophyRoom';
 import ChampionReveal from './ChampionReveal';
+import {SeasonPodium, SeasonGameMaster} from './SeasonHonors';
 import {Reveal} from './RewindMotion';
 import {COMPARE_STEP_MS, comparisonIndex, comparisonSeek} from './rewindTimeline';
 
@@ -120,11 +121,13 @@ export default function RewindSagaScene({beat,recap,reduce,playing,time,seek}){
  switch(beat.kind){
   case 'winner':
   case 'winner_badge':return <ChampionReveal beat={beat} recap={recap} reduce={reduce} playing={playing} time={time}/>;
+  case 'season_podium':return <SeasonPodium visual={v} time={time} reduce={reduce}/>;
+  case 'season_game_master':return <SeasonGameMaster visual={v} time={time} reduce={reduce}/>;
   case 'welcome':return <Center time={time} label="CREW · SEASON 01" value="01" title={beat.headline}><p>{recap.username}, this story belongs to you.</p></Center>;
   case 'podium':return <Center time={time} label="THE PODIUM" value={v.count} title="Times among the weekly Top 3."><div className="saga-podium-weeks">{Array.from({length:v.weeksTotal},(_,i)=>{const w=v.weeks.find(x=>x.week===i+1);return <div key={i}><Reveal as="span" time={time} start={200+i*150} className={'saga-podium-slot '+(w?'is-earned':'')}>{w?'#'+w.place:'·'}</Reveal><small>W{i+1}</small></div>})}</div><p>#{v.frequencyRank} for weekly podium appearances this season.</p></Center>;
   case 'weekly_trend':return <div className="saga-wide"><h1>{beat.headline}</h1><WeekLines weeks={v.weeks} bestWeek={v.bestWeek} time={time}/></div>;
   case 'peak_week':return <Center time={time} label="YOUR HIGHEST WEEK" value={num(v.score)} title={'Week '+v.week+'. Your moment.'}><p>{v.wasWeeklyLeader?'YOU MATCHED THE WEEKLY HIGH':'YOUR PERSONAL SEASON HIGH · POINTS'}</p></Center>;
-  case 'game_compare':return <div className="saga-wide saga-game-compare"><h1>Your game. Your edge.</h1><Compare games={v.games} reduce={reduce} playing={playing} time={time} seek={seek}/><p className="saga-caveat">AVERAGE POINTS PER COMPLETED GAME · CREW = OTHER PLAYERS</p></div>;
+  case 'game_compare':return <div className="saga-wide saga-game-compare"><h1>Your game. Your edge.</h1><Compare games={v.games} reduce={reduce} playing={playing} time={time} seek={seek}/><p className="saga-caveat">AVERAGE POINTS PER COMPLETED GAME · CREW = OTHER PLAYER ACCOUNTS</p></div>;
   case 'game_dna':return <div className="saga-wide saga-game-dna"><h1>What powered your season.</h1><GameDna games={v.games} totalPoints={v.totalPoints} time={time}/></div>;
   case 'plot_twist':return <Center time={time} label="THE PLOT TWIST" value={beat.metric} title={beat.headline}><p>{beat.description}</p></Center>;
   case 'trophy_vault':return <div className="saga-vault"><Center time={time} label="THE TROPHY VAULT" value={num(v.badges.length)} title="Badges unlocked."/><div className="saga-vault-grid">{v.badges.map((b,i)=><Reveal key={b.code} time={time} scale={.85} start={200+120*i}><Badge item={b} size="small"/>{v.celebrated?.includes(b.code)&&<small className="saga-already-celebrated">TITLE CELEBRATED</small>}</Reveal>)}</div></div>;
@@ -133,3 +136,4 @@ export default function RewindSagaScene({beat,recap,reduce,playing,time,seek}){
   default:return null;
  }
 }
+
