@@ -36,7 +36,7 @@
 .trophy-filter:hover,.trophy-filter.is-active {color:white;border-color:#5e96cc;background:#1c3550;}
 .trophy-filter.is-active span {color:#aad6ff;}
 .trophy-badge-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
-.trophy-badge-card {--badge-accent:#c2d4e5;position:relative;min-width:0;min-height:315px;display:flex;flex-direction:column;align-items:center;padding:16px 16px 15px;border:1px solid rgba(176,197,224,.16);border-radius:15px;background:radial-gradient(ellipse at 50% 32%,color-mix(in srgb,var(--badge-accent) 9%,transparent),transparent 58%),linear-gradient(165deg,#162236,#101927 85%);text-align:center;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;}
+.trophy-badge-card {--badge-accent:#c2d4e5;position:relative;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;padding:14px 16px;border:1px solid rgba(176,197,224,.16);border-radius:15px;background:radial-gradient(ellipse at 50% 32%,color-mix(in srgb,var(--badge-accent) 9%,transparent),transparent 58%),linear-gradient(165deg,#162236,#101927 85%);text-align:center;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;}
 .trophy-badge-card:hover {transform:translateY(-3px);border-color:color-mix(in srgb,var(--badge-accent) 53%,#566071);box-shadow:0 16px 32px rgba(0,0,0,.18);}
 .trophy-badge-card.is-locked .trophy-medallion {filter:grayscale(.9);opacity:.44;}
 .trophy-badge-card.is-locked .trophy-badge-copy {opacity:.72;}
@@ -90,14 +90,13 @@
   .trophy-slot-hint,.trophy-showcase-rarity {font-size:.59rem;}
   .trophy-medallion-showcase {width:83px;}
   .trophy-badge-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-  .trophy-badge-card {min-height:302px;padding:12px 10px;}
+  .trophy-badge-card {padding:12px;}
   .trophy-medallion {width:111px;margin:14px auto 12px;}
   .trophy-badge-copy strong {font-size:.96rem;}
   .trophy-badge-copy p,.trophy-badge-copy .trophy-badge-description {font-size:.7rem;}
 }
 @media (max-width:360px) {
   .trophy-badge-grid {grid-template-columns:1fr;}
-  .trophy-badge-card {min-height:280px;}
   .trophy-filter {gap:7px;padding:0 9px;}
 }
 @media (prefers-reduced-motion:reduce) {
@@ -317,9 +316,12 @@
 }
 .trophy-collection-feedback:empty {display:none;}
 .trophy-badge-card .trophy-badge-surface {
-  display:flex;
-  flex-direction:column;
+  position:relative;
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr);
+  grid-template-rows:auto 1fr auto;
   align-items:center;
+  gap:8px 12px;
   flex:1;
   width:100%;
   min-width:0;
@@ -331,7 +333,25 @@
   background:transparent;
   color:inherit;
   font:inherit;
-  text-align:center;
+  text-align:left;
+}
+.trophy-badge-card .trophy-badge-top,
+.trophy-badge-card .trophy-badge-bottom {grid-column:1 / -1;}
+.trophy-badge-art {position:relative;display:block;width:72px;}
+.trophy-badge-art .trophy-medallion {width:100%;margin:0;}
+.trophy-badge-card .trophy-badge-copy {
+  min-width:0;
+  margin:0;
+  align-items:flex-start;
+  justify-content:center;
+  text-align:left;
+}
+.trophy-badge-card .trophy-badge-copy strong {font-size:1rem;}
+.trophy-badge-card .trophy-badge-description {margin-top:5px;}
+.trophy-badge-card .trophy-badge-bottom {
+  min-height:25px;
+  margin-top:0;
+  padding-top:8px;
 }
 .trophy-badge-card button.trophy-badge-surface {cursor:pointer;}
 .trophy-badge-card button.trophy-badge-surface:disabled {cursor:progress;}
@@ -355,18 +375,18 @@
 .trophy-badge-card.is-equipped::after {content:none;}
 .trophy-badge-card .trophy-equipped-mark {
   position:absolute;
-  right:19px;
-  top:43px;
+  right:-3px;
+  top:-2px;
   z-index:2;
   display:grid;
   place-items:center;
-  width:29px;
+  width:22px;
   aspect-ratio:1;
   border:1px solid var(--badge-accent);
   border-radius:50%;
   background:#0c1727;
   color:var(--badge-accent);
-  font:900 1rem/1 Inter,sans-serif;
+  font:900 .8rem/1 Inter,sans-serif;
   box-shadow:0 0 12px color-mix(in srgb,var(--badge-accent) 20%,transparent);
   pointer-events:none;
 }
@@ -375,8 +395,9 @@
 }
 @media (max-width:760px) {
   .trophy-room-main .trophy-collection {padding-top:0;}
-  .trophy-badge-card .trophy-equipped-mark {right:13px;top:37px;width:26px;}
-  .trophy-badge-card .trophy-badge-bottom {flex-wrap:wrap;justify-content:center;}
+  .trophy-badge-card .trophy-badge-surface {grid-template-columns:64px minmax(0,1fr);gap:8px 10px;}
+  .trophy-badge-art {width:64px;}
+  .trophy-badge-card .trophy-badge-bottom {flex-wrap:wrap;justify-content:space-between;}
 }
 
 /* Preview-only try-on does not imply a server-awarded badge. */
@@ -480,21 +501,21 @@
   scrollbar-color:rgba(111,164,215,.4) transparent;
   padding:4px 3px 12px;
 }
-.trophy-badge-rail>.trophy-badge-card{width:100%;scroll-snap-align:start;min-height:315px}
+.trophy-badge-rail>.trophy-badge-card{width:100%;scroll-snap-align:start;min-height:0;border-radius:12px}
+.trophy-badge-rail>.trophy-badge-card::after{content:none}
 .trophy-badge-rail::-webkit-scrollbar{height:6px}
 .trophy-badge-rail::-webkit-scrollbar-thumb{border-radius:20px;background:rgba(111,164,215,.4)}
 .trophy-badge-rail:focus-visible{outline:2px solid #81d7f9;outline-offset:3px;border-radius:8px}
 @media(max-width:760px){
   .trophy-badge-grid.trophy-badge-rail{
-    grid-auto-columns:clamp(210px,72%,280px);
+    grid-auto-columns:clamp(260px,86%,320px);
     gap:11px;
   }
-  .trophy-badge-rail>.trophy-badge-card{min-height:300px}
   .trophy-badge-section{gap:12px}
 }
 @media(max-width:360px){
   .trophy-badge-grid.trophy-badge-rail{
     grid-template-columns:none;
-    grid-auto-columns:clamp(205px,79%,245px);
+    grid-auto-columns:clamp(245px,88%,280px);
   }
 }

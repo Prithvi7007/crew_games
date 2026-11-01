@@ -42,14 +42,13 @@ def test_locked_badges_reveal_identity_and_artwork():
     assert "badge.earned" in source
 
 
-def test_rarity_is_distinct_without_changing_mobile_card_dimensions():
+def test_rarity_frames_remain_distinct():
     css = CSS.read_text(encoding="utf-8")
     for rarity in ("common", "rare", "epic", "legendary"):
         assert f".trophy-badge-card.trophy-rarity-{rarity}" in css
     assert "var(--rarity-edge)" in css
     assert "var(--rarity-halo)" in css
     assert ".trophy-badge-card.is-mysterious" in css
-    assert ".trophy-badge-card {min-height:302px;padding:12px 10px;}" in css
 
 
 def test_game_result_uses_only_real_cinematic_unlocks():

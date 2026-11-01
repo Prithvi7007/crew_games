@@ -55,7 +55,6 @@ def test_each_section_is_a_single_scrollable_row_with_its_own_heading():
     assert "overflow-x:auto" in css
     assert "scroll-snap-type:x proximity" in css
     assert "@media(max-width:760px)" in css
-    assert "grid-auto-columns:clamp(210px,72%,280px)" in css
 
 
 def test_filters_and_try_on_work_across_all_sections():
