@@ -116,7 +116,8 @@ def test_nonwinner_honors_precede_personal_story_and_winners_keep_their_reveals(
         assert all(m["winners"][0]["points"] == 100 for m in masters)
         assert [b["kind"] for b in beats[-2:]] == ["legacy", "season_two"]
         champion = build_season_rewind(winner, season)
-        assert champion["seasonSaga"]["beats"][0]["kind"] == "winner"
+        assert champion["seasonSaga"]["beats"][0]["kind"] == "champion_opening"
+        assert len(champion["seasonSaga"]["beats"][0]["visual"]["awards"]) == 5
         assert not any(b["kind"] in {"season_podium", "season_game_master"}
                        for b in champion["seasonSaga"]["beats"])
         assert recap["points"] == 40 and recap["rank"] == 2

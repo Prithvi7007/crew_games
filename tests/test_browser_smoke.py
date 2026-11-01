@@ -683,7 +683,7 @@ def test_login_rewind_autoplays_once_and_skip_returns_to_home(ui, app, monkeypat
     page.emulate_media(reduced_motion="no-preference")
     page.goto(base_url + "/home")
     page.wait_for_url("**/rewind?intro=1")
-    page.locator(".rc-is-playing .champion-winner").wait_for()
+    page.locator(".rc-is-playing .champion-opening").wait_for()
     assert page.get_by_role("button", name="BEGIN YOUR REWIND").count() == 0
     skip = page.get_by_role("button", name="SKIP REWIND", exact=False)
     assert skip.is_visible()
@@ -718,14 +718,79 @@ def test_login_rewind_reduced_motion_starts_with_readable_manual_chapters(ui, ap
     page.emulate_media(reduced_motion="reduce")
     page.goto(base_url + "/home")
     page.wait_for_url("**/rewind?intro=1")
-    page.locator(".champion-winner.is-reduced").wait_for()
+    page.locator(".champion-opening.is-reduced").wait_for()
     assert page.locator(".champion-name").evaluate("el => getComputedStyle(el).opacity") == "1"
     assert page.locator(".rc-is-playing").count() == 0
     assert page.get_by_role("button", name="EXPLORE YOUR STORY").count() == 0
+    assert page.locator(".champion-opening-award").count() == 2
     page.get_by_role("button", name="NEXT", exact=False).click()
-    page.locator(".champion-closeup").wait_for()
+    page.locator(".rc-podium").wait_for()
+    assert page.locator(".champion-closeup").count() == 0
     page.get_by_role("button", name="SKIP REWIND", exact=False).click()
     page.wait_for_url("**/home")
+
+
+@pytest.mark.parametrize("viewport,reduced", [
+    ({"width": 1440, "height": 900}, False),
+    ({"width": 390, "height": 844}, False),
+    ({"width": 390, "height": 844}, True),
+])
+def test_combined_champion_opening_shows_all_titles_once_and_preserves_playback(ui, app, monkeypatch, viewport, reduced):
+    from datetime import date
+    from app.championships import finalize_season_championships
+    from app.db import finalize_game_stats, get_profile_by_username, get_season_for_date, profile_user_key
+
+    page, base_url = ui
+    with app.app_context():
+        pid = int(get_profile_by_username("BrowserTester")["id"])
+        for game, day in (("mystery", "2026-10-19"), ("trivia", "2026-10-20"),
+                          ("word", "2026-10-21"), ("tick_tock", "2026-10-22")):
+            finalize_game_stats(profile_user_key(pid), game, day, 100, True)
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 11, 2))
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="reduce" if reduced else "no-preference")
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(base_url + "/rewind")
+    page.locator(".champion-cover").wait_for()
+    assert page.locator(".champion-opening").count() == 0
+    page.get_by_role("button", name="EXPLORE YOUR STORY" if reduced else "BEGIN YOUR REWIND").click()
+    stage = page.locator(".champion-opening")
+    stage.wait_for()
+    if not reduced:
+        page.wait_for_timeout(1300)
+        stage.hover()
+        page.get_by_role("button", name="PAUSE", exact=False).click()
+        parts = stage.locator(".champion-line-inner, .champion-opening-award, .champion-badge-lift")
+        before = parts.evaluate_all("els => els.map(el => [getComputedStyle(el).transform, getComputedStyle(el).opacity])")
+        page.wait_for_timeout(450)
+        assert before == parts.evaluate_all("els => els.map(el => [getComputedStyle(el).transform, getComputedStyle(el).opacity])")
+        page.get_by_role("button", name="PLAY", exact=False).click()
+    page.wait_for_function("document.querySelectorAll('.champion-opening-award').length === 5 && [...document.querySelectorAll('.champion-opening-award')].every(el => +getComputedStyle(el).opacity === 1)")
+    assert stage.locator(".champion-name").inner_text() == "BrowserTester"
+    assert stage.inner_text().count("BrowserTester") == 1
+    assert stage.locator(".champion-opening-award h2").all_text_contents() == [
+        "Season Champion", "Season Trivia Master", "Season Wordle Master",
+        "Season Mystery Master", "Season Tick-Tock Master",
+    ]
+    assert stage.locator(".trophy-medallion").count() == 5
+    for box in stage.locator(".champion-opening-award").all():
+        bounds = box.bounding_box()
+        assert bounds and 0 <= bounds["x"] < bounds["x"] + bounds["width"] <= viewport["width"]
+    if not reduced:
+        stage.hover()
+        page.get_by_role("button", name="PAUSE", exact=False).click()
+    page.keyboard.press("ArrowRight")
+    page.locator(".rc-podium").wait_for()
+    stage.wait_for(state="detached")
+    assert page.locator(".champion-closeup").count() == 0
+    page.keyboard.press("ArrowLeft")
+    page.locator(".champion-opening.is-still").wait_for()
+    assert page.locator(".champion-opening-award").count() == 5
+    assert page.locator(".champion-cover").count() == 0
+    assert not errors
 
 
 @pytest.mark.parametrize("viewport,reduced", [

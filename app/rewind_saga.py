@@ -72,6 +72,7 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
         if any(int(w["profile_id"]) == me for w in official_winners.get(code, []))
         and code in awarded_codes
     ]
+    championship_awards = []
     for code in official_codes:
         badge = BADGES_BY_CODE[code]
         title = GAME_TITLES[code]
@@ -84,20 +85,22 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
                     "word": "season_wordle_master",
                     "tick_tock": "season_tick_tock_master",
                 }[key]))
+        winner = next(w for w in champions if int(w["profile_id"]) == me)
+        championship_awards.append({
+            "title": title, "gameKey": game, "shared": shared,
+            "points": int(winner["points"]),
+            "badge": {"code": badge.code, "name": badge.name,
+                      "rarity": badge.rarity, "gameKey": game,
+                      "vertical": badge.vertical},
+        })
+    if championship_awards:
         chapters.append(beat(
-            "winner", "YOUR MOMENT OF GLORY", title, "01",
-            ("You earned the title alongside another leader." if shared else
-             "The season's highest official total was yours."),
-            "Award verified against the approved Season 01 championship winner snapshot.",
-            {"badgeCode": code, "gameKey": game, "shared": shared},
-        ))
-        chapters.append(beat(
-            "winner_badge", "A TITLE TO REMEMBER", badge.name, "S01",
-            "An official CREW Season 01 championship badge, earned and preserved.",
-            "Official season-specific championship badge verified against the finalization snapshot.",
-            {"badge": {"code": badge.code, "name": badge.name,
-                        "rarity": badge.rarity, "gameKey": game,
-                        "vertical": badge.vertical}},
+            "champion_opening", "YOUR CHAMPIONSHIP SEASON",
+            championship_awards[0]["title"] if len(championship_awards) == 1 else "Your championship season.",
+            len(championship_awards), "Every championship you earned, together in one celebration.",
+            "Each title requires approved championship snapshot membership and an earned "
+            "season badge. Winning points and shared titles come from that snapshot.",
+            {"awards": championship_awards, "gameKey": championship_awards[0]["gameKey"]},
         ))
     if not official_codes:
         is_official_winner = any(
