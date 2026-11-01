@@ -70,7 +70,8 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
             assert data["rewind"]["finalized"] is True
             assert data["rewind"]["username"] == "LaunchChampion"
             kinds = [b["kind"] for b in data["rewind"]["seasonSaga"]["beats"]]
-            assert kinds[:2] == ["winner", "winner_badge"]
+            assert kinds[0] == "champion_opening"
+            assert not any(kind in {"winner", "winner_badge"} for kind in kinds)
             assert kinds[-2:] == ["legacy", "season_two"]
             for file in ("rewind-director.css", "rewind-cinema.css", "rewind-saga.css"):
                 assert (f'/static/css/{file}?v={static_asset_version("css/"+file)}').encode() in response.data
@@ -83,7 +84,7 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
             login(client, runner)
             r = state(client.get("/rewind"))["rewind"]
             assert r["username"] == "LaunchRunner" and r["points"] == 70
-            assert r["seasonSaga"]["beats"][0]["kind"] != "winner"
+            assert r["seasonSaga"]["beats"][0]["kind"] != "champion_opening"
 
             login(client, newcomer)
             r = state(client.get("/rewind"))["rewind"]
@@ -112,4 +113,3 @@ def test_public_cinema_exit_and_fingerprint_in_head():
     for name in ("rewind-director.css", "rewind-cinema.css", "rewind-saga.css"):
         assert name in head
         assert f'<link rel="stylesheet" href="/static/css/{name}"/>' not in film
-

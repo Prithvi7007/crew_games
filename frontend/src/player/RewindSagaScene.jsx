@@ -2,6 +2,7 @@ import React, {useRef, useState} from 'react';
 import {m, useMotionValueEvent, useTransform} from 'motion/react';
 import {BadgeMedallion} from './TrophyRoom';
 import ChampionReveal from './ChampionReveal';
+import ChampionOpening from './ChampionOpening';
 import {SeasonPodium, SeasonGameMaster} from './SeasonHonors';
 import {Reveal} from './RewindMotion';
 import {COMPARE_STEP_MS, comparisonIndex, comparisonSeek} from './rewindTimeline';
@@ -132,6 +133,7 @@ function Legacy({v,recap}){
 export default function RewindSagaScene({beat,recap,reduce,playing,time,seek}){
  const v=beat.visual||{};
  switch(beat.kind){
+  case 'champion_opening':return <ChampionOpening beat={beat} recap={recap} reduce={reduce} playing={playing} time={time}/>;
   case 'winner':
   case 'winner_badge':return <ChampionReveal beat={beat} recap={recap} reduce={reduce} playing={playing} time={time}/>;
   case 'season_podium':return <SeasonPodium visual={v} time={time} reduce={reduce}/>;

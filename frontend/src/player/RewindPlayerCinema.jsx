@@ -101,8 +101,8 @@ export default function RewindPlayerCinema({data}){
   const scene=beats[index];
   const last=started&&index===beats.length-1;
   const finalBadge=last&&scene?.kind==='winner_badge';
-  const showCover=saga&&['winner','season_podium','season_game_master'].includes(beats[0]?.kind)&&!started&&index===0;
-  const championScene=saga&&['winner','winner_badge'].includes(scene?.kind);
+  const showCover=saga&&['champion_opening','winner','season_podium','season_game_master'].includes(beats[0]?.kind)&&!started&&index===0;
+  const championScene=saga&&['champion_opening','winner','winner_badge'].includes(scene?.kind);
   const previewPlayer=data.rewindPreviewPlayer;
   const championPreview=data.rewindChampionPreview;
   const combinedPreview=data.rewindCombinedPreview;
@@ -274,4 +274,3 @@ export default function RewindPlayerCinema({data}){
     </main>
   </MotionConfig></LazyMotion>;
 }
-

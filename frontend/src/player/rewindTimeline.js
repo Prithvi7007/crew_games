@@ -4,6 +4,8 @@ export const COMPARE_STEP_MS=3800;
 const READABLE_COMPARE_MS=1800;
 
 export function chapterDuration(beat) {
+  if(beat?.kind==='champion_opening')return 9800+Math.min(2400,
+    Math.max(0,(beat.visual?.awards||[]).length-1)*600);
   if(beat?.kind==='winner')return 9800;
   if(beat?.kind==='winner_badge')return 8200;
   if(beat?.kind==='season_podium')return 10000+Math.min(6000,
@@ -41,4 +43,3 @@ export function runChapterClock({elapsed,duration,animate,schedule,cancel,onFini
   },remaining);
   return ()=>{active=false;cancel(timer);animation?.stop();};
 }
-

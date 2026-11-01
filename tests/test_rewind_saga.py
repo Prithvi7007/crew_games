@@ -56,9 +56,10 @@ def test_championship_claim_requires_approved_winner_and_badge():
         weeks_total=6,names={1:"x"},official_winners=winners,
         awarded_codes={"season_champion","season_trivia_master","brainiac"})
     beats=saga["beats"]
-    assert [b["kind"] for b in beats[:4]]==["winner","winner_badge","winner","winner_badge"]
-    assert [b["visual"]["badge"]["code"] for b in beats if b["kind"]=="winner_badge"]==[
+    assert beats[0]["kind"]=="champion_opening"
+    assert [a["badge"]["code"] for a in beats[0]["visual"]["awards"]]==[
         "season_champion","season_trivia_master"]
+    assert not any(b["kind"] in ("winner","winner_badge") for b in beats)
     vault=next(b for b in beats if b["kind"]=="trophy_vault")
     assert set(vault["visual"]["celebrated"])=={"season_champion","season_trivia_master"}
     assert len(vault["visual"]["badges"])==3
