@@ -1,24 +1,4 @@
 /* CREW REWIND · Season One: a self-contained, mobile-first story presentation. */
-.rewind-home-invite {
-  display: flex; align-items: center; justify-content: space-between; gap: 22px;
-  margin: 0 0 28px; padding: 19px 24px; border-radius: 16px;
-  color: #e8f6ff; text-decoration: none;
-  border: 1px solid rgba(154,214,255,.42);
-  background: radial-gradient(ellipse at 90% 4%, color-mix(in srgb, var(--crew-game-word, #55b9ff) 19%, transparent), transparent 64%), linear-gradient(115deg,#101b24,#071017);
-  box-shadow: 0 12px 34px rgba(0,0,0,.14);
-  transition: border-color .2s, transform .2s;
-}
-.rewind-home-invite:hover { border-color: #99e5ff; transform: translateY(-2px); }
-.rewind-home-copy { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.rewind-home-copy small { color: #8fe5ff; letter-spacing: .16em; font-weight: 900; font-size: 10px; }
-.rewind-home-copy strong { color: #fff; font-size: clamp(19px,3vw,28px); font-weight: 1000; letter-spacing: -.035em; }
-.rewind-home-copy em { font-style: normal; color: var(--crew-game-mystery, #55e6ac); }
-.rewind-home-copy > span { color: #afc8e0; font-size: 13px; }
-.rewind-home-invite > b { flex-shrink: 0; color: var(--crew-game-mystery, #55e6ac); font-size: 12px; white-space: nowrap; }
-@media (max-width: 600px) {
-  .rewind-home-invite { padding: 17px; gap: 12px; align-items: flex-start; }
-  .rewind-home-invite > b { padding-top: 3px; }
-}
 .crew-rewind {
   /* The official CREW design tokens own Rewind's colors. */
   --rewind-ink: var(--crew-color-bg, #02070b);
@@ -688,3 +668,4 @@
 }
 /* Keep the real badge artwork centered despite older trophy layout rules. */
 .rewind-badges .rewind-featured-badge .rewind-trophy-spotlight { display:grid; place-items:center; flex-direction:initial; gap:0; }
+
