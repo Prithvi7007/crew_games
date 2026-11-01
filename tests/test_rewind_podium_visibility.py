@@ -7,7 +7,7 @@ from app.rewind_saga import build_season_saga
 
 
 def story(pid, rows, *, winners=None, awarded=(), names=None):
-    names = names or {1: "Viewer", 2: "A", 3: "B", 4: "C", 5: "Zero", 6: "NoHistory"}
+    names = names or {1: "Viewer", 2: "A", 3: "B", 4: "C", 5: "Zero", 6: "NoHistory", 7: "LowScorer"}
     return build_season_saga(
         {"username": names[pid], "finalized": bool(winners), "rank": None,
          "signature": None, "analyticsStory": {"cards": []}},
@@ -45,10 +45,11 @@ def test_overall_podium_is_present_once_for_champion_master_and_nonwinner(pid):
         assert [b["kind"] for b in beats[:5]] == ["season_podium", *["season_game_master"] * 3, "welcome"]
 
 
-def test_weekly_podium_is_not_limited_by_frequency_rank_and_zero_is_honest():
+def test_weekly_podium_is_not_limited_by_frequency_rank_and_skips_empty_records():
     rows = []
     for week in range(6):
         scores = {1: 100, 2: 90, 3: 80, 4: 70, 5: 0} if week == 0 else {1: 10, 2: 100, 3: 90, 4: 80, 5: 0}
+        scores[7] = 1
         for pid, score in scores.items():
             rows.append({"profile_id": pid, "game_key": "trivia", "score": score,
                          "game_date": (date(2026, 9, 22) + timedelta(weeks=week)).isoformat()})
@@ -56,8 +57,7 @@ def test_weekly_podium_is_not_limited_by_frequency_rank_and_zero_is_honest():
     podium = next(b["visual"] for b in acts if b["kind"] == "podium")
     assert podium["count"] == 1 and podium["frequencyRank"] == 4
     assert podium["weeks"] == [{"week": 1, "place": 1, "points": 100}]
-    zero = next(b for b in story(5, rows) if b["kind"] == "podium")
-    assert zero["visual"]["count"] == 0
-    assert zero["visual"]["frequencyRank"] is None and zero["visual"]["weeks"] == []
-    assert "kept showing up at the top" not in zero["headline"]
-    assert not any(b["kind"] == "podium" for b in story(6, rows))
+    for pid in (5, 6, 7):
+        beats = story(pid, rows)
+        assert not any(b["kind"] == "podium" for b in beats)
+        assert [b["kind"] for b in beats[-2:]] == ["legacy", "season_two"]
