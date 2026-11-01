@@ -204,8 +204,10 @@ function BadgeCard({ badge, seasonNumber, isEquipped, saving, onSelect, previewM
       } : {})}
     >
       <span className="trophy-badge-top"><span>{badge.vertical === 'game_mastery' ? 'GAME MASTERY' : badge.vertical === 'leaderboard' ? 'RIVALRY' : badge.vertical.toUpperCase()}</span><span className="trophy-rarity-label">{badge.rarity.toUpperCase()}</span></span>
-      <BadgeMedallion badge={badge} concealed={hidden} seasonNumber={seasonNumber}/>
-      {isEquipped ? <span className="trophy-equipped-mark" aria-hidden="true">✓</span> : null}
+      <span className="trophy-badge-art">
+        <BadgeMedallion badge={badge} concealed={hidden} seasonNumber={seasonNumber}/>
+        {isEquipped ? <span className="trophy-equipped-mark" aria-hidden="true">✓</span> : null}
+      </span>
       <span className="trophy-badge-copy"><strong>{hidden ? 'Undiscovered achievement' : badge.name}</strong><span className="trophy-badge-description">{hidden ? 'Earn this badge to reveal its identity and story.' : DETAILS[badge.code]}</span></span>
       <span className="trophy-badge-bottom"><span>{previewMode ? (isEquipped ? '✓ PREVIEWING' : '✦ TRY ON') : isEquipped ? '✓ EQUIPPED' : canEquip ? '✦ EQUIP' : '◇ LOCKED'}</span>{badge.earned && badge.sourceDate ? <time dateTime={badge.sourceDate}>{badge.sourceDate}</time> : null}</span>
     </Surface>
