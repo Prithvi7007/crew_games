@@ -1,4 +1,4 @@
-"""A previous-season Rewind belongs only to accounts that played that season."""
+"""New-season accounts see previous-season honors without a personal recap."""
 import json
 import re
 from datetime import date, datetime, time, timedelta, timezone
@@ -42,6 +42,13 @@ def setup_player(*, joined_offset=-1, played=True, role="player"):
         get_db().execute("UPDATE game_completions SET completed_at = ? WHERE profile_id = ?",
                          ((boundary + timedelta(hours=2)).replace(tzinfo=None).isoformat(), pid))
         get_db().commit()
+    with patch("app.db._db_timestamp", return_value="2026-09-21T12:00:00"):
+        champion = create_profile("SeasonOneChampion", generate_password_hash("test-password"),
+                                  "⭐", generate_password_hash("champion-key"))
+    finalize_game_stats(profile_user_key(champion["id"]), "trivia", "2026-10-20", 100, True)
+    get_db().execute("UPDATE game_completions SET completed_at = ? WHERE profile_id = ?",
+                     ((boundary + timedelta(hours=2)).replace(tzinfo=None).isoformat(), champion["id"]))
+    get_db().commit()
     frozen_at = boundary + timedelta(days=2)
     with patch("app.championships.datetime") as clock:
         clock.now.return_value = frozen_at
@@ -63,9 +70,9 @@ def test_season_membership_controls_login_navigation_and_direct_replay(app, clie
     with app.app_context():
         pid, season = setup_player(joined_offset=joined_offset)
         response = sign_in(client)
-        assert response.location == ("/rewind?intro=1" if eligible else "/home")
+        assert response.location == "/rewind?intro=1"
         nav = state(client.get("/games"))["shell"]
-        assert nav["rewindUrl"] == ("/rewind" if eligible else None)
+        assert nav["rewindUrl"] == ("/rewind" if eligible else "/rewind?honors=1")
         manual = client.get("/rewind")
         if eligible:
             assert manual.status_code == 200
@@ -73,33 +80,49 @@ def test_season_membership_controls_login_navigation_and_direct_replay(app, clie
             assert state(manual)["rewind"]["seasonSaga"]["beats"][0]["kind"] == "welcome"
             assert state(client.get("/rewind?intro=1"))["rewindLoginLaunch"] is not None
         else:
-            assert manual.status_code == 302 and manual.location == "/home"
-            assert client.get("/rewind?intro=1").location == "/home"
-            # Even a leftover premiere session cannot turn this account into a participant.
+            assert manual.status_code == 200
+            honors = state(manual)["rewind"]["seasonSaga"]
+            assert honors["honorsOnly"] is True
+            assert [b["kind"] for b in honors["beats"]] == ["season_podium", "season_game_master"]
+            assert honors["player"] == "THE CREW"
+            assert state(client.get("/rewind?intro=1"))["rewindLoginLaunch"] is not None
+            assert not rewind_completed(pid)
             with client.session_transaction() as session:
-                session["rewind_login_intro"] = {"profile_id": pid, "season_id": season["id"],
-                                                "return_url": "/home"}
                 token = session["csrf_token"]
-            assert client.get("/rewind?intro=1").location == "/home"
             assert client.post("/api/rewind/completion", json={"action": "finished"},
-                               headers={"X-CSRFToken": token}).status_code == 404
-        assert not rewind_completed(pid)
+                               headers={"X-CSRFToken": token}).status_code == 200
+            assert rewind_completed(pid)
+            assert sign_in(client).location == "/home"
+            assert state(client.get("/rewind"))["rewind"]["seasonSaga"]["honorsOnly"] is True
+        if eligible:
+            assert not rewind_completed(pid)
 
 
-def test_an_older_account_without_eligible_play_gets_no_empty_rewind(app, client):
+def test_an_older_account_without_eligible_play_gets_honors_without_an_empty_story(app, client):
     with app.app_context():
         setup_player(played=False)
-        assert sign_in(client).location == "/home"
-        assert state(client.get("/games"))["shell"]["rewindUrl"] is None
-        assert client.get("/rewind").location == "/home"
+        assert sign_in(client).location == "/rewind?intro=1"
+        assert state(client.get("/games"))["shell"]["rewindUrl"] == "/rewind?honors=1"
+        assert state(client.get("/rewind"))["rewind"]["seasonSaga"]["honorsOnly"] is True
 
 
-def test_new_staff_account_keeps_explicit_film_previews_without_a_personal_premiere(app, client):
+def test_new_staff_account_keeps_explicit_film_previews_without_a_personal_story(app, client):
     with app.app_context():
         setup_player(joined_offset=1, role="owner")
-        assert sign_in(client).location == "/home"
-        assert state(client.get("/games"))["shell"]["rewindUrl"] is None
+        assert sign_in(client).location == "/rewind?intro=1"
+        assert state(client.get("/games"))["shell"]["rewindUrl"] == "/rewind?honors=1"
         response = client.get("/rewind?preview=1&prototype=1&story=5")
         assert response.status_code == 200
         assert state(response)["rewindFilmPrototype"] is True
         assert state(response)["rewindLoginLaunch"] is None
+
+
+def test_empty_previous_season_does_not_launch_an_empty_honors_film(app, client):
+    with app.app_context():
+        create_profile("EligibilityPlayer", generate_password_hash("test-password"),
+                       "⭐", generate_password_hash("test-key"))
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=season["end_date"] + timedelta(days=1))
+        assert sign_in(client).location == "/home"
+        assert state(client.get("/games"))["shell"]["rewindUrl"] is None
+        assert client.get("/rewind").location == "/home"

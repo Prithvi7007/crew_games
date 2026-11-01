@@ -6,7 +6,7 @@ from flask import current_app, request, session
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.db import _db_timestamp, get_db
-from app.rewind_eligibility import has_season_rewind
+from app.rewind_eligibility import has_season_rewind, has_season_honors
 
 REWIND_TOUR_KEY = "season_1_rewind_2026"
 SESSION_KEY = "rewind_login_intro"
@@ -36,14 +36,17 @@ def _eligible_season(profile_id):
     row = get_db().execute(
         """SELECT s.id, s.start_date, s.end_date, f.snapshot_json
            FROM seasons s JOIN season_badge_finalizations f ON f.season_id = s.id
+           JOIN profiles p ON p.id = ?
            WHERE s.season_number = 1""",
+        (int(profile_id),),
     ).fetchone()
     if row is None:
         return None
-    cutoff = json.loads(row["snapshot_json"]).get("score_cutoff")
+    snapshot = json.loads(row["snapshot_json"])
+    cutoff = snapshot.get("score_cutoff")
     return row if has_season_rewind(
         profile_id, row["start_date"], row["end_date"], cutoff,
-    ) else None
+    ) or has_season_honors(snapshot) else None
 
 
 def _tracking_failed():

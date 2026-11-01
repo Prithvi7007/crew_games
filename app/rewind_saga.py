@@ -65,7 +65,8 @@ def personal_welcome(player):
 
 
 def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
-                      names, official_winners, awarded_codes, benchmark_profile_ids=None):
+                      names, official_winners, awarded_codes, benchmark_profile_ids=None,
+                      honors_only=False):
     """Personalize all nine conceptual acts; omit unsupported accolades."""
     me = int(profile_id)
     peer_ids = None if benchmark_profile_ids is None else set(benchmark_profile_ids)
@@ -118,7 +119,7 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
                       "rarity": badge.rarity, "gameKey": game,
                       "vertical": badge.vertical},
         })
-    if championship_awards:
+    if championship_awards and not honors_only:
         chapters.append(beat(
             "champion_opening", "YOUR CHAMPIONSHIP SEASON",
             championship_awards[0]["title"] if len(championship_awards) == 1 else "Your championship season.",
@@ -141,7 +142,7 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
                 "a podium place; all ties within the Top 3 places are shown.",
                 {"podium": honors["podium"]},
             ))
-        if not is_official_winner:
+        if honors_only or not is_official_winner:
             for master in honors["masters"]:
                 chapters.append(beat(
                     "season_game_master", "THE GAME MASTERS", master["badge"]["name"],
@@ -151,6 +152,12 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
                     "championship snapshot. Shared first places retain every winner.",
                     master,
                 ))
+    if honors_only:
+        return {
+            "version": 3, "preview": False, "player": "THE CREW",
+            "honorsOnly": True, "beats": chapters, "count": len(chapters),
+            "method": "Approved Season 01 championship snapshot. No personal recap.",
+        }
     if not official_codes:
         chapters.append(personal_welcome(recap["username"]))
 

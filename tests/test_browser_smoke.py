@@ -991,7 +991,7 @@ def test_generic_cinema_completion_keeps_ending_scene_mounted(ui, app, monkeypat
     {"width": 1200, "height": 900}, {"width": 1201, "height": 900},
     {"width": 1440, "height": 900},
 ])
-def test_rewind_header_pill_keeps_champion_ceremony_without_autoplay(ui, app, monkeypatch, viewport):
+def test_rewind_header_pill_opens_personal_story_without_the_ceremony(ui, app, monkeypatch, viewport):
     from datetime import date
     from app.championships import finalize_season_championships
     from app.db import finalize_game_stats, get_profile_by_username, get_season_for_date, profile_user_key
@@ -1029,8 +1029,52 @@ def test_rewind_header_pill_keeps_champion_ceremony_without_autoplay(ui, app, mo
     pill.click()
     page.wait_for_url("**/rewind")
     beats = json.loads(page.locator("#player-state").text_content())["rewind"]["seasonSaga"]["beats"]
-    assert beats[0]["kind"] == "champion_opening"
-    assert sum(b["kind"] == "season_podium" for b in beats) == 1
+    assert beats[0]["kind"] == "welcome"
+    assert not any(b["kind"] in {"champion_opening", "season_podium", "season_game_master"} for b in beats)
     page.get_by_role("button", name="EXPLORE YOUR STORY", exact=True).click()
-    page.locator(".champion-opening").wait_for()
+    page.locator(".rc-welcome").wait_for()
+    assert page.locator(".honors-podium, .honors-master, .champion-opening").count() == 0
     assert not errors
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900}, {"width": 390, "height": 844},
+])
+def test_new_season_account_sees_only_honors_then_returns_home_once(ui, app, viewport):
+    from datetime import date, timedelta
+    from app.championships import finalize_season_championships
+    from app.db import finalize_game_stats, get_db, get_profile_by_username, get_season_for_date, profile_user_key
+    from app.rewind_login import rewind_completed
+
+    page, base_url = ui
+    with app.app_context():
+        champion = get_profile_by_username("BrowserTester")
+        finalize_game_stats(profile_user_key(champion["id"]), "trivia", "2026-10-20", 100, True)
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=season["end_date"] + timedelta(days=1))
+        new = create_profile("NewSeasonViewer", generate_password_hash("browser-test-passphrase"),
+                             "⭐", generate_password_hash("new-season-key"))
+        get_db().execute("UPDATE profiles SET created_at = ? WHERE id = ?",
+                         ((season["end_date"] + timedelta(days=2)).isoformat() + "T12:00:00", new["id"]))
+        get_db().commit()
+        pid = int(new["id"])
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="reduce")
+    page.context.clear_cookies()
+    page.goto(base_url + "/login")
+    page.locator('input[name="username"]').fill("NewSeasonViewer")
+    page.locator('input[name="password"]').fill("browser-test-passphrase")
+    page.locator('form:has(input[name="username"]) button[type="submit"]').click()
+    page.wait_for_url("**/rewind?intro=1")
+    page.locator(".honors-podium").wait_for()
+    film = json.loads(page.locator("#player-state").text_content())["rewind"]["seasonSaga"]
+    assert film["honorsOnly"] is True
+    assert [b["kind"] for b in film["beats"]] == ["season_podium", "season_game_master"]
+    assert page.locator(".rc-welcome, .rc-legacy, .rc-weekly_trend, .champion-opening").count() == 0
+    page.keyboard.press("ArrowRight")
+    page.locator(".honors-master").wait_for()
+    page.keyboard.press("ArrowRight")
+    page.wait_for_url("**/home")
+    with app.app_context():
+        assert rewind_completed(pid)
+    assert json.loads(page.locator("#player-state").text_content())["shell"]["rewindUrl"] == "/rewind?honors=1"

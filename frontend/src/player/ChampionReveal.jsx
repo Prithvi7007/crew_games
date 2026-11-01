@@ -18,11 +18,11 @@ export function championAccent(beat) {
   return COLORS[v.gameKey||v.badge?.gameKey]||'var(--crew-game-trivia,#ffbd45)';
 }
 
-export function ChampionCover({player}) {
+export function ChampionCover({player,honorsOnly=false}) {
   return <div className="champion-cover" aria-label="Rewind opening">
-    <p className="champion-cover-kicker">CREW REWIND <span>SEASON 01</span></p>
-    <h1>Every game.<br/><em>Led here.</em></h1>
-    <div className="champion-cover-footer"><span>{player}</span><small>PRESS PLAY. RELIVE YOUR SEASON.</small></div>
+    <p className="champion-cover-kicker">{honorsOnly ? 'SEASON HONORS' : 'CREW REWIND'} <span>SEASON 01</span></p>
+    <h1>{honorsOnly ? 'Meet the' : 'Every game.'}<br/><em>{honorsOnly ? 'champions.' : 'Led here.'}</em></h1>
+    <div className="champion-cover-footer"><span>{honorsOnly ? 'THE CREW' : player}</span><small>{honorsOnly ? 'CELEBRATING THE CREW.' : 'PRESS PLAY. RELIVE YOUR SEASON.'}</small></div>
   </div>;
 }
 

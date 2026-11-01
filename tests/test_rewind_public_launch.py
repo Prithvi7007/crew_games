@@ -71,10 +71,10 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
             assert data["rewind"]["finalized"] is True
             assert data["rewind"]["username"] == "LaunchChampion"
             kinds = [b["kind"] for b in data["rewind"]["seasonSaga"]["beats"]]
-            assert kinds[0] == "champion_opening"
-            assert kinds.count("season_podium") == 1
+            assert kinds[0] == "welcome"
+            assert not {"champion_opening", "season_podium", "season_game_master"} & set(kinds)
             vault = next(b for b in data["rewind"]["seasonSaga"]["beats"] if b["kind"] == "trophy_vault")
-            assert "season_champion" in vault["visual"]["celebrated"]
+            assert vault["visual"]["celebrated"] == []
             assert not any(kind in {"winner", "winner_badge"} for kind in kinds)
             assert kinds[-2:] == ["legacy", "season_two"]
             for file in ("rewind-director.css", "rewind-cinema.css", "rewind-saga.css"):
@@ -94,8 +94,10 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
             assert any(b["kind"] == "podium" for b in r["seasonSaga"]["beats"])
 
             login(client, newcomer)
-            assert client.get("/rewind").location == "/home"
-            assert state(client.get("/games"))["shell"]["rewindUrl"] is None
+            honors = state(client.get("/rewind"))["rewind"]["seasonSaga"]
+            assert honors["honorsOnly"] is True
+            assert [b["kind"] for b in honors["beats"]] == ["season_podium", "season_game_master"]
+            assert state(client.get("/games"))["shell"]["rewindUrl"] == "/rewind?honors=1"
 
             login(client, admin)
             staff = client.get("/rewind?preview=1&prototype=1&story=5&player=LaunchChampion")
@@ -135,7 +137,7 @@ def test_rewind_navigation_pill_uses_the_finalization_gate_across_player_pages(a
             assert state(client.get(url))["shell"]["rewindUrl"] == "/rewind"
 
 
-def test_game_master_manual_replay_keeps_title_and_season_podium(app, client):
+def test_game_master_manual_replay_starts_personal_and_keeps_earned_badges(app, client):
     with app.app_context():
         season = get_season_for_date(date(2026, 10, 26))
         overall = player("ReplayOverallChampion")
@@ -148,6 +150,10 @@ def test_game_master_manual_replay_keeps_title_and_season_podium(app, client):
         data = state(client.get("/rewind"))
         beats = data["rewind"]["seasonSaga"]["beats"]
         assert data["rewindLoginLaunch"] is None
-        assert beats[0]["kind"] == "champion_opening"
-        assert beats[0]["visual"]["awards"][0]["badge"]["code"] == "season_trivia_master"
-        assert sum(b["kind"] == "season_podium" for b in beats) == 1
+        assert beats[0]["kind"] == "welcome"
+        assert not any(b["kind"] in {"champion_opening", "season_podium", "season_game_master"}
+                       for b in beats)
+        vault = next(b for b in beats if b["kind"] == "trophy_vault")
+        assert any(b["code"] == "season_trivia_master" for b in vault["visual"]["badges"])
+        assert vault["visual"]["celebrated"] == []
+        assert data["rewind"]["points"] == 80

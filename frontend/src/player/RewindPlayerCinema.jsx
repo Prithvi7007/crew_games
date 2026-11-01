@@ -91,6 +91,7 @@ export default function RewindPlayerCinema({data}){
   const saga=data.rewindSeasonSagaPreview===true;
   const story=(saga?recap.seasonSaga:recap.cinematicStory)||{beats:[],player:recap.username};
   const beats=story.beats||[];
+  const honorsOnly=story.honorsOnly===true;
   const [{index,started,playing,finished},dispatch]=useReducer(playbackReducer,undefined,initialPlayback);
   const previousIndex=useRef(0);
   const direction=index>=previousIndex.current?1:-1;
@@ -148,8 +149,9 @@ export default function RewindPlayerCinema({data}){
   },[loginLaunch,reduce,begin]);
   useEffect(()=>{
     if(!finished)return;
-    void completeRewind('finished');
-  },[finished,completeRewind]);
+    if(honorsOnly){void leave('finished',back);}
+    else void completeRewind('finished');
+  },[finished,honorsOnly,leave,back,completeRewind]);
   useEffect(()=>{
     if(!chrome||!playing||evidence)return undefined;
     hideRef.current=window.setTimeout(()=>setChrome(false),3000);
@@ -171,7 +173,7 @@ export default function RewindPlayerCinema({data}){
   const controls=chrome||!playing;
   return <LazyMotion features={domAnimation} strict><MotionConfig reducedMotion="user">
     <main className={'rc-film rc-'+scene.kind+(playing?' rc-is-playing':'')+(saga?' saga-film':'')+(previewPlayers?' saga-staff-preview':'')+(championPreview?' saga-champion-demo':'')+(showCover?' rc-showing-cover':'')+(finished?' rc-is-finished':'')} style={{'--rc-light':tone[0],'--rc-glow':tone[1],...(championScene?{'--champion-accent':championAccent(scene)}:{})}}
-      aria-label={(championPreview?'Champion animation preview for ':'Season 01 cinematic Rewind for ')+story.player}
+      aria-label={honorsOnly?'Season 01 champions and podium':(championPreview?'Champion animation preview for ':'Season 01 cinematic Rewind for ')+story.player}
       onPointerMove={e=>{if(e.pointerType==='mouse')reveal();}}
       onPointerDown={e=>{if(e.pointerType==='touch'&&!e.target.closest('button,a,select'))setChrome(v=>!v);}}
       onFocusCapture={reveal}>
@@ -203,12 +205,12 @@ export default function RewindPlayerCinema({data}){
         <RewindChapter key={started?'chapter-'+index:'cover'} beat={scene} direction={direction}
           playing={started&&playing&&!evidence} reduce={reduce} finished={finished} onFinish={forward}>
           {({time,seek})=>{
-            const content=showCover?<ChampionCover player={recap.username}/>:saga?
+            const content=showCover?<ChampionCover player={recap.username} honorsOnly={honorsOnly}/>:saga?
               <RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing} time={time} seek={seek}/>
               :<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>;
             return last?<div className="rc-finale-content">
               {content}
-              {finished&&<div className="rc-finale-actions">
+              {finished&&!honorsOnly&&<div className="rc-finale-actions">
                 <button type="button" className="rc-start" onClick={restart}>↻ WATCH AGAIN</button>
                 <a className="rc-finale-link" href="/home" onClick={event=>{event.preventDefault();void leave('finished','/home');}}>HOME</a>
               </div>}
@@ -219,9 +221,9 @@ export default function RewindPlayerCinema({data}){
 
       {!loginLaunch&&!started&&index===0&&<div className="rc-start-wrap">
         <button type="button" className="rc-start" onClick={begin}>
-          <span className="rc-play-symbol">▶</span> {reduce?'EXPLORE YOUR STORY':'BEGIN YOUR REWIND'}
+          <span className="rc-play-symbol">▶</span> {honorsOnly?'MEET THE CHAMPIONS':reduce?'EXPLORE YOUR STORY':'BEGIN YOUR REWIND'}
         </button>
-        <span className="rc-start-hint">A STORY WRITTEN BY YOUR GAMES</span>
+        <span className="rc-start-hint">{honorsOnly?'THE SEASON 01 HONORS':'A STORY WRITTEN BY YOUR GAMES'}</span>
       </div>}
       <AnimatePresence>
         {controls&&started&&(!last||!finished)&&<m.div className="rc-chrome" initial={{opacity:0,y:12}} animate={{opacity:1,y:0}}

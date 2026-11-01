@@ -29,3 +29,9 @@ def has_season_rewind(profile_id, season_start, season_end, score_cutoff):
              )""",
         (int(profile_id), next_day, str(season_start), str(season_end), score_cutoff),
     ).fetchone())
+
+
+def has_season_honors(snapshot):
+    """An approved, nonempty championship snapshot can welcome new CREW members."""
+    return bool(snapshot.get("score_cutoff")
+                and snapshot.get("winners", {}).get("season_champion"))

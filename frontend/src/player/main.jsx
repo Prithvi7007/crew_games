@@ -319,13 +319,14 @@ function NavIcon({ name }) {
 function AppHeader({ shell }) {
   const active = shell?.active;
   const trophiesVisible = shell?.trophiesVisible !== false;
+  const honorsOnly = shell?.rewindUrl?.includes('honors=1');
   const link = (key, label, href, mobile=false) => <a className={active === key ? 'active' : ''} aria-current={active === key ? 'page' : undefined} href={href}>{mobile ? <span className="nav-icon" aria-hidden="true"><NavIcon name={key}/></span> : null}{mobile ? <strong>{label}</strong> : null}{mobile ? null : label}</a>;
   return <>
     <header className={`glass-nav app-nav${shell?.rewindUrl ? ' has-rewind' : ''}`}>
       <a className="nav-brand v13-brand" href="/home" aria-label="CREW home"><span className="v13-brand-copy"><strong>CREW</strong><small><span>PLAY TOGETHER</span><span>GO FURTHER</span></small></span></a>
       <nav className="desktop-nav" aria-label="Primary navigation">{link('home','Home','/home')}{link('games','Games','/games')}{link('leaderboard','Rankings','/leaderboard')}{trophiesVisible ? link('trophies','Badges','/trophies') : null}</nav>
       <div className="crew-nav-account">
-        {shell?.rewindUrl ? <a className="crew-rewind-pill" href={shell.rewindUrl} aria-label={shell.rewindUrl.includes('preview=1') ? 'Preview your Season 1 Rewind' : 'Watch your Season 1 Rewind'}><span aria-hidden="true">↺</span>Rewind <span className="crew-rewind-season">S01</span></a> : null}
+        {shell?.rewindUrl ? <a className="crew-rewind-pill" href={shell.rewindUrl} aria-label={shell.rewindUrl.includes('preview=1') ? 'Preview your Season 1 Rewind' : honorsOnly ? 'Watch the Season 1 champions and podium' : 'Watch your Season 1 Rewind'}><span aria-hidden="true">↺</span>{honorsOnly ? 'Honors' : 'Rewind'} <span className="crew-rewind-season">S01</span></a> : null}
         <AccountMenu user={shell?.user ? { ...shell.user, equippedBadge: shell.userEquippedBadge } : null} trophiesVisible={trophiesVisible}/>{shell?.navPoints !== null && shell?.navPoints !== undefined ? <span className="crew-points-chip" aria-label={`${shell.navPoints} points this week`}><span aria-hidden="true">★</span><strong>{shell.navPoints}</strong><small>pts</small></span> : null}</div>
     </header>
     <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{link('home','Home','/home',true)}{link('games','Games','/games',true)}{link('leaderboard','Rankings','/leaderboard',true)}{trophiesVisible ? link('trophies','Badges','/trophies',true) : null}</nav>
