@@ -170,7 +170,7 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
     )
     podium_count = len(podiums[me])
     podium_rank = frequencies.index(me) + 1 if me in frequencies else None
-    if any(w["played"] for w in weekly):
+    if podium_count > 0:
         chapters.append(beat(
             "podium", "YOUR WEEKLY PODIUM", "Your weekly Top 3 finishes.",
             podium_count, f"{podium_count} weekly Top 3 finishes across {weeks_total} scheduled weeks.",
