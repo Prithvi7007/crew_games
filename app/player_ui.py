@@ -8,6 +8,9 @@ from pathlib import Path
 from flask import render_template, request
 
 from app.badge_display import equipped_badge_for_viewer
+from app.db import list_seasons
+from app.schedule import crew_today
+from app.season_rewind import rewind_url
 from app.trophy_access import trophies_visible_to, trophy_preview_enabled
 from app.trophy_tour import tour_for_player
 
@@ -65,6 +68,10 @@ def render_player(page, title, body_class, payload, user, nav_points=None):
             "role": user.get("role", "player"),
         },
         "navPoints": nav_points,
+        "rewindUrl": rewind_url(
+            next((season for season in list_seasons(crew_today())
+                  if season["number"] == 1), None),
+            role=user.get("role", "player")),
         "trophiesVisible": trophies_visible_to(user),
         # Owner/admin-only visual lab: never changes game state or rules.
         "gameplayPreviewEnabled": bool(
@@ -91,3 +98,4 @@ def render_player(page, title, body_class, payload, user, nav_points=None):
         saga_css_version=(static_asset_version("css/rewind-saga.css")
                           if data.get("rewindSeasonSagaPreview") is True else None),
     )
+

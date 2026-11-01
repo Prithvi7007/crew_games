@@ -473,3 +473,61 @@ body.crew-app-page *::after {
     transition: none;
   }
 }
+
+
+/* Compact Season 01 replay entry, alongside the account controls. */
+.crew-app-page .crew-rewind-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 11px;
+  border: 1px solid rgba(85, 230, 172, .30);
+  border-radius: var(--crew-radius-pill);
+  color: var(--crew-game-mystery, #55e6ac);
+  background: rgba(85, 230, 172, .07);
+  font: 800 .69rem/1 var(--crew-font-body);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.crew-app-page .crew-rewind-pill:hover {
+  border-color: var(--crew-game-mystery, #55e6ac);
+  background: rgba(85, 230, 172, .13);
+}
+
+.crew-app-page .crew-rewind-pill:focus-visible {
+  outline: 2px solid var(--crew-accent-focus, #55ddff);
+  outline-offset: 3px;
+}
+
+.crew-app-page .crew-rewind-season {
+  padding-left: 6px;
+  border-left: 1px solid rgba(85, 230, 172, .30);
+  color: rgba(225, 244, 236, .75);
+  font-size: .56rem;
+  letter-spacing: .04em;
+}
+
+.crew-app-page .has-rewind .profile-copy strong {
+  max-width: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 761px) and (max-width: 1200px) {
+  .crew-app-page .app-nav.has-rewind {
+    grid-template-columns: minmax(140px, 1fr) auto minmax(180px, 1fr);
+  }
+  .crew-app-page .has-rewind .v13-brand-copy small,
+  .crew-app-page .has-rewind .profile-copy,
+  .crew-app-page .has-rewind .crew-points-chip { display: none; }
+  .crew-app-page .has-rewind .desktop-nav { gap: 24px; }
+}
+
+@media (max-width: 760px) {
+  .crew-app-page .has-rewind .crew-nav-account { gap: 8px; }
+}

@@ -39,6 +39,31 @@ def beat(kind, label, title, metric, description, evidence, visual=None):
     }
 
 
+def personal_season_saga(saga):
+    """Replay the player's story without the premiere's shared honors ceremony."""
+    ceremony = {"champion_opening", "season_podium", "season_game_master",
+                "winner", "winner_badge"}
+    chapters = [chapter for chapter in saga["beats"] if chapter["kind"] not in ceremony]
+    if not chapters or chapters[0]["kind"] != "welcome":
+        chapters.insert(0, personal_welcome(saga["player"]))
+    # Championship badges remain earned, but have not been celebrated in this replay.
+    chapters = [
+        {**chapter, "visual": {**chapter["visual"], "celebrated": []}}
+        if chapter["kind"] == "trophy_vault" else chapter
+        for chapter in chapters
+    ]
+    return {**saga, "beats": chapters, "count": len(chapters)}
+
+
+def personal_welcome(player):
+    return beat(
+        "welcome", "CREW / SEASON 01", "Your season. Your story.", "01",
+        "Every week had a story. This one belongs to you.",
+        "All displayed results come from eligible Season 01 completions.",
+        {"player": player},
+    )
+
+
 def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
                       names, official_winners, awarded_codes, benchmark_profile_ids=None):
     """Personalize all nine conceptual acts; omit unsupported accolades."""
@@ -127,12 +152,7 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
                     master,
                 ))
     if not official_codes:
-        chapters.append(beat(
-            "welcome", "CREW / SEASON 01", "Your season. Your story.", "01",
-            "Every week had a story. This one belongs to you.",
-            "All displayed results come from eligible Season 01 completions.",
-            {"player": recap["username"]},
-        ))
+        chapters.append(personal_welcome(recap["username"]))
 
     # 2. Rank each weekly leaderboard by official points/completion/name rules,
     # then rank number of weekly top-three appearances across Season 01.
@@ -308,3 +328,4 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
                   "Champion titles appear only after finalization. "
                   "Unranked players receive no invented podium or rank.",
     }
+

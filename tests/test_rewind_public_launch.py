@@ -70,7 +70,10 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
             assert data["rewind"]["finalized"] is True
             assert data["rewind"]["username"] == "LaunchChampion"
             kinds = [b["kind"] for b in data["rewind"]["seasonSaga"]["beats"]]
-            assert kinds[0] == "champion_opening"
+            assert kinds[0] == "welcome"
+            assert not {"champion_opening", "season_podium", "season_game_master"} & set(kinds)
+            vault = next(b for b in data["rewind"]["seasonSaga"]["beats"] if b["kind"] == "trophy_vault")
+            assert vault["visual"]["celebrated"] == []
             assert not any(kind in {"winner", "winner_badge"} for kind in kinds)
             assert kinds[-2:] == ["legacy", "season_two"]
             for file in ("rewind-director.css", "rewind-cinema.css", "rewind-saga.css"):
@@ -84,15 +87,17 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
             login(client, runner)
             r = state(client.get("/rewind"))["rewind"]
             assert r["username"] == "LaunchRunner" and r["points"] == 70
-            assert r["seasonSaga"]["beats"][0]["kind"] != "champion_opening"
+            assert r["seasonSaga"]["beats"][0]["kind"] == "welcome"
+            assert not any(b["kind"] in {"season_podium", "season_game_master"}
+                           for b in r["seasonSaga"]["beats"])
+            assert any(b["kind"] == "podium" for b in r["seasonSaga"]["beats"])
 
             login(client, newcomer)
             r = state(client.get("/rewind"))["rewind"]
             assert r["username"] == "LaunchNewcomer" and r["rank"] is None
             assert [b["kind"] for b in r["seasonSaga"]["beats"]] == [
-                "season_podium", "season_game_master", "welcome", "legacy", "season_two"
+                "welcome", "legacy", "season_two"
             ]
-            assert r["seasonSaga"]["beats"][0]["visual"]["podium"][0]["players"][0]["name"] == "LaunchChampion"
             assert state(client.get("/rewind?preview=1"))["rewindSeasonSagaPreview"] is True
 
             login(client, admin)
@@ -100,6 +105,8 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
             assert staff.status_code == 200
             assert state(staff)["rewindFilmPrototype"] is True
             assert state(staff)["rewindPreviewPlayer"] == "LaunchChampion"
+            staff_kinds = [b["kind"] for b in state(staff)["rewind"]["seasonSaga"]["beats"]]
+            assert staff_kinds[0] == "champion_opening" and "season_podium" in staff_kinds
             assert state(client.get("/rewind?preview=1"))["rewindSeasonSagaPreview"] is False
 
 
@@ -113,3 +120,18 @@ def test_public_cinema_exit_and_fingerprint_in_head():
     for name in ("rewind-director.css", "rewind-cinema.css", "rewind-saga.css"):
         assert name in head
         assert f'<link rel="stylesheet" href="/static/css/{name}"/>' not in film
+
+
+def test_rewind_navigation_pill_uses_the_finalization_gate_across_player_pages(app, client):
+    with app.app_context():
+        season = get_season_for_date(date(2026, 10, 26))
+        pid = player("PillPlayer")
+        admin = player("PillAdmin", "admin")
+        login(client, pid)
+        assert state(client.get("/games"))["shell"]["rewindUrl"] is None
+        login(client, admin)
+        assert state(client.get("/games"))["shell"]["rewindUrl"] == "/rewind?preview=1"
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+        login(client, pid)
+        for url in ("/home", "/games", "/leaderboard", "/profile"):
+            assert state(client.get(url))["shell"]["rewindUrl"] == "/rewind"

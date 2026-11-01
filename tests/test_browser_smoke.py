@@ -753,7 +753,7 @@ def test_combined_champion_opening_shows_all_titles_once_and_preserves_playback(
     page.emulate_media(reduced_motion="reduce" if reduced else "no-preference")
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
-    page.goto(base_url + "/rewind")
+    page.goto(base_url + "/rewind?preview=1&prototype=1&story=5")
     page.locator(".champion-cover").wait_for()
     assert page.locator(".champion-opening").count() == 0
     page.get_by_role("button", name="EXPLORE YOUR STORY" if reduced else "BEGIN YOUR REWIND").click()
@@ -820,7 +820,7 @@ def test_nonwinner_honors_precede_personal_story_and_login(ui, app, monkeypatch,
     page.emulate_media(reduced_motion="reduce" if reduced else "no-preference")
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
-    page.goto(base_url + "/rewind")
+    page.goto(base_url + "/rewind?preview=1&prototype=1&story=5")
     page.locator(".champion-cover").wait_for()
     assert page.locator(".honors-podium").count() == 0
     page.get_by_role("button", name="EXPLORE YOUR STORY" if reduced else "BEGIN YOUR REWIND").click()
@@ -981,3 +981,56 @@ def test_generic_cinema_completion_keeps_ending_scene_mounted(ui, app, monkeypat
     assert node.evaluate("el => el.isConnected")
     assert page.locator(".rc-finale-content .rc-hero").count() == 1
     assert page.get_by_role("link", name="HOME", exact=True).get_attribute("href") == "/home"
+
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 320, "height": 720}, {"width": 390, "height": 844},
+    {"width": 800, "height": 900}, {"width": 1024, "height": 768},
+    {"width": 1200, "height": 900}, {"width": 1201, "height": 900},
+    {"width": 1440, "height": 900},
+])
+def test_rewind_header_pill_opens_personal_story_without_the_ceremony(ui, app, monkeypatch, viewport):
+    from datetime import date
+    from app.championships import finalize_season_championships
+    from app.db import finalize_game_stats, get_profile_by_username, get_season_for_date, profile_user_key
+
+    page, base_url = ui
+    with app.app_context():
+        pid = int(get_profile_by_username("BrowserTester")["id"])
+        finalize_game_stats(profile_user_key(pid), "trivia", "2026-10-20", 80, True)
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 11, 2))
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="reduce")
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    # A query keeps this manual Home visit out of the first-login handoff.
+    page.goto(base_url + "/home?theater_preview=0")
+    pill = page.get_by_role("link", name="Watch your Season 1 Rewind", exact=True)
+    pill.wait_for()
+    # Stress the maximum allowed username length without changing account identity.
+    page.locator(".profile-copy strong").evaluate("el => el.textContent = 'ABCDEFGHIJKLMNOPQRSTUVWX'")
+    nav = page.locator(".app-nav").bounding_box()
+    box = pill.bounding_box()
+    account = page.locator(".account-trigger").bounding_box()
+    assert box and nav and account
+    assert 44 <= box["height"] <= 48 and box["width"] < 160
+    assert 0 <= box["x"] < box["x"] + box["width"] <= account["x"]
+    assert nav["y"] <= box["y"] < box["y"] + box["height"] <= nav["y"] + nav["height"]
+    assert account["x"] + account["width"] <= viewport["width"]
+    if viewport["width"] > 760:
+        links = page.locator(".desktop-nav").bounding_box()
+        assert links and links["x"] + links["width"] < box["x"]
+    assert page.locator(".rewind-home-invite").count() == 0
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+    pill.click()
+    page.wait_for_url("**/rewind")
+    beats = json.loads(page.locator("#player-state").text_content())["rewind"]["seasonSaga"]["beats"]
+    assert beats[0]["kind"] == "welcome"
+    assert not any(b["kind"] in {"champion_opening", "season_podium", "season_game_master"} for b in beats)
+    page.get_by_role("button", name="EXPLORE YOUR STORY", exact=True).click()
+    page.locator(".rc-welcome").wait_for()
+    assert page.locator(".honors-podium, .honors-master, .champion-opening").count() == 0
+    assert not errors

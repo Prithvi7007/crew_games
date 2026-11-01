@@ -6,7 +6,8 @@ from flask import Blueprint, abort, current_app, jsonify, make_response, redirec
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
-from app.season_rewind import build_season_rewind, rewind_url
+from app.season_rewind import build_season_rewind
+from app.rewind_saga import personal_season_saga
 from app.rewind_champion_preview import CHAMPION_PREVIEW_SELECTIONS, build_champion_preview
 from app.rewind_combined_preview import build_combined_preview, rewind_preview_players
 from app.badge_display import with_public_equipped_badges
@@ -125,11 +126,14 @@ def season_one_rewind():
     # ONLY after an administrator has frozen the championship score cutoff.
     # Preserve the existing staff-only film studio and comparison previews.
     public_saga = story["finalized"] and not film_requested and not preview
+    login_launch = premiere_payload(user["profile_id"], season["id"]) if public_saga else None
+    if public_saga and login_launch is None:
+        story = {**story, "seasonSaga": personal_season_saga(story["seasonSaga"])}
     response = make_response(render_player(
         "rewind", "Season One Rewind", "crew-rewind-page",
         {
             "rewind": story,
-            "rewindLoginLaunch": premiere_payload(user["profile_id"], season["id"]) if public_saga else None,
+            "rewindLoginLaunch": login_launch,
             "rewindCompletionUrl": url_for("main.complete_rewind_view") if public_saga else None,
             "rewindFilmPrototype": film_preview,
             "rewindAnalyticsPreview": analysis_preview,
@@ -220,9 +224,6 @@ def home():
             "today": today,
             "games": games,
             "todaysGame": todays_game,
-            "rewindUrl": rewind_url(
-                next((item for item in list_seasons(today) if item["number"] == 1), None),
-                role=user.get("role", "player")),
             "weekNumber": get_crew_week_number(today),
             "season": season,
         },
@@ -585,3 +586,4 @@ def update_trophy_showcase():
     })
     response.headers["Cache-Control"] = "no-store"
     return response
+
