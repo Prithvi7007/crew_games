@@ -52,10 +52,11 @@ test('navigation is bounded', () => {
   assert.deepEqual(playbackReducer(state(),{type:'go',index:-1,count:10}),state());
 });
 
-test('replay restores the neutral cover', () => {
-  const replayed=playbackReducer(state({index:9,playing:false,finished:true}),{type:'restart'});
-  assert.deepEqual(replayed,initialPlayback());
-  assert.deepEqual(playbackReducer(replayed,{type:'begin',reduced:false}),state());
+test('watch again starts the first chapter immediately, including reduced motion', () => {
+  for(const reduced of [false,true]){
+    const replayed=playbackReducer(state({index:9,playing:false,finished:true}),{type:'restart',reduced});
+    assert.deepEqual(replayed,state({playing:!reduced}));
+  }
 });
 
 test('every chapter resumes from its remaining time rather than starting over', () => {
@@ -65,8 +66,11 @@ test('every chapter resumes from its remaining time rather than starting over', 
   assert.equal(playback.remainingChapterTime(7600,6000),1600);
 });
 
-test('a login premiere holds the final paused chapter until explicit completion', () => {
-  const last=playbackReducer(state({playing:false}),{type:'go',index:9,count:10,holdFinal:true});
-  assert.deepEqual(last,state({index:9,playing:false,finished:false}));
-  assert.deepEqual(playbackReducer(last,{type:'finish'}),state({index:9,playing:false,finished:true}));
+test('finishing and replaying can repeat without returning to an unstartable login cover', () => {
+  const ended=playbackReducer(state({index:9}),{type:'finish'});
+  assert.deepEqual(playbackReducer(ended,{type:'finish'}),ended);
+  const replay=playbackReducer(ended,{type:'restart',reduced:true});
+  const last=playbackReducer(replay,{type:'go',index:9,count:10});
+  assert.deepEqual(last,state({index:9,playing:false,finished:true}));
+  assert.deepEqual(playbackReducer(last,{type:'restart',reduced:false}),state());
 });

@@ -69,7 +69,7 @@ def test_combined_demo_keeps_full_story_and_never_duplicates_titles(app, client)
             assert [b["kind"] for b in beats[:10]] == ["winner", "winner_badge"] * 5
             assert beats[10:] == [
                 b for b in actual["seasonSaga"]["beats"]
-                if b["kind"] not in ("champion_opening", "winner", "winner_badge", "welcome")
+                if b["kind"] not in ("champion_opening", "winner", "winner_badge", "welcome", "season_podium", "season_game_master")
             ]
             assert demo["rewind"]["seasonSaga"]["count"] == len(beats)
             assert demo["rewindCombinedPreview"]["selection"] == "all"

@@ -18,12 +18,12 @@ export function playbackReducer(state, action) {
     case 'go': {
       if(!state.started||action.count<1)return state;
       const index=Math.max(0,Math.min(action.count-1,action.index));
-      return {...state,index,finished:index===action.count-1&&!state.playing&&!action.holdFinal};
+      return {...state,index,finished:index===action.count-1&&!state.playing};
     }
     case 'finish':
       return state.finished&&!state.playing ? state : {...state,playing:false,finished:true};
     case 'restart':
-      return initialPlayback();
+      return {...initialPlayback(),started:true,playing:!action.reduced};
     default:
       return state;
   }

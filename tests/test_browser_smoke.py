@@ -9,6 +9,7 @@ import threading
 import pytest
 from werkzeug.security import generate_password_hash
 from werkzeug.serving import make_server
+import json
 
 from app.db import create_profile, update_profile_role
 
@@ -456,8 +457,8 @@ def test_champion_animation_previews_use_real_titles_and_badges(ui, monkeypatch,
         page.get_by_role("button", name="PLAY", exact=False).click()
         assert page.get_by_text("ANIMATION DEMO · NO AWARD GRANTED", exact=True).is_visible()
         page.get_by_role("button", name="WATCH AGAIN").click()
-        page.locator(".champion-cover").wait_for(timeout=12000)
-        assert page.get_by_role("heading", name=title, exact=True).count() == 0
+        page.locator(".rc-is-playing .champion-winner").wait_for(timeout=12000)
+        assert page.locator(".champion-cover").count() == 0
     assert errors == []
 
 
@@ -484,7 +485,8 @@ def test_champion_reduced_motion_does_not_skip_the_first_reveal(ui, monkeypatch)
     page.get_by_role("button", name="NEXT", exact=False).click()
     page.get_by_role("heading", name="Season Champion", exact=True).wait_for(timeout=12000)
     page.get_by_role("button", name="WATCH AGAIN").click()
-    page.locator(".champion-cover").wait_for(timeout=12000)
+    page.locator(".champion-winner.is-reduced").wait_for(timeout=12000)
+    assert page.locator(".champion-cover").count() == 0
 
 
 def test_champion_paused_visit_can_replay_and_early_finish_holds_complete_badge(ui, monkeypatch):
@@ -602,10 +604,8 @@ def test_champion_celebration_follows_playback_clock(ui, monkeypatch, viewport):
     page.locator(".champion-closeup").wait_for()
     page.keyboard.press("ArrowRight")
     page.get_by_role("button", name="WATCH AGAIN").click()
-    page.locator(".champion-cover").wait_for()
-    page.wait_for_function("() => document.querySelectorAll(\'.champion-celebration\').length === 0")
-    page.get_by_role("button", name="BEGIN YOUR REWIND").click()
-    page.locator(".champion-winner").wait_for()
+    page.locator(".rc-is-playing .champion-winner").wait_for()
+    assert page.locator(".champion-cover").count() == 0
     assert page.locator(".champion-confetti").evaluate_all(
         "els => els.every(el => Number(getComputedStyle(el).opacity) === 0)"
     )
@@ -724,7 +724,7 @@ def test_login_rewind_reduced_motion_starts_with_readable_manual_chapters(ui, ap
     assert page.get_by_role("button", name="EXPLORE YOUR STORY").count() == 0
     assert page.locator(".champion-opening-award").count() == 2
     page.get_by_role("button", name="NEXT", exact=False).click()
-    page.locator(".rc-podium").wait_for()
+    page.locator(".rc-season_podium").wait_for()
     assert page.locator(".champion-closeup").count() == 0
     page.get_by_role("button", name="SKIP REWIND", exact=False).click()
     page.wait_for_url("**/home")
@@ -783,7 +783,7 @@ def test_combined_champion_opening_shows_all_titles_once_and_preserves_playback(
         stage.hover()
         page.get_by_role("button", name="PAUSE", exact=False).click()
     page.keyboard.press("ArrowRight")
-    page.locator(".rc-podium").wait_for()
+    page.locator(".rc-season_podium").wait_for()
     stage.wait_for(state="detached")
     assert page.locator(".champion-closeup").count() == 0
     page.keyboard.press("ArrowLeft")
@@ -875,3 +875,109 @@ def test_nonwinner_honors_precede_personal_story_and_login(ui, app, monkeypatch,
     page.locator(".champion-cover").wait_for(state="detached")
     page.get_by_role("button", name="SKIP REWIND", exact=False).click()
     page.wait_for_url("**/home")
+
+
+@pytest.mark.parametrize("viewport,reduced,preview", [
+    ({"width": 715, "height": 618}, True, False),
+    ({"width": 390, "height": 844}, True, False),
+    ({"width": 1440, "height": 900}, False, False),
+    ({"width": 844, "height": 390}, True, False),
+    ({"width": 390, "height": 844}, True, True),
+])
+def test_rewind_finale_has_nonoverlapping_replay_and_home_for_login_and_preview(ui, app, monkeypatch, viewport, reduced, preview):
+    from datetime import date
+    from app.championships import finalize_season_championships
+    from app.db import (_db_timestamp, finalize_game_stats, get_db, get_profile_by_username,
+                        get_season_for_date, profile_user_key)
+    from app.rewind_login import REWIND_TOUR_KEY, rewind_completed
+
+    page, base_url = ui
+    with app.app_context():
+        pid = int(get_profile_by_username("BrowserTester")["id"])
+        finalize_game_stats(profile_user_key(pid), "word", "2026-10-21", 60, True)
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+        if preview:
+            # Staff has already dismissed their own premiere before using Film Lab.
+            db = get_db()
+            db.execute("INSERT INTO trophy_tour_completions (profile_id, tour_key, completed_at, completion_type) VALUES (?, ?, ?, ?)",
+                       (pid, REWIND_TOUR_KEY, _db_timestamp(), "skipped"))
+            db.commit()
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 11, 2))
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="reduce" if reduced else "no-preference")
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    if preview:
+        page.goto(base_url + "/rewind?preview=1&prototype=1&story=5&combined=1")
+        page.get_by_role("button", name="EXPLORE YOUR STORY" if reduced else "BEGIN YOUR REWIND").click()
+    else:
+        page.goto(base_url + "/home")
+        page.wait_for_url("**/rewind?intro=1")
+    page.locator(".champion-opening").wait_for()
+    beats = json.loads(page.locator("#player-state").text_content())["rewind"]["seasonSaga"]["beats"]
+
+    def finish():
+        # Clear button focus so the film's documented arrow navigation applies.
+        page.evaluate("document.activeElement?.blur()")
+        for _ in beats:
+            page.keyboard.press("ArrowRight")
+        page.get_by_role("button", name="WATCH AGAIN", exact=False).wait_for()
+
+    if preview:
+        finish()
+    else:
+        with page.expect_response(lambda response: response.url.endswith("/api/rewind/completion")) as completed:
+            finish()
+        assert completed.value.ok
+        with app.app_context():
+            assert rewind_completed(pid)
+    page.wait_for_timeout(300)
+    assert "/rewind" in page.url
+    assert page.get_by_role("link", name="HOME", exact=True).get_attribute("href") == "/home"
+    assert page.get_by_text("BACK TO REWIND", exact=True).count() == 0
+    assert page.locator(".rc-login-skip").count() == 0
+    home = page.get_by_role("link", name="HOME", exact=True)
+    home.scroll_into_view_if_needed()
+    actions = page.locator(".rc-finale-actions").bounding_box()
+    content = page.locator(".rc-finale-content .saga-center").bounding_box()
+    assert content["y"] + content["height"] + 15 <= actions["y"]
+    for control in (home, page.get_by_role("button", name="WATCH AGAIN", exact=False)):
+        box = control.bounding_box()
+        assert box and 0 <= box["x"] < box["x"] + box["width"] <= viewport["width"]
+        assert 0 <= box["y"] < box["y"] + box["height"] <= viewport["height"]
+    assert page.locator(".rc-frame").last.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
+    page.get_by_role("button", name="WATCH AGAIN", exact=False).click()
+    page.locator(".champion-opening").wait_for()
+    assert page.locator(".rc-is-finished, .champion-cover").count() == 0
+    assert page.locator(".rc-is-playing").count() == (0 if reduced else 1)
+    finish()
+    page.get_by_role("link", name="HOME", exact=True).click()
+    page.wait_for_url("**/home")
+    assert not errors
+
+
+def test_generic_cinema_completion_keeps_ending_scene_mounted(ui, app, monkeypatch):
+    from datetime import date
+    from app.db import finalize_game_stats, get_profile_by_username, profile_user_key
+
+    page, base_url = ui
+    with app.app_context():
+        pid = int(get_profile_by_username("BrowserTester")["id"])
+        finalize_game_stats(profile_user_key(pid), "word", "2026-10-21", 60, True)
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 10, 30))
+    page.emulate_media(reduced_motion="no-preference")
+    page.goto(base_url + "/rewind?preview=1&prototype=1&story=4")
+    page.get_by_role("button", name="BEGIN YOUR REWIND").click()
+    beats = json.loads(page.locator("#player-state").text_content())["rewind"]["cinematicStory"]["beats"]
+    page.evaluate("document.activeElement?.blur()")
+    for _ in range(len(beats) - 1):
+        page.keyboard.press("ArrowRight")
+    ending = page.locator(".rc-ending .rc-hero")
+    ending.wait_for()
+    node = ending.element_handle()
+    page.keyboard.press("ArrowRight")
+    page.get_by_role("button", name="WATCH AGAIN", exact=False).wait_for()
+    assert node.evaluate("el => el.isConnected")
+    assert page.locator(".rc-finale-content .rc-hero").count() == 1
+    assert page.get_by_role("link", name="HOME", exact=True).get_attribute("href") == "/home"

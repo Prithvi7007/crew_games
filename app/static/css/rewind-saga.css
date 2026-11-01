@@ -91,6 +91,10 @@
 .saga-legacy-foot>div{display:flex;justify-content:center;align-items:start;gap:18px;margin-top:20px}
 .saga-legacy-foot .saga-badge-small strong,.saga-legacy-foot .saga-badge-small small{display:none}
 .saga-film.rc-season_two .saga-huge{color:var(--crew-game-tick-tock,#c55cff)}
+.saga-film .rc-finale-content .saga-center{min-height:0;gap:clamp(12px,2vh,22px);width:100%}
+.saga-film .rc-finale-content .saga-huge{font-size:clamp(80px,18vmin,160px)}
+.saga-film .rc-finale-content h1{font-size:clamp(32px,6vw,64px)}
+.saga-staff-preview.rc-is-finished .rc-frame{padding-top:max(172px,19vh)}
 @media(max-width:650px){
 .saga-film .rc-frame{padding:70px 20px 125px}
 .saga-center{min-height:55dvh}
@@ -208,6 +212,7 @@
 .rc-preview-controls>strong{font-size:8px}
 .rc-preview-combine{font-size:10px}
 .saga-staff-preview .rc-frame{padding-top:245px}
+.saga-staff-preview.rc-is-finished .rc-frame{padding-top:245px}
 }
 
 /* Championship celebration stays behind the player and follows Motion's clock. */

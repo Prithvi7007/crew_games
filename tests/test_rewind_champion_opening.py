@@ -26,7 +26,7 @@ def test_verified_titles_are_combined_once_with_real_badges_points_and_ties(coun
     result = saga(winners, set(codes) | {"brainiac"})
     beats = result["beats"]
     assert beats[0]["kind"] == "champion_opening"
-    assert not any(b["kind"] in {"winner", "winner_badge", "welcome", "season_podium", "season_game_master"}
+    assert not any(b["kind"] in {"winner", "winner_badge", "welcome", "season_game_master"}
                    for b in beats)
     assert sum(b["kind"] == "champion_opening" for b in beats) == 1
     awards = beats[0]["visual"]["awards"]

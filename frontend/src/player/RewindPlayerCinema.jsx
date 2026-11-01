@@ -100,7 +100,6 @@ export default function RewindPlayerCinema({data}){
   const reduce=useReducedMotion();
   const scene=beats[index];
   const last=started&&index===beats.length-1;
-  const finalBadge=last&&scene?.kind==='winner_badge';
   const showCover=saga&&['champion_opening','winner','season_podium','season_game_master'].includes(beats[0]?.kind)&&!started&&index===0;
   const championScene=saga&&['champion_opening','winner','winner_badge'].includes(scene?.kind);
   const previewPlayer=data.rewindPreviewPlayer;
@@ -124,22 +123,22 @@ export default function RewindPlayerCinema({data}){
   };
   const go=useCallback(target=>{
     previousIndex.current=index;
-    dispatch({type:'go',index:target,count:beats.length,holdFinal:Boolean(loginLaunch)});
+    dispatch({type:'go',index:target,count:beats.length});
     setEvidence(false);
     setChrome(false);
-  },[beats.length,index,loginLaunch]);
+  },[beats.length,index]);
   const forward=useCallback(()=>{if(last){dispatch({type:'finish'});setEvidence(false);setChrome(true);}else go(index+1);},[go,index,last]);
   const backward=useCallback(()=>go(index-1),[go,index]);
   const begin=useCallback(()=>{dispatch({type:'begin',reduced:reduce});setChrome(Boolean(reduce));},[reduce]);
   const pause=useCallback(()=>{dispatch({type:'toggle'});setChrome(true);},[]);
-  const restart=useCallback(()=>{dispatch({type:'restart'});setEvidence(false);setChrome(false);},[]);
+  const restart=useCallback(()=>{previousIndex.current=0;dispatch({type:'restart',reduced:reduce});setEvidence(false);setChrome(Boolean(reduce));},[reduce]);
   const reveal=useCallback(()=>{setChrome(true);},[]);
 
-  const leave=useCallback(async action=>{
+  const leave=useCallback(async (action,destination=back)=>{
     if(leaving.current)return;
     leaving.current=true;
     await completeRewind(action);
-    window.location.assign(back);
+    window.location.assign(destination);
   },[back,completeRewind]);
 
   useEffect(()=>{
@@ -148,13 +147,9 @@ export default function RewindPlayerCinema({data}){
     }
   },[loginLaunch,reduce,begin]);
   useEffect(()=>{
-    if(last&&!loginLaunch&&(!finalBadge||reduce))dispatch({type:'finish'});
-  },[last,finalBadge,reduce,loginLaunch]);
-  useEffect(()=>{
     if(!finished)return;
-    if(loginLaunch){void leave('finished');}
-    else {void completeRewind('finished');}
-  },[finished,loginLaunch,leave,completeRewind]);
+    void completeRewind('finished');
+  },[finished,completeRewind]);
   useEffect(()=>{
     if(!chrome||!playing||evidence)return undefined;
     hideRef.current=window.setTimeout(()=>setChrome(false),3000);
@@ -206,10 +201,19 @@ export default function RewindPlayerCinema({data}){
       <div className="rc-backdrop" aria-hidden="true"><div className="rc-vignette"/><div className="rc-grain"/></div>
       <AnimatePresence mode="sync" initial={false} custom={direction}>
         <RewindChapter key={started?'chapter-'+index:'cover'} beat={scene} direction={direction}
-          playing={started&&playing&&(!last||finalBadge||Boolean(loginLaunch))&&!evidence} reduce={reduce} finished={finished} onFinish={forward}>
-          {({time,seek})=>showCover?<ChampionCover player={recap.username}/>:saga?
-            <RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing} time={time} seek={seek}/>
-            :<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>}
+          playing={started&&playing&&!evidence} reduce={reduce} finished={finished} onFinish={forward}>
+          {({time,seek})=>{
+            const content=showCover?<ChampionCover player={recap.username}/>:saga?
+              <RewindSagaScene beat={scene} recap={recap} reduce={reduce} playing={playing} time={time} seek={seek}/>
+              :<FilmMoment beat={scene} recap={recap} player={story.player} reduce={reduce}/>;
+            return last?<div className="rc-finale-content">
+              {content}
+              {finished&&<div className="rc-finale-actions">
+                <button type="button" className="rc-start" onClick={restart}>↻ WATCH AGAIN</button>
+                <a className="rc-finale-link" href="/home" onClick={event=>{event.preventDefault();void leave('finished','/home');}}>HOME</a>
+              </div>}
+            </div>:content;
+          }}
         </RewindChapter>
       </AnimatePresence>
 
@@ -219,11 +223,6 @@ export default function RewindPlayerCinema({data}){
         </button>
         <span className="rc-start-hint">A STORY WRITTEN BY YOUR GAMES</span>
       </div>}
-      {last&&finished&&!loginLaunch&&<div className="rc-finale-actions">
-        <button type="button" className="rc-start" onClick={restart}>↻ WATCH AGAIN</button>
-        <a className="rc-finale-link" href={back} onClick={event=>{event.preventDefault();void leave('finished');}}>BACK TO REWIND</a>
-      </div>}
-
       <AnimatePresence>
         {controls&&started&&(!last||!finished)&&<m.div className="rc-chrome" initial={{opacity:0,y:12}} animate={{opacity:1,y:0}}
           exit={{opacity:0,y:12}} transition={{duration:.26}}>
@@ -235,9 +234,9 @@ export default function RewindPlayerCinema({data}){
         </m.div>}
       </AnimatePresence>
 
-      {loginLaunch&&<button type="button" className="rc-login-skip"
-        onClick={()=>{void leave(finished?'finished':'skipped');}}>
-        {finished?'CONTINUE TO CREW':'SKIP REWIND'} <span aria-hidden="true">→</span>
+      {loginLaunch&&!finished&&<button type="button" className="rc-login-skip"
+        onClick={()=>{void leave('skipped');}}>
+        SKIP REWIND <span aria-hidden="true">→</span>
       </button>}
       <div className={'rc-minimal-tools'+(controls||!playing?' rc-tools-visible':'')}>
         {!loginLaunch&&<button type="button" className="rc-close" onClick={e=>{e.stopPropagation();void leave(finished?'finished':'skipped');}} aria-label="Exit the film">✕</button>}

@@ -85,7 +85,7 @@
 .rc-visual .rd-trajectory{width:100%}
 .rc-visual .rd-ranks{max-width:650px}
 .rc-visual .rd-momentum{max-height:100%}
-.rc-start-wrap,.rc-finale-actions{position:absolute;left:0;right:0;bottom:clamp(28px,7vh,76px);z-index:5;
+.rc-start-wrap{position:absolute;left:0;right:0;bottom:clamp(28px,7vh,76px);z-index:5;
   display:flex;flex-direction:column;align-items:center;gap:14px;pointer-events:none}
 .rc-start,.rc-finale-link{pointer-events:auto;display:inline-flex;align-items:center;justify-content:center;gap:13px;
   min-width:230px;min-height:53px;padding:14px 28px;border:1px solid rgba(222,248,255,.28);
@@ -95,6 +95,12 @@
 .rc-start-hint{font-size:10px;font-weight:800;letter-spacing:.17em;color:#91a9bc}
 .rc-play-symbol{font-size:14px}
 .rc-finale-link{min-width:185px;background:rgba(222,240,255,.075);color:#f0f9ff;backdrop-filter:blur(12px)}
+.rc-film.rc-is-finished .rc-frame{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow:auto;padding:clamp(64px,9vh,96px) clamp(20px,5vw,75px) max(32px,env(safe-area-inset-bottom))}
+.rc-finale-content{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;gap:clamp(24px,4vh,40px);width:min(100%,1100px);max-width:100%;margin:auto}
+.rc-finale-content>.rc-moment{height:auto;min-height:0;overflow:visible;padding:0}
+.rc-finale-content .champion-stage{min-height:0}
+.rc-finale-actions{display:flex;flex-direction:column;align-items:center;gap:14px;width:min(100%,360px);max-width:100%;flex-shrink:0}
+.rc-finale-actions .rc-start,.rc-finale-actions .rc-finale-link{width:100%;min-width:0;max-width:100%}
 .rc-minimal-tools{position:absolute;inset:0 0 auto;z-index:8;pointer-events:none;opacity:0;transition:opacity .4s}
 .rc-tools-visible{opacity:1;pointer-events:none}
 .rc-close{position:absolute;right:clamp(15px,3.2vw,55px);top:clamp(15px,3.5vh,38px);
@@ -169,7 +175,7 @@
   .rc-visual .rd-constellation-core strong{font-size:51px}
   .rc-visual .rd-constellation-peers{gap:6px}
   .rc-visual .rd-constellation-peers i{height:15px;width:15px}
-  .rc-start-wrap,.rc-finale-actions{bottom:max(45px,env(safe-area-inset-bottom) + 24px)}
+  .rc-start-wrap{bottom:max(45px,env(safe-area-inset-bottom) + 24px)}
   .rc-start{min-height:50px;font-size:10px!important}
   .rc-start-hint{font-size:9px}
   .rc-chrome{bottom:max(24px,env(safe-area-inset-bottom) + 14px)}
