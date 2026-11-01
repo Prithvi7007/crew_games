@@ -5,6 +5,7 @@ Python suite skips these tests when browsers are not provisioned.
 """
 import os
 import threading
+from unittest.mock import patch
 
 import pytest
 from werkzeug.security import generate_password_hash
@@ -26,7 +27,7 @@ def _browser_enabled():
 
 @pytest.fixture
 def ui(app, _browser_enabled):
-    with app.app_context():
+    with app.app_context(), patch("app.db._db_timestamp", return_value="2026-09-21T12:00:00"):
         create_profile(
             "BrowserTester",
             generate_password_hash("browser-test-passphrase"),
@@ -87,7 +88,7 @@ def test_all_four_games_have_aligned_real_headers(ui, width, height):
     ("/games", "Games"),
     ("/leaderboard", "Rankings"),
     ("/profile", "BrowserTester"),
-    ("/trophies?trophy_tour_preview=1", "All badges"),
+    ("/trophies?trophy_tour_preview=1", "Badges"),
 ])
 def test_authenticated_core_pages_render_without_overflow(ui, route, heading):
     page, base_url = ui
@@ -990,7 +991,7 @@ def test_generic_cinema_completion_keeps_ending_scene_mounted(ui, app, monkeypat
     {"width": 1200, "height": 900}, {"width": 1201, "height": 900},
     {"width": 1440, "height": 900},
 ])
-def test_rewind_header_pill_opens_personal_story_without_the_ceremony(ui, app, monkeypatch, viewport):
+def test_rewind_header_pill_keeps_champion_ceremony_without_autoplay(ui, app, monkeypatch, viewport):
     from datetime import date
     from app.championships import finalize_season_championships
     from app.db import finalize_game_stats, get_profile_by_username, get_season_for_date, profile_user_key
@@ -1028,9 +1029,8 @@ def test_rewind_header_pill_opens_personal_story_without_the_ceremony(ui, app, m
     pill.click()
     page.wait_for_url("**/rewind")
     beats = json.loads(page.locator("#player-state").text_content())["rewind"]["seasonSaga"]["beats"]
-    assert beats[0]["kind"] == "welcome"
-    assert not any(b["kind"] in {"champion_opening", "season_podium", "season_game_master"} for b in beats)
+    assert beats[0]["kind"] == "champion_opening"
+    assert sum(b["kind"] == "season_podium" for b in beats) == 1
     page.get_by_role("button", name="EXPLORE YOUR STORY", exact=True).click()
-    page.locator(".rc-welcome").wait_for()
-    assert page.locator(".honors-podium, .honors-master, .champion-opening").count() == 0
+    page.locator(".champion-opening").wait_for()
     assert not errors

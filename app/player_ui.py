@@ -71,7 +71,7 @@ def render_player(page, title, body_class, payload, user, nav_points=None):
         "rewindUrl": rewind_url(
             next((season for season in list_seasons(crew_today())
                   if season["number"] == 1), None),
-            role=user.get("role", "player")),
+            profile_id=user["profile_id"], role=user.get("role", "player")),
         "trophiesVisible": trophies_visible_to(user),
         # Owner/admin-only visual lab: never changes game state or rules.
         "gameplayPreviewEnabled": bool(

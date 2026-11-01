@@ -17,8 +17,9 @@ from app.rewind_login import REWIND_TOUR_KEY, rewind_completed, safe_local_targe
 
 
 def player(name, role="player"):
-    row = create_profile(name, generate_password_hash("test-password"), "⭐",
-                         generate_password_hash("test-recovery"))
+    with patch("app.db._db_timestamp", return_value="2026-09-21T12:00:00"):
+        row = create_profile(name, generate_password_hash("test-password"), "⭐",
+                             generate_password_hash("test-recovery"))
     if role != "player":
         update_profile_role(row["id"], role)
     return int(row["id"])
@@ -191,7 +192,7 @@ def test_completion_storage_failure_keeps_the_route_back_to_home_open(app, clien
         assert client.get("/home").status_code == 200
 
 
-def test_manual_replay_bypasses_honors_even_with_an_active_or_expired_premiere(app, client):
+def test_champion_replay_keeps_honors_without_autoplay_or_reopening_the_premiere(app, client):
     with app.app_context():
         pid = prepare()
         assert login(client).location == "/rewind?intro=1"
@@ -199,10 +200,9 @@ def test_manual_replay_bypasses_honors_even_with_an_active_or_expired_premiere(a
         manual = payload(client.get("/rewind"))
         assert manual["rewindLoginLaunch"] is None
         personal = manual["rewind"]["seasonSaga"]
-        assert personal["beats"][0]["kind"] == "welcome"
+        assert personal["beats"][0]["kind"] == "champion_opening"
         assert personal["count"] == len(personal["beats"])
-        assert not any(b["kind"] in {"champion_opening", "season_podium", "season_game_master"}
-                       for b in personal["beats"])
+        assert sum(b["kind"] == "season_podium" for b in personal["beats"]) == 1
         assert manual["rewind"]["points"] == premiere["rewind"]["points"]
         assert manual["rewind"]["rank"] == premiere["rewind"]["rank"]
         assert not rewind_completed(pid)
@@ -210,4 +210,4 @@ def test_manual_replay_bypasses_honors_even_with_an_active_or_expired_premiere(a
         assert complete(client, "finished").status_code == 200
         stale = payload(client.get("/rewind?intro=1"))
         assert stale["rewindLoginLaunch"] is None
-        assert stale["rewind"]["seasonSaga"]["beats"][0]["kind"] == "welcome"
+        assert stale["rewind"]["seasonSaga"]["beats"][0]["kind"] == "champion_opening"

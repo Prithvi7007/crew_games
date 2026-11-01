@@ -6,6 +6,7 @@ from flask import current_app, request, session
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.db import _db_timestamp, get_db
+from app.rewind_eligibility import has_season_rewind
 
 REWIND_TOUR_KEY = "season_1_rewind_2026"
 SESSION_KEY = "rewind_login_intro"
@@ -40,16 +41,9 @@ def _eligible_season(profile_id):
     if row is None:
         return None
     cutoff = json.loads(row["snapshot_json"]).get("score_cutoff")
-    if not cutoff:
-        return None
-    played = get_db().execute(
-        """SELECT 1 FROM game_completions
-           WHERE profile_id = ? AND game_date BETWEEN ? AND ?
-             AND completed_at < ?
-             AND game_key IN ('mystery','trivia','word','tick_tock') LIMIT 1""",
-        (int(profile_id), row["start_date"], row["end_date"], cutoff),
-    ).fetchone()
-    return row if played else None
+    return row if has_season_rewind(
+        profile_id, row["start_date"], row["end_date"], cutoff,
+    ) else None
 
 
 def _tracking_failed():
@@ -93,7 +87,7 @@ def premiere_payload(profile_id, season_id):
             or active.get("season_id") != int(season_id)):
         return None
     try:
-        if rewind_completed(profile_id):
+        if _eligible_season(profile_id) is None or rewind_completed(profile_id):
             return None
     except SQLAlchemyError:
         _tracking_failed()

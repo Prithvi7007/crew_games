@@ -224,12 +224,12 @@ def test_trophy_room_starts_at_collection_without_redundant_hero():
     assert "Your badges" not in component
     assert "Replay welcome tour" not in component
     assert "trophy-season-row" not in component
-    assert "ACHIEVEMENT COLLECTION" in component
-    assert '<h1 id="trophy-collection-title">All badges' in component
+    assert 'className="crew-page-head trophy-collection-header"' in component
+    assert '<h1 id="trophy-collection-title">Badges' in component
     assert "trophy-filters" in component
     assert "trophy-badge-grid" in component
     assert "saveSlot" in component
-    assert ".trophy-section-header h1" in styles
+    assert ".trophy-collection-header" in styles
     assert "PlayerWithTour" in shell
     assert "TrophyWelcomeTour" in shell
     assert "data.shell?.trophyTour" in shell

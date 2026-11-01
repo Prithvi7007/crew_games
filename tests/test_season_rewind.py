@@ -14,10 +14,11 @@ from app.badge_store import award_badges
 
 
 def _player(name, role="player"):
-    row = create_profile(
-        name, generate_password_hash("correct horse battery staple"),
-        "⭐", generate_password_hash("ORBIT-NOVA-COMET-RIVER-ABCD"),
-    )
+    with patch("app.db._db_timestamp", return_value="2026-09-21T12:00:00"):
+        row = create_profile(
+            name, generate_password_hash("correct horse battery staple"),
+            "⭐", generate_password_hash("ORBIT-NOVA-COMET-RIVER-ABCD"),
+        )
     profile_id = int(row["id"])
     if role != "player":
         update_profile_role(profile_id, role)
@@ -44,8 +45,8 @@ def test_rewind_is_locked_to_players_until_championship_approval(app, client):
         player_id = _player("RewindPlayer")
         admin_id = _player("RewindAdmin", role="admin")
         finalize_game_stats(profile_user_key(player_id), "trivia", "2026-10-20", 90, True)
-        assert rewind_url(season, role="player") is None
-        assert rewind_url(season, role="admin") == "/rewind?preview=1"
+        assert rewind_url(season, profile_id=player_id, role="player") is None
+        assert rewind_url(season, profile_id=admin_id, role="admin") == "/rewind?preview=1"
         assert build_season_rewind(player_id, season) is None
 
     _login(client, app, player_id)
@@ -124,7 +125,7 @@ def test_approved_rewind_stays_frozen_after_late_archive_play(app, client):
         )
         db.commit()
         after = build_season_rewind(pid, season)
-        assert rewind_url(season) == "/rewind"
+        assert rewind_url(season, profile_id=pid) == "/rewind"
 
     assert after["preview"] is False
     assert after["points"] == before["points"] == 75
