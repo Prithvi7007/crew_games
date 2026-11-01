@@ -102,21 +102,21 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
             "season badge. Winning points and shared titles come from that snapshot.",
             {"awards": championship_awards, "gameKey": championship_awards[0]["gameKey"]},
         ))
-    if not official_codes:
-        is_official_winner = any(
-            int(w["profile_id"]) == me
-            for winners in official_winners.values() for w in winners
-        )
-        if recap["finalized"] and not is_official_winner:
-            honors = build_honors_visuals(all_points, names, official_winners, viewer_id=me)
-            if honors["podium"]:
-                chapters.append(beat(
-                    "season_podium", "THE SEASON HONORS", "The Season 01 podium.",
-                    "TOP 3", "The season's leading point totals. A moment for the CREW.",
-                    "Positive cutoff-eligible season totals. Equal point totals share "
-                    "a podium place; all ties within the Top 3 places are shown.",
-                    {"podium": honors["podium"]},
-                ))
+    is_official_winner = any(
+        int(w["profile_id"]) == me
+        for winners in official_winners.values() for w in winners
+    )
+    if recap["finalized"]:
+        honors = build_honors_visuals(all_points, names, official_winners, viewer_id=me)
+        if honors["podium"]:
+            chapters.append(beat(
+                "season_podium", "THE SEASON HONORS", "The Season 01 podium.",
+                "TOP 3", "The season's leading point totals. A moment for the CREW.",
+                "Positive cutoff-eligible season totals. Equal point totals share "
+                "a podium place; all ties within the Top 3 places are shown.",
+                {"podium": honors["podium"]},
+            ))
+        if not is_official_winner:
             for master in honors["masters"]:
                 chapters.append(beat(
                     "season_game_master", "THE GAME MASTERS", master["badge"]["name"],
@@ -126,6 +126,7 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
                     "championship snapshot. Shared first places retain every winner.",
                     master,
                 ))
+    if not official_codes:
         chapters.append(beat(
             "welcome", "CREW / SEASON 01", "Your season. Your story.", "01",
             "Every week had a story. This one belongs to you.",
@@ -169,9 +170,9 @@ def build_season_saga(recap, rows, *, profile_id, season_start, weeks_total,
     )
     podium_count = len(podiums[me])
     podium_rank = frequencies.index(me) + 1 if me in frequencies else None
-    if podium_rank is not None and podium_rank <= 3:
+    if any(w["played"] for w in weekly):
         chapters.append(beat(
-            "podium", "THE PODIUM", "You kept showing up at the top.",
+            "podium", "YOUR WEEKLY PODIUM", "Your weekly Top 3 finishes.",
             podium_count, f"{podium_count} weekly Top 3 finishes across {weeks_total} scheduled weeks.",
             "Each week: totals ranked by points, completed games, then username. "
             "Podium-frequency rank uses number of appearances, first places, then second places.",

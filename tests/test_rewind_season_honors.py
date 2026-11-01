@@ -118,8 +118,8 @@ def test_nonwinner_honors_precede_personal_story_and_winners_keep_their_reveals(
         champion = build_season_rewind(winner, season)
         assert champion["seasonSaga"]["beats"][0]["kind"] == "champion_opening"
         assert len(champion["seasonSaga"]["beats"][0]["visual"]["awards"]) == 5
-        assert not any(b["kind"] in {"season_podium", "season_game_master"}
-                       for b in champion["seasonSaga"]["beats"])
+        assert sum(b["kind"] == "season_podium" for b in champion["seasonSaga"]["beats"]) == 1
+        assert not any(b["kind"] == "season_game_master" for b in champion["seasonSaga"]["beats"])
         assert recap["points"] == 40 and recap["rank"] == 2
         from app.rewind_combined_preview import build_combined_preview
         actual, _ = build_combined_preview(recap, profile_id=other, season=season)

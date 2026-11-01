@@ -109,7 +109,7 @@ def test_public_cinema_exit_and_fingerprint_in_head():
     head = (root / "app/templates/player_app.html").read_text()
     assert "data.rewindFilmPrototype===true" in film
     assert ": '/home';" in film
-    assert "window.location.assign(back)" in film and "href={back}" in film
+    assert "window.location.assign(destination)" in film and 'href="/home"' in film
     for name in ("rewind-director.css", "rewind-cinema.css", "rewind-saga.css"):
         assert name in head
         assert f'<link rel="stylesheet" href="/static/css/{name}"/>' not in film
