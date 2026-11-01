@@ -24,8 +24,9 @@ CODES = {
 
 
 def player(name, role="player"):
-    p = create_profile(name, generate_password_hash("test-password"), "⭐",
-                       generate_password_hash("test-key"))
+    with patch("app.db._db_timestamp", return_value="2026-09-21T12:00:00"):
+        p = create_profile(name, generate_password_hash("test-password"), "⭐",
+                           generate_password_hash("test-key"))
     pid = int(p["id"])
     if role != "player":
         update_profile_role(pid, role)

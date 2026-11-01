@@ -17,8 +17,9 @@ from app.rewind_login import REWIND_TOUR_KEY, rewind_completed, safe_local_targe
 
 
 def player(name, role="player"):
-    row = create_profile(name, generate_password_hash("test-password"), "⭐",
-                         generate_password_hash("test-recovery"))
+    with patch("app.db._db_timestamp", return_value="2026-09-21T12:00:00"):
+        row = create_profile(name, generate_password_hash("test-password"), "⭐",
+                             generate_password_hash("test-recovery"))
     if role != "player":
         update_profile_role(row["id"], role)
     return int(row["id"])

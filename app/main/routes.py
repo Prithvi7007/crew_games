@@ -6,7 +6,7 @@ from flask import Blueprint, abort, current_app, jsonify, make_response, redirec
 
 from app.auth.routes import current_user_key, login_required
 from app.player_ui import render_player
-from app.season_rewind import build_season_rewind
+from app.season_rewind import build_season_rewind, rewind_url
 from app.rewind_saga import personal_season_saga
 from app.rewind_champion_preview import CHAMPION_PREVIEW_SELECTIONS, build_champion_preview
 from app.rewind_combined_preview import build_combined_preview, rewind_preview_players
@@ -108,7 +108,12 @@ def season_one_rewind():
             abort(404)
         profile_id = player["id"]
 
-    story = build_season_rewind(profile_id, season, admin_preview=preview)
+    public_request = not film_requested and not preview
+    public_destination = rewind_url(season, profile_id=user["profile_id"]) if public_request else None
+    honors_only = public_destination == "/rewind?honors=1"
+    story = build_season_rewind(
+        profile_id, season, admin_preview=preview, honors_only=honors_only,
+    )
     if not story:
         abort(404)
     combined_controls = None
@@ -126,8 +131,12 @@ def season_one_rewind():
     # ONLY after an administrator has frozen the championship score cutoff.
     # Preserve the existing staff-only film studio and comparison previews.
     public_saga = story["finalized"] and not film_requested and not preview
+    if public_saga and public_destination is None:
+        response = redirect(url_for("main.home"))
+        response.headers["Cache-Control"] = "private, no-store"
+        return response
     login_launch = premiere_payload(user["profile_id"], season["id"]) if public_saga else None
-    if public_saga and login_launch is None:
+    if public_saga and login_launch is None and not honors_only:
         story = {**story, "seasonSaga": personal_season_saga(story["seasonSaga"])}
     response = make_response(render_player(
         "rewind", "Season One Rewind", "crew-rewind-page",

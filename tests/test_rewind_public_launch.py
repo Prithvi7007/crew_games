@@ -16,8 +16,9 @@ from app.player_ui import static_asset_version
 
 
 def player(username, role="player"):
-    p = create_profile(username, generate_password_hash("test-password"), "⭐",
-                       generate_password_hash("test-key"))
+    with patch("app.db._db_timestamp", return_value="2026-09-21T12:00:00"):
+        p = create_profile(username, generate_password_hash("test-password"), "⭐",
+                           generate_password_hash("test-key"))
     pid = int(p["id"])
     if role != "player":
         update_profile_role(pid, role)
@@ -51,14 +52,14 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
         admin = player("LaunchStaff", "admin")
         finalize_game_stats(profile_user_key(champion), "trivia", "2026-10-20", 95, True)
         finalize_game_stats(profile_user_key(runner), "trivia", "2026-10-21", 70, True)
-        assert rewind_url(season, role="player") is None
+        assert rewind_url(season, profile_id=champion, role="player") is None
         login(client, champion)
         with patch("app.main.routes.crew_today", return_value=date(2026, 10, 26)):
             assert client.get("/rewind").status_code == 404
 
         result = finalize_season_championships(season["id"], today=date(2026, 11, 2))
         assert result["already_finalized"] is True
-        assert rewind_url(season, role="player") == "/rewind"
+        assert rewind_url(season, profile_id=champion, role="player") == "/rewind"
         with patch("app.main.routes.crew_today", return_value=date(2026, 11, 2)):
             response = client.get("/rewind")
             assert response.status_code == 200
@@ -93,12 +94,10 @@ def test_public_saga_requires_finalization_and_stays_personal(app, client):
             assert any(b["kind"] == "podium" for b in r["seasonSaga"]["beats"])
 
             login(client, newcomer)
-            r = state(client.get("/rewind"))["rewind"]
-            assert r["username"] == "LaunchNewcomer" and r["rank"] is None
-            assert [b["kind"] for b in r["seasonSaga"]["beats"]] == [
-                "welcome", "legacy", "season_two"
-            ]
-            assert state(client.get("/rewind?preview=1"))["rewindSeasonSagaPreview"] is True
+            honors = state(client.get("/rewind"))["rewind"]["seasonSaga"]
+            assert honors["honorsOnly"] is True
+            assert [b["kind"] for b in honors["beats"]] == ["season_podium", "season_game_master"]
+            assert state(client.get("/games"))["shell"]["rewindUrl"] == "/rewind?honors=1"
 
             login(client, admin)
             staff = client.get("/rewind?preview=1&prototype=1&story=5&player=LaunchChampion")
@@ -127,11 +126,34 @@ def test_rewind_navigation_pill_uses_the_finalization_gate_across_player_pages(a
         season = get_season_for_date(date(2026, 10, 26))
         pid = player("PillPlayer")
         admin = player("PillAdmin", "admin")
+        finalize_game_stats(profile_user_key(pid), "trivia", "2026-10-20", 50, True)
         login(client, pid)
         assert state(client.get("/games"))["shell"]["rewindUrl"] is None
         login(client, admin)
         assert state(client.get("/games"))["shell"]["rewindUrl"] == "/rewind?preview=1"
         finalize_season_championships(season["id"], today=date(2026, 11, 2))
         login(client, pid)
-        for url in ("/home", "/games", "/leaderboard", "/profile"):
+        for url in ("/home?theater_preview=0", "/games", "/leaderboard", "/profile"):
             assert state(client.get(url))["shell"]["rewindUrl"] == "/rewind"
+
+
+def test_game_master_manual_replay_starts_personal_and_keeps_earned_badges(app, client):
+    with app.app_context():
+        season = get_season_for_date(date(2026, 10, 26))
+        overall = player("ReplayOverallChampion")
+        master = player("ReplayGameMaster")
+        finalize_game_stats(profile_user_key(overall), "word", "2026-10-21", 100, True)
+        finalize_game_stats(profile_user_key(overall), "mystery", "2026-10-19", 100, True)
+        finalize_game_stats(profile_user_key(master), "trivia", "2026-10-20", 80, True)
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+        login(client, master)
+        data = state(client.get("/rewind"))
+        beats = data["rewind"]["seasonSaga"]["beats"]
+        assert data["rewindLoginLaunch"] is None
+        assert beats[0]["kind"] == "welcome"
+        assert not any(b["kind"] in {"champion_opening", "season_podium", "season_game_master"}
+                       for b in beats)
+        vault = next(b for b in beats if b["kind"] == "trophy_vault")
+        assert any(b["code"] == "season_trivia_master" for b in vault["visual"]["badges"])
+        assert vault["visual"]["celebrated"] == []
+        assert data["rewind"]["points"] == 80

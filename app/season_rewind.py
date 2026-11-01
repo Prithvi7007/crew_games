@@ -13,6 +13,7 @@ from app.rewind_insights import build_rewind_insights
 from app.rewind_analytics import build_rewind_analytics
 from app.rewind_story import build_rewind_story
 from app.rewind_saga import build_season_saga
+from app.rewind_eligibility import has_season_rewind, has_season_honors
 from app.schedule import get_week_start
 
 _GAME_NAMES = {
@@ -41,18 +42,24 @@ def _finalization(season_id):
     return {"finalized_at": row["finalized_at"], "snapshot": json.loads(row["snapshot_json"])}
 
 
-def rewind_url(season, *, role="player"):
+def rewind_url(season, *, profile_id, role="player"):
     """Do not advertise public Rewind before admin championship finalization."""
     if not season or int(season["number"]) != 1:
         return None
-    if _finalization(season["id"]):
-        return "/rewind"
+    frozen = _finalization(season["id"])
+    if frozen:
+        if has_season_rewind(
+            profile_id, season["start_date"], season["end_date"],
+            frozen["snapshot"].get("score_cutoff"),
+        ):
+            return "/rewind"
+        return "/rewind?honors=1" if has_season_honors(frozen["snapshot"]) else None
     if role in ("owner", "admin"):
         return "/rewind?preview=1"
     return None
 
 
-def build_season_rewind(profile_id, season, *, admin_preview=False):
+def build_season_rewind(profile_id, season, *, admin_preview=False, honors_only=False):
     """Render the signed-in player's season story without changing game state.
 
     When finalized, every score is constrained by the immutable championship
@@ -225,6 +232,7 @@ def build_season_rewind(profile_id, season, *, admin_preview=False):
         official_winners=winners,
         awarded_codes=awarded_codes,
         benchmark_profile_ids=benchmark_profile_ids,
+        honors_only=honors_only,
     )
     result["cinematicStory"] = build_rewind_story(
         result, completions, profile_id=profile_id,

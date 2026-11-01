@@ -5,6 +5,7 @@ Python suite skips these tests when browsers are not provisioned.
 """
 import os
 import threading
+from unittest.mock import patch
 
 import pytest
 from werkzeug.security import generate_password_hash
@@ -26,7 +27,7 @@ def _browser_enabled():
 
 @pytest.fixture
 def ui(app, _browser_enabled):
-    with app.app_context():
+    with app.app_context(), patch("app.db._db_timestamp", return_value="2026-09-21T12:00:00"):
         create_profile(
             "BrowserTester",
             generate_password_hash("browser-test-passphrase"),
@@ -87,7 +88,7 @@ def test_all_four_games_have_aligned_real_headers(ui, width, height):
     ("/games", "Games"),
     ("/leaderboard", "Rankings"),
     ("/profile", "BrowserTester"),
-    ("/trophies?trophy_tour_preview=1", "All badges"),
+    ("/trophies?trophy_tour_preview=1", "Badges"),
 ])
 def test_authenticated_core_pages_render_without_overflow(ui, route, heading):
     page, base_url = ui
@@ -1034,3 +1035,46 @@ def test_rewind_header_pill_opens_personal_story_without_the_ceremony(ui, app, m
     page.locator(".rc-welcome").wait_for()
     assert page.locator(".honors-podium, .honors-master, .champion-opening").count() == 0
     assert not errors
+
+
+@pytest.mark.parametrize("viewport", [
+    {"width": 1440, "height": 900}, {"width": 390, "height": 844},
+])
+def test_new_season_account_sees_only_honors_then_returns_home_once(ui, app, viewport):
+    from datetime import date, timedelta
+    from app.championships import finalize_season_championships
+    from app.db import finalize_game_stats, get_db, get_profile_by_username, get_season_for_date, profile_user_key
+    from app.rewind_login import rewind_completed
+
+    page, base_url = ui
+    with app.app_context():
+        champion = get_profile_by_username("BrowserTester")
+        finalize_game_stats(profile_user_key(champion["id"]), "trivia", "2026-10-20", 100, True)
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=season["end_date"] + timedelta(days=1))
+        new = create_profile("NewSeasonViewer", generate_password_hash("browser-test-passphrase"),
+                             "⭐", generate_password_hash("new-season-key"))
+        get_db().execute("UPDATE profiles SET created_at = ? WHERE id = ?",
+                         ((season["end_date"] + timedelta(days=2)).isoformat() + "T12:00:00", new["id"]))
+        get_db().commit()
+        pid = int(new["id"])
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="reduce")
+    page.context.clear_cookies()
+    page.goto(base_url + "/login")
+    page.locator('input[name="username"]').fill("NewSeasonViewer")
+    page.locator('input[name="password"]').fill("browser-test-passphrase")
+    page.locator('form:has(input[name="username"]) button[type="submit"]').click()
+    page.wait_for_url("**/rewind?intro=1")
+    page.locator(".honors-podium").wait_for()
+    film = json.loads(page.locator("#player-state").text_content())["rewind"]["seasonSaga"]
+    assert film["honorsOnly"] is True
+    assert [b["kind"] for b in film["beats"]] == ["season_podium", "season_game_master"]
+    assert page.locator(".rc-welcome, .rc-legacy, .rc-weekly_trend, .champion-opening").count() == 0
+    page.keyboard.press("ArrowRight")
+    page.locator(".honors-master").wait_for()
+    page.keyboard.press("ArrowRight")
+    page.wait_for_url("**/home")
+    with app.app_context():
+        assert rewind_completed(pid)
+    assert json.loads(page.locator("#player-state").text_content())["shell"]["rewindUrl"] == "/rewind?honors=1"
