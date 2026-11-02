@@ -6,6 +6,7 @@ import ChampionOpening from './ChampionOpening';
 import {SeasonPodium, SeasonGameMaster} from './SeasonHonors';
 import {Reveal} from './RewindMotion';
 import {COMPARE_STEP_MS, comparisonIndex, comparisonSeek} from './rewindTimeline';
+import {weeklyPeak} from './rewindChoreography';
 
 const KEYS={mystery:'var(--crew-game-mystery,#55e6ac)',trivia:'var(--crew-game-trivia,#ffbd45)',word:'var(--crew-game-word,#55b9ff)',tick_tock:'var(--crew-game-tick-tock,#c55cff)'};
 const num=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:1});
@@ -17,17 +18,22 @@ function Badge({item,size='large'}){
   </div>;
 }
 function Center({label,title,value,children,time}){
-  return <div className="saga-center"><span className="saga-kicker">{label}</span>
-    {value!==undefined&&<Reveal as="strong" time={time} scale={.85} className="saga-huge">{value}</Reveal>}
-    <h1>{title}</h1>{children}</div>;
+  return <div className="saga-center"><Reveal as="span" time={time} start={80} duration={450} className="saga-kicker">{label}</Reveal>
+    {value!==undefined&&<Reveal as="strong" time={time} start={300} duration={1100} scale={.9} className="saga-huge">{value}</Reveal>}
+    <Reveal as="h1" time={time} start={650} duration={800}>{title}</Reveal>
+    <Reveal time={time} start={1150} duration={650} className="saga-center-detail">{children}</Reveal></div>;
 }
 function WeekLines({weeks,bestWeek,time}){
   const highestPath=useTransform(time,[250,2450],[0,1]);
   const crewPathLength=useTransform(time,[400,2800],[0,1]);
   const crewDots=useTransform(time,[2600,3250],[0,1]);
   const minePath=useTransform(time,[550,3150],[0,1]);
+  const peakOpacity=useTransform(time,[3200,3900],[0,1]);
+  const peakRadius=useTransform(time,[3200,4300],[24,14]);
+  const peak=weeklyPeak(weeks,bestWeek);
   const max=Math.max(1,...weeks.flatMap(w=>[w.highest,w.mine,Number.isFinite(w.crew)?w.crew:0]));
   const at=(w,i,key)=>[(i/(Math.max(1,weeks.length-1)))*780+30,250-(w[key]/max)*195];
+  const peakPoint=peak?at(weeks[peak.index],peak.index,'mine'):null;
   const points=key=>weeks.map((w,i)=>at(w,i,key).join(',')).join(' ');
   const hasCrew=weeks.some(w=>Number.isFinite(w.crew));
   const crewPath=weeks.map((w,i)=>Number.isFinite(w.crew)?
@@ -46,6 +52,14 @@ function WeekLines({weeks,bestWeek,time}){
         <circle cx={at(w,i,'mine')[0]} cy={at(w,i,'mine')[1]} r={w.week===bestWeek?9:5} fill="var(--crew-game-word,#55b9ff)"/>
         <text x={at(w,i,'mine')[0]} y="288" textAnchor="middle" fill="#adc3d7" fontSize="17">W{w.week}</text>
       </g>)}
+      {peak&&<m.g className="saga-chart-peak" style={{opacity:peakOpacity}}>
+        <line x1={peakPoint[0]} x2={peakPoint[0]} y1={peakPoint[1]+15} y2="263" stroke={KEYS.word} strokeDasharray="3 6" strokeOpacity=".6"/>
+        <m.circle cx={peakPoint[0]} cy={peakPoint[1]} style={{r:peakRadius}} fill="none" stroke={KEYS.word} strokeWidth="2"/>
+        <g transform={'translate('+Math.min(650,Math.max(30,peakPoint[0]-80))+','+Math.max(8,peakPoint[1]-60)+')'}>
+          <rect width="160" height="35" rx="17.5" fill="var(--saga-bg)" stroke={KEYS.word}/>
+          <text x="80" y="23" textAnchor="middle" fill={KEYS.word} fontSize="14" fontWeight="800">W{peak.week} · {num(peak.score)} PTS · PEAK</text>
+        </g>
+      </m.g>}
     </svg>
     <div className="saga-chart-legend"><span><i style={{background:KEYS.word}}/>YOUR SCORE</span><span><i style={{background:KEYS.trivia}}/>WEEKLY HIGHEST</span><span><i className="saga-chart-key-crew" style={{background:KEYS.mystery}}/>CREW AVERAGE</span></div>
     <p className="saga-chart-note">WEEKLY POINTS · {hasCrew?'CREW = OTHER ACTIVE PLAYER ACCOUNTS':'CREW AVERAGE UNAVAILABLE: NO OTHER PLAYER COMPLETIONS'}
@@ -121,14 +135,16 @@ function GameDna({games,totalPoints,time}){
    </Reveal>
  </div>;
 }
-function Legacy({v,recap}){
- return <article className="saga-legacy" aria-label="Your Season 01 Legacy card">
+function Legacy({v,time}){
+ const scale=useTransform(time,[150,1600],[.94,1]);
+ const y=useTransform(time,[150,1600],[24,0]);
+ return <m.article className="saga-legacy" style={{scale,y}} aria-label="Your Season 01 Legacy card">
  <header><b>CREW GAMES</b><span>SEASON 01</span></header>
- <div className="saga-legacy-body"><span className="saga-kicker">YOUR SEASON LEGACY</span><h1>{v.player}</h1><p>{v.champion?'SEASON CHAMPION':'A SEASON OF YOUR OWN'}</p></div>
- <div className="saga-legacy-stats">{[['FINAL RANK',v.rank?'#'+v.rank:'—'],['POINTS',num(v.points)],['GAMES',v.completed],['PODIUM WEEKS',v.podiumWeeks]].map(([t,n])=><div key={t}><strong>{n}</strong><small>{t}</small></div>)}</div>
- <div className="saga-legacy-foot"><span>{v.signature?'SIGNATURE GAME · '+v.signature:'PART OF THE CREW'}</span>
- {v.badges?.length>0&&<div>{v.badges.map(b=><Badge key={b.code} item={b} size="small"/>)}</div>}</div>
- </article>;
+ <Reveal time={time} start={400} className="saga-legacy-body"><span className="saga-kicker">YOUR SEASON LEGACY</span><h1>{v.player}</h1><p>{v.champion?'SEASON CHAMPION':'A SEASON OF YOUR OWN'}</p></Reveal>
+ <div className="saga-legacy-stats">{[['FINAL RANK',v.rank?'#'+v.rank:'—'],['POINTS',num(v.points)],['GAMES',v.completed],['PODIUM WEEKS',v.podiumWeeks]].map(([t,n],i)=><Reveal key={t} time={time} start={1000+i*180}><strong>{n}</strong><small>{t}</small></Reveal>)}</div>
+ <Reveal time={time} start={2000} className="saga-legacy-foot"><span>{v.signature?'SIGNATURE GAME · '+v.signature:'PART OF THE CREW'}</span>
+ {v.badges?.length>0&&<div>{v.badges.map(b=><Badge key={b.code} item={b} size="small"/>)}</div>}</Reveal>
+ </m.article>;
 }
 export default function RewindSagaScene({beat,recap,reduce,playing,time,seek}){
  const v=beat.visual||{};
@@ -140,14 +156,15 @@ export default function RewindSagaScene({beat,recap,reduce,playing,time,seek}){
   case 'season_game_master':return <SeasonGameMaster visual={v} time={time} reduce={reduce}/>;
   case 'welcome':return <Center time={time} label="CREW · SEASON 01" value="01" title={beat.headline}><p>{recap.username}, this story belongs to you.</p></Center>;
   case 'podium':return <Center time={time} label="YOUR WEEKLY PODIUM" value={v.count} title="Your weekly Top 3 finishes."><div className="saga-podium-weeks">{Array.from({length:v.weeksTotal},(_,i)=>{const w=v.weeks.find(x=>x.week===i+1);return <div key={i}><Reveal as="span" time={time} start={200+i*150} className={'saga-podium-slot '+(w?'is-earned':'')}>{w?'#'+w.place:'·'}</Reveal><small>W{i+1}</small></div>})}</div><p>{v.frequencyRank?'#'+v.frequencyRank+' for weekly podium appearances this season.':'No weekly Top 3 finishes this season.'}</p></Center>;
-  case 'weekly_trend':return <div className="saga-wide"><h1>{beat.headline}</h1><WeekLines weeks={v.weeks} bestWeek={v.bestWeek} time={time}/></div>;
+  case 'weekly_trend':return <div className="saga-wide"><Reveal as="h1" time={time} start={50}>{beat.headline}</Reveal><WeekLines weeks={v.weeks} bestWeek={v.bestWeek} time={time}/></div>;
   case 'peak_week':return <Center time={time} label="YOUR HIGHEST WEEK" value={num(v.score)} title={'Week '+v.week+'. Your moment.'}><p>{v.wasWeeklyLeader?'YOU MATCHED THE WEEKLY HIGH':'YOUR PERSONAL SEASON HIGH · POINTS'}</p></Center>;
   case 'game_compare':return <div className="saga-wide saga-game-compare"><h1>Your game. Your edge.</h1><Compare games={v.games} reduce={reduce} playing={playing} time={time} seek={seek}/><p className="saga-caveat">AVERAGE POINTS PER COMPLETED GAME · CREW = OTHER PLAYER ACCOUNTS</p></div>;
   case 'game_dna':return <div className="saga-wide saga-game-dna"><h1>What powered your season.</h1><GameDna games={v.games} totalPoints={v.totalPoints} time={time}/></div>;
   case 'plot_twist':return <Center time={time} label="THE PLOT TWIST" value={beat.metric} title={beat.headline}><p>{beat.description}</p></Center>;
   case 'trophy_vault':return <div className="saga-vault"><Center time={time} label="THE TROPHY VAULT" value={num(v.badges.length)} title="Badges unlocked."/><div className="saga-vault-grid">{v.badges.map((b,i)=><Reveal key={b.code} time={time} scale={.85} start={200+120*i}><Badge item={b} size="small"/>{v.celebrated?.includes(b.code)&&<small className="saga-already-celebrated">TITLE CELEBRATED</small>}</Reveal>)}</div></div>;
-  case 'legacy':return <Legacy v={v} recap={recap}/>;
+  case 'legacy':return <Legacy v={v} time={time}/>;
   case 'season_two':return <Center time={time} label="THE STORY CONTINUES" value="02" title="SEASON 02"><p>New games. New rivalries. A new champion.</p><small>YOUR NEXT CHAPTER AWAITS</small></Center>;
   default:return null;
  }
 }
+

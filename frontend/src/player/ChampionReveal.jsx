@@ -4,6 +4,8 @@ import {Reveal} from './RewindMotion';
 import ChampionCelebration, {ChampionBadgeMotion} from './ChampionCelebration';
 import ChampionStageLights, {ChampionLine} from './ChampionTheater';
 import {BadgeMedallion, badgeFromAwardCode} from './TrophyRoom';
+import MasterSignature from './MasterSignature';
+import {masterChoreography} from './rewindChoreography';
 
 const COLORS = {
   mystery:'var(--crew-game-mystery,#55e6ac)',
@@ -32,6 +34,7 @@ export default function ChampionReveal({beat,recap,reduce,playing,time}) {
   const v=beat.visual||{};
   const closeup=beat.kind==='winner_badge';
   const game=v.gameKey||v.badge?.gameKey;
+  const cue=game?masterChoreography(game):{badge:350,impact:1100,title:850,winners:1200,signoff:1550};
   const source=v.badge||badgeFromAwardCode(v.badgeCode);
   const badge=source?{...source,gameKey:game,vertical:'leaderboard'}:null;
   const theme={'--champion-accent':championAccent(beat),'--champion-play':playing?'running':'paused'};
@@ -39,13 +42,18 @@ export default function ChampionReveal({beat,recap,reduce,playing,time}) {
   return <div className={'champion-stage '+(closeup?'champion-closeup':'champion-winner')+(reduce?' is-reduced':'')+(still?' is-still':'')}
     style={theme} data-game={game||'season'} aria-label={closeup?'Championship badge reveal':'Champion reveal'}>
     {!closeup&&<ChampionStageLights time={time} reduce={reduce}/>}
-    <ChampionCelebration time={time} closeup={closeup} reduce={reduce}/>
+    <ChampionCelebration time={time} closeup={closeup} reduce={reduce} start={closeup?cue.impact:3150}/>
     {closeup?<>
       <Reveal as="p" time={time} start={150} duration={700} className="champion-kicker">{v.demo?'THE BADGE REVEAL':'YOUR CHAMPIONSHIP BADGE'}</Reveal>
-      {badge&&<Reveal as="div" time={time} start={350} duration={1500} className="champion-insignia"><ChampionBadgeMotion time={time} closeup={closeup} reduce={reduce}><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></ChampionBadgeMotion></Reveal>}
-      <Reveal as="h1" time={time} start={850} duration={800} className="champion-badge-name">{badge?.name||beat.headline}</Reveal>
-      <Reveal as="p" time={time} start={1200} duration={800} className="champion-badge-owner">{recap.username}<span>SEASON 01</span></Reveal>
-      <Reveal as="p" time={time} start={1550} duration={700} className="champion-signoff">{v.provisional?'PROVISIONAL · NO AWARD GRANTED':v.demo?'ANIMATION PREVIEW':'EARNED. PRESERVED. YOURS.'}</Reveal>
+      {badge&&<div className="champion-insignia champion-signature-stage">
+        {game&&<MasterSignature game={game} time={time} cue={cue} reduce={reduce}/>}
+        <Reveal time={time} start={cue.badge} duration={650} className="champion-signature-badge">
+          <ChampionBadgeMotion time={time} closeup={closeup} reduce={reduce} start={cue.badge} impact={cue.impact}><BadgeMedallion badge={badge} size="normal" seasonNumber={1}/></ChampionBadgeMotion>
+        </Reveal>
+      </div>}
+      <Reveal as="h1" time={time} start={cue.title} duration={800} className="champion-badge-name">{badge?.name||beat.headline}</Reveal>
+      <Reveal as="p" time={time} start={cue.winners} duration={750} className="champion-badge-owner">{recap.username}<span>SEASON 01</span></Reveal>
+      <Reveal as="p" time={time} start={cue.signoff} duration={700} className="champion-signoff">{v.provisional?'PROVISIONAL · NO AWARD GRANTED':v.demo?'ANIMATION PREVIEW':'EARNED. PRESERVED. YOURS.'}</Reveal>
     </>:<>
       <m.p style={{opacity:overture}} className="champion-overture" aria-hidden="true">{game?'YOUR GAME. YOUR MOMENT.':'SIX WEEKS IN THE MAKING.'}</m.p>
       <div className="champion-lockup">
@@ -63,3 +71,4 @@ export default function ChampionReveal({beat,recap,reduce,playing,time}) {
     </>}
   </div>;
 }
+

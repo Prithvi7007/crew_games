@@ -1,4 +1,5 @@
 import {remainingChapterTime} from './rewindPlayback.js';
+import {masterChoreography} from './rewindChoreography.js';
 
 export const COMPARE_STEP_MS=3800;
 const READABLE_COMPARE_MS=1800;
@@ -10,7 +11,7 @@ export function chapterDuration(beat) {
   if(beat?.kind==='winner_badge')return 8200;
   if(beat?.kind==='season_podium')return 10000+Math.min(6000,
     Math.max(0,(beat.visual?.podium||[]).reduce((n,p)=>n+p.players.length,0)-3)*1000);
-  if(beat?.kind==='season_game_master')return 6800+Math.min(6000,
+  if(beat?.kind==='season_game_master')return masterChoreography(beat.visual?.gameKey).duration+Math.min(6000,
     Math.max(0,(beat.visual?.winners||[]).length-1)*1000);
   if(beat?.kind==='game_compare')return READABLE_COMPARE_MS+
     Math.max(1,(beat.visual?.games||[]).filter(g=>g.mine!==null).length)*COMPARE_STEP_MS;
@@ -43,3 +44,4 @@ export function runChapterClock({elapsed,duration,animate,schedule,cancel,onFini
   },remaining);
   return ()=>{active=false;cancel(timer);animation?.stop();};
 }
+

@@ -769,7 +769,7 @@ def test_combined_champion_opening_shows_all_titles_once_and_preserves_playback(
         page.wait_for_timeout(450)
         assert before == parts.evaluate_all("els => els.map(el => [getComputedStyle(el).transform, getComputedStyle(el).opacity])")
         page.get_by_role("button", name="PLAY", exact=False).click()
-    page.wait_for_function("document.querySelectorAll('.champion-opening-award').length === 5 && [...document.querySelectorAll('.champion-opening-award')].every(el => +getComputedStyle(el).opacity === 1)")
+    page.wait_for_function("document.querySelectorAll('.champion-opening-award').length === 5 && [...document.querySelectorAll('.champion-opening-award h2, .champion-opening-award p')].every(el => +getComputedStyle(el).opacity === 1)")
     assert stage.locator(".champion-name").inner_text() == "BrowserTester"
     assert stage.inner_text().count("BrowserTester") == 1
     assert stage.locator(".champion-opening-award h2").all_text_contents() == [
@@ -1078,3 +1078,67 @@ def test_new_season_account_sees_only_honors_then_returns_home_once(ui, app, vie
     with app.app_context():
         assert rewind_completed(pid)
     assert json.loads(page.locator("#player-state").text_content())["shell"]["rewindUrl"] == "/rewind?honors=1"
+
+
+@pytest.mark.parametrize("viewport,reduced", [
+    ({"width": 1440, "height": 900}, False),
+    ({"width": 320, "height": 568}, False),
+    ({"width": 390, "height": 844}, True),
+])
+def test_master_signatures_pause_and_resolve_to_real_shared_winners(ui, app, monkeypatch, viewport, reduced):
+    from datetime import date
+    from app.championships import finalize_season_championships
+    from app.db import finalize_game_stats, get_profile_by_username, get_season_for_date, profile_user_key
+
+    names = ["MasterOfTheSeason", "AnotherSeasonMaster"]
+    with app.app_context():
+        for name in names:
+            create_profile(name, generate_password_hash("master-password"), "⭐", generate_password_hash("master-key"))
+        for name, points in [(names[0], 100), (names[1], 100), ("BrowserTester", 80)]:
+            pid = int(get_profile_by_username(name)["id"])
+            for game, day in (("mystery", "2026-10-19"), ("trivia", "2026-10-20"),
+                              ("word", "2026-10-21"), ("tick_tock", "2026-10-22")):
+                finalize_game_stats(profile_user_key(pid), game, day, points, True)
+        season = get_season_for_date(date(2026, 10, 26))
+        finalize_season_championships(season["id"], today=date(2026, 11, 2))
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: date(2026, 11, 2))
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+    page.emulate_media(reduced_motion="reduce" if reduced else "no-preference")
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto(base_url + "/rewind?preview=1&prototype=1&story=5")
+    page.get_by_role("button", name="EXPLORE YOUR STORY" if reduced else "BEGIN YOUR REWIND").click()
+    page.locator(".honors-podium").wait_for()
+    if not reduced:
+        page.keyboard.press("Space")
+    for game in ("mystery", "trivia", "word", "tick_tock"):
+        page.keyboard.press("ArrowRight")
+        stage = page.locator('.honors-master[data-game="' + game + '"]')
+        stage.wait_for()
+        if reduced:
+            assert stage.locator(".master-signature").count() == 0
+        else:
+            page.keyboard.press("Space")
+            signature = stage.locator(".master-signature-" + game)
+            assert signature.get_attribute("aria-hidden") == "true"
+            page.wait_for_timeout(800)
+            page.keyboard.press("Space")
+            page.wait_for_timeout(80)
+            effects = stage.locator(".master-signature *, .champion-badge-lift, .champion-confetti")
+            snapshot = "els => els.map(el => [getComputedStyle(el).transform, getComputedStyle(el).opacity, getComputedStyle(el).strokeDashoffset])"
+            before = effects.evaluate_all(snapshot)
+            page.wait_for_timeout(350)
+            assert effects.evaluate_all(snapshot) == before
+            page.keyboard.press("Space")
+            page.wait_for_function("() => {const el=document.querySelector('.honors-master-winners'); return el && +getComputedStyle(el).opacity===1}")
+            page.keyboard.press("Space")
+        assert set(stage.locator(".honors-master-winners strong").all_text_contents()) == set(names)
+        assert stage.locator(".honors-master-winners span").all_text_contents() == ["100 PTS", "100 PTS"]
+        assert stage.locator(".honors-footnote").inner_text() == "A SHARED TITLE. A SEASON TO REMEMBER."
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+        for winner in stage.locator(".honors-master-winners strong").all():
+            bounds = winner.bounding_box()
+            assert bounds and 0 <= bounds["x"] < bounds["x"] + bounds["width"] <= viewport["width"]
+    assert not errors
+

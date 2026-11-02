@@ -5,7 +5,7 @@ import {m, useTransform} from 'motion/react';
 const revealEase=cubicBezier(.16,1,.3,1);
 
 // The mask provides the reveal; complete text stays intact for names and readers.
-export function ChampionLine({as='h1',time,start,duration=1100,reduce,className,children}) {
+export function ChampionLine({as='h1',time,start,duration=1100,reduce,className='',children}) {
   const y=useTransform(time,[start,start+duration],['110%','0%'],{ease:revealEase});
   const opacity=useTransform(time,[start,start+220],[0,1]);
   const Element=m[as];
@@ -27,3 +27,4 @@ export default function ChampionStageLights({time,reduce}) {
     <m.i className="champion-floor-light" style={{opacity:floor,scaleX}}/>
   </div>;
 }
+
