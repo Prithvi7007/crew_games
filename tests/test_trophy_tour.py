@@ -224,10 +224,11 @@ def test_trophy_room_starts_at_collection_without_redundant_hero():
     assert "Your badges" not in component
     assert "Replay welcome tour" not in component
     assert "trophy-season-row" not in component
-    assert 'className="crew-page-head trophy-collection-header"' in component
+    assert 'className="trophy-collection-header"' in component
     assert '<h1 id="trophy-collection-title">Badges' in component
     assert "trophy-filters" in component
-    assert "trophy-badge-grid" in component
+    assert "trophy-paths" in component
+    assert 'id="trophy-badge-detail"' in component
     assert "saveSlot" in component
     assert ".trophy-collection-header" in styles
     assert "PlayerWithTour" in shell
@@ -363,8 +364,10 @@ def test_admin_preview_frontend_contracts():
     root = Path(__file__).resolve().parents[1]
     room = (root / "frontend/src/player/TrophyRoom.jsx").read_text()
     frontend = (root / "frontend/src/player/main.jsx").read_text()
-    assert "previewMode || Boolean(badge.earned && badge.awardId)" in room
+    assert "previewMode || (selectedBadge.earned && selectedBadge.awardId)" in room
     assert "savePreview" in room
-    assert "PREVIEWING" in room and "TRY ON" in room
+    assert "'Previewing':'Wearing'" in room and "'Remove preview':'Try on'" in room
+    assert "Private admin preview" in room and "Preview tools" in room
     assert "data.trophyPreview.url" in frontend
     assert "data.equippedBadge?.preview" in frontend
+

@@ -226,7 +226,8 @@ def test_season_stamp_is_crisp_across_nav_profile_rankings_and_badges(ui, viewpo
         tour.get_by_role("button", name="Maybe later").click()
 
     # Staff try-on is private, changes no score and issues no new badge award.
-    page.locator(".trophy-badge-card button").first.click()
+    page.locator(".trophy-path-step").first.click()
+    page.get_by_role("button", name="Try on", exact=True).click()
     navigation = page.locator(".crew-nav-avatar .crew-equipped-season")
     navigation.wait_for(timeout=12000)
 
@@ -1173,21 +1174,45 @@ def test_badge_season_filter_keeps_historical_badge_equipped(ui, app, monkeypatc
     selector.wait_for()
     assert selector.input_value() == str(second["id"])
     selector.select_option(str(first["id"]))
-    page.wait_for_url("**/trophies?season=" + str(first["id"]))
-    page.get_by_role("button", name="Case Closed unlocked. Select to equip on your profile.", exact=True).click()
+    page.wait_for_url("**/trophies?*season=" + str(first["id"]) + "*")
+    page.get_by_role("button", name="Mind Reader. Not earned. View details.", exact=True).click()
+    assert not page.get_by_role("button", name="Not earned", exact=True).is_enabled()
+    page.get_by_role("button", name="Case Closed. Earned. View details.", exact=True).click()
+    page.get_by_role("button", name="Wear badge", exact=True).click()
     page.locator(".trophy-collection-feedback").get_by_text("Case Closed equipped on your profile.", exact=True).wait_for()
     page.get_by_label("Season", exact=True).select_option(str(second["id"]))
-    page.wait_for_url("**/trophies?season=" + str(second["id"]))
-    assert "Wearing: Case Closed · Season 1." in page.locator(".trophy-collection-header").inner_text()
-    assert page.get_by_role("button", name="Brainiac unlocked. Select to equip on your profile.", exact=True).count() == 1
+    page.wait_for_url("**/trophies?*season=" + str(second["id"]) + "*")
+    assert "Wearing: Case Closed · Season 1" in page.locator(".trophy-collection-header").inner_text()
+    assert page.get_by_role("button", name="Brainiac. Earned. View details.", exact=True).count() == 1
     data = json.loads(page.locator("#player-state").text_content())
     assert data["shell"]["userEquippedBadge"]["seasonNumber"] == 1
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
     page.get_by_label("Season", exact=True).select_option(str(first["id"]))
-    page.wait_for_url("**/trophies?season=" + str(first["id"]))
-    equipped = page.get_by_role("button", name="Case Closed equipped on your profile. Select again to unequip.", exact=True)
-    assert equipped.get_attribute("aria-pressed") == "true"
-    equipped.click()
+    page.wait_for_url("**/trophies?*season=" + str(first["id"]) + "*")
+    page.get_by_role("button", name="Case Closed. Earned. View details.", exact=True).click()
+    page.get_by_role("button", name="Remove badge", exact=True).click()
     page.locator(".trophy-collection-feedback").get_by_text("Case Closed removed from your profile.", exact=True).wait_for()
+
+
+def test_mobile_badge_collection_keeps_selected_group_in_view(ui):
+    page, base_url = ui
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(base_url + "/trophies?collection=secret", wait_until="domcontentloaded")
+    tour = page.locator(".crew-tour-dialog")
+    if tour.count():
+        tour.get_by_role("button", name="Maybe later").click()
+    page.get_by_role("button", name="Unicorn. Not earned. View details.", exact=True).click()
+    page.get_by_role("button", name="All badges 21", exact=True).click()
+    page.wait_for_function("""() => {
+        const selected = document.querySelector('.trophy-path-step.is-selected');
+        const strip = document.querySelector('.trophy-paths');
+        if (!selected || !strip) return false;
+        const node = selected.getBoundingClientRect();
+        const container = strip.getBoundingClientRect();
+        return node.left >= container.left - 1 && node.right <= container.right + 1;
+    }""")
+    assert page.locator('#trophy-detail-title').inner_text() == 'Unicorn'
+    assert page.locator('.trophy-path-step.is-selected').get_attribute('aria-label').startswith('Unicorn.')
+
 
 

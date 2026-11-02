@@ -82,3 +82,13 @@ def test_equipped_badge_hover_identifies_the_real_award():
     assert "String(badge.seasonNumber).padStart(2, '0')" in component
     assert 'role="img" aria-label={badge.name' in component
     assert '<Insignia badge={badge} compact/>' in component
+
+
+def test_shared_medal_art_is_not_dimmed_for_path_selection():
+    css = STYLES.read_text(encoding="utf-8")
+    global_rules = re.findall(r"(?m)^\.trophy-medallion\s*\{([^}]*)\}", css)
+    assert global_rules
+    for rule in global_rules:
+        assert "grayscale" not in rule
+        assert not re.search(r"opacity:\s*(?:0?\.[0-9]+|0)\s*[;}]", rule)
+
