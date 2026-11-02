@@ -1142,3 +1142,52 @@ def test_master_signatures_pause_and_resolve_to_real_shared_winners(ui, app, mon
             assert bounds and 0 <= bounds["x"] < bounds["x"] + bounds["width"] <= viewport["width"]
     assert not errors
 
+
+@pytest.mark.parametrize("viewport", [{"width": 1440, "height": 900}, {"width": 390, "height": 844}])
+def test_badge_season_filter_keeps_historical_badge_equipped(ui, app, monkeypatch, viewport):
+    from datetime import date
+    from app.badge_store import award_badges
+    from app.db import create_season, get_season_for_date
+
+    today = date(2026, 11, 2)
+    for target in ("app.main.routes.crew_today", "app.schedule.crew_today", "app.trophy_access.crew_today"):
+        monkeypatch.setattr(target, lambda: today)
+    monkeypatch.setitem(app.config, "TROPHY_TOUR_ENABLED", False)
+    with app.app_context():
+        player = create_profile("SeasonBadgePlayer", generate_password_hash("badge-season-passphrase"),
+                                "⭐", generate_password_hash("badge-season-key"))
+        first = get_season_for_date(date(2026, 10, 12))
+        second = get_season_for_date(today) or create_season("Season 2", today, date(2026, 12, 13))
+        award_badges(player["id"], first["id"], ("case_closed",), source_date="2026-10-12")
+        award_badges(player["id"], second["id"], ("brainiac",), source_date="2026-11-03")
+    page, base_url = ui
+    page.set_viewport_size(viewport)
+    page.context.clear_cookies()
+    page.goto(base_url + "/login")
+    page.locator('input[name="username"]').fill("SeasonBadgePlayer")
+    page.locator('input[name="password"]').fill("badge-season-passphrase")
+    page.locator('form:has(input[name="username"]) button[type="submit"]').click()
+    page.wait_for_url("**/home")
+    page.goto(base_url + "/trophies")
+    selector = page.get_by_label("Season", exact=True)
+    selector.wait_for()
+    assert selector.input_value() == str(second["id"])
+    selector.select_option(str(first["id"]))
+    page.wait_for_url("**/trophies?season=" + str(first["id"]))
+    page.get_by_role("button", name="Case Closed unlocked. Select to equip on your profile.", exact=True).click()
+    page.locator(".trophy-collection-feedback").get_by_text("Case Closed equipped on your profile.", exact=True).wait_for()
+    page.get_by_label("Season", exact=True).select_option(str(second["id"]))
+    page.wait_for_url("**/trophies?season=" + str(second["id"]))
+    assert "Wearing: Case Closed · Season 1." in page.locator(".trophy-collection-header").inner_text()
+    assert page.get_by_role("button", name="Brainiac unlocked. Select to equip on your profile.", exact=True).count() == 1
+    data = json.loads(page.locator("#player-state").text_content())
+    assert data["shell"]["userEquippedBadge"]["seasonNumber"] == 1
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+    page.get_by_label("Season", exact=True).select_option(str(first["id"]))
+    page.wait_for_url("**/trophies?season=" + str(first["id"]))
+    equipped = page.get_by_role("button", name="Case Closed equipped on your profile. Select again to unequip.", exact=True)
+    assert equipped.get_attribute("aria-pressed") == "true"
+    equipped.click()
+    page.locator(".trophy-collection-feedback").get_by_text("Case Closed removed from your profile.", exact=True).wait_for()
+
+
