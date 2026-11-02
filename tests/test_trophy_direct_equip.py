@@ -1,4 +1,4 @@
-"""Trophy Room direct card equipment: accessibility and persistence contracts."""
+"""Inspectable badge paths with one guarded equipment action."""
 from datetime import date
 from pathlib import Path
 
@@ -10,27 +10,27 @@ JSX = ROOT / "frontend/src/player/TrophyRoom.jsx"
 CSS = ROOT / "frontend/src/player/styles/trophies.css"
 
 
-def test_unlocked_badges_are_direct_clickable_controls():
+def test_medals_inspect_and_the_detail_area_owns_the_equipment_action():
     source = JSX.read_text(encoding="utf-8")
     styles = CSS.read_text(encoding="utf-8")
 
-    assert 'const canEquip = previewMode || Boolean(badge.earned && badge.awardId);' in source
-    assert "const Surface = canEquip ? 'button' : 'div';" in source
-    assert "'aria-pressed': isEquipped" in source
-    assert "disabled: saving" in source
-    assert "onClick: () => onSelect(badge)" in source
-    assert "onSelect={selectBadge}" in source
+    node = source.split("function BadgeCard(", 1)[1].split("export default function TrophyRoom", 1)[0]
+    assert 'aria-pressed={isSelected}' in node
+    assert 'aria-controls="trophy-badge-detail"' in node
+    assert 'onClick={() => onSelect(badge.code)}' in node
+    assert 'selectBadge' not in node and 'saveSlot' not in node and 'savePreview' not in node
+    assert 'onSelect={inspectBadge}' in source
     assert "badge.earned && item.awardId === awardId" not in source  # no stale ownership check
     assert "!previewMode && (!badge.earned || !badge.awardId)" in source
-    assert 'className="trophy-badge-surface"' in source
-    assert ".trophy-badge-card button.trophy-badge-surface:focus-visible" in styles
-    assert ".trophy-badge-card.is-equipped" in styles
-    assert "trophy-equipped-mark" in source
-    assert "✓ EQUIPPED" in source
-    assert "◇ LOCKED" in source
+    assert 'disabled={saving || !canEquip}' in source
+    assert 'onClick={() => selectBadge(selectedBadge)}' in source
+    assert source.count('className="trophy-equip-action"') == 1
+    assert ".trophy-path-step.is-selected" in styles
+    assert 'button:focus-visible' in styles
+    assert "'Remove badge':'Wear badge'" in source
 
 
-def test_dropdown_panel_is_removed_and_save_flow_preserved():
+def test_server_award_save_flow_and_private_preview_are_preserved():
     source = JSX.read_text(encoding="utf-8")
     styles = CSS.read_text(encoding="utf-8")
 
@@ -91,3 +91,4 @@ def test_single_profile_slot_can_switch_and_unequip_via_api(app, client, monkeyp
 
     # The server must still reject badges not awarded to this player.
     assert set_equipped(999999).status_code == 400
+

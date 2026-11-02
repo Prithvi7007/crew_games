@@ -1,4 +1,4 @@
-"""Keep Trophy Room's 21 awards organized as accessible section rows."""
+"""The collection retains all 21 awards in compact, inspectable groups."""
 from pathlib import Path
 import re
 
@@ -19,7 +19,7 @@ SECTION_CATALOG = (
 )
 
 
-def test_every_achievement_belongs_to_one_named_horizontal_section():
+def test_every_achievement_belongs_to_one_named_group():
     source = COMPONENT.read_text(encoding="utf-8")
     meta = source.split("const BADGE_SECTIONS = [", 1)[1].split("];", 1)[0]
     for key, title, vertical, game_key, expected in SECTION_CATALOG:
@@ -40,29 +40,32 @@ def test_every_achievement_belongs_to_one_named_horizontal_section():
     assert len({code for code, _ in grouped}) == len(BADGES)
 
 
-def test_each_section_is_a_single_scrollable_row_with_its_own_heading():
+def test_groups_are_paths_with_one_detail_area_and_small_screen_browsing():
     source = COMPONENT.read_text(encoding="utf-8")
     css = STYLES.read_text(encoding="utf-8")
-    assert 'badgeSections.map(group => <section className="trophy-badge-section"' in source
-    assert "aria-labelledby={`trophy-group-${group.key}`}" in source
+    assert 'badgeSections.map(group => <section className="trophy-path-section"' in source
+    assert "aria-labelledby={'trophy-group-'+group.key}" in source
     assert 'className="trophy-group-heading"' in source
     assert "group.badges.filter(badge => badge.earned).length" in source
-    assert 'className="trophy-badge-grid trophy-badge-rail"' in source
-    assert 'role="region"' in source and 'tabIndex={0}' in source
+    assert 'className="trophy-path-list"' in source
+    assert source.count('id="trophy-badge-detail"') == 1
     assert "filtered.filter(badge => badge.vertical === group.vertical" in source
-    assert "grid-auto-flow:column" in css
-    assert "grid-template-rows:minmax(0,1fr)" in css
+    assert "grid-template-columns:repeat(4,minmax(0,1fr))" in css
     assert "overflow-x:auto" in css
     assert "scroll-snap-type:x proximity" in css
-    assert "@media(max-width:760px)" in css
+    assert "@media(max-width:600px)" in css
 
 
 def test_filters_and_try_on_work_across_all_sections():
     source = COMPONENT.read_text(encoding="utf-8")
     assert "filter === 'all' ? badges : badges.filter" in source
     assert "BADGE_SECTIONS.map(group =>" in source
-    assert "onSelect={selectBadge}" in source
+    assert "onSelect={inspectBadge}" in source
     assert "previewMode={previewMode}" in source
     assert "isEquipped={previewMode ? previewCode === badge.code" in source
-    assert "group.badges.length > 3 ? <small>Swipe to explore" in source
+    assert "filtered.find(badge => badge.code === selectedCode)" in source
+    assert "|| filtered[0]" in source
+    assert 'name="collection" value={filter}' in source
+    assert 'Preview tools' in source
     assert "role=\"status\" aria-live=\"polite\"" in source
+

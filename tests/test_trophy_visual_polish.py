@@ -36,19 +36,19 @@ def test_result_award_catalog_exactly_matches_server_definitions():
 
 def test_locked_badges_reveal_identity_and_artwork():
     source = TROPHIES.read_text(encoding="utf-8")
-    assert "const hidden = false;" in source
-    assert "concealed={hidden}" in source
-    assert "hidden ? 'Undiscovered achievement' : badge.name" in source
+    assert '<BadgeMedallion badge={badge}/>' in source
+    assert '<strong>{badge.name}</strong>' in source
+    assert "(badge.earned?'Earned':'Not earned')+'. View details.'" in source
     assert "badge.earned" in source
 
 
 def test_rarity_frames_remain_distinct():
     css = CSS.read_text(encoding="utf-8")
-    for rarity in ("common", "rare", "epic", "legendary"):
-        assert f".trophy-badge-card.trophy-rarity-{rarity}" in css
-    assert "var(--rarity-edge)" in css
-    assert "var(--rarity-halo)" in css
-    assert ".trophy-badge-card.is-mysterious" in css
+    for rarity in ("rare", "epic", "legendary"):
+        assert f".trophy-medallion.trophy-rarity-{rarity}" in css
+    assert "--rarity-ring:#c5d1df" in css
+    assert "stroke:var(--rarity-ring)" in css
+    assert ".trophy-path-step.is-selected" in css
 
 
 def test_game_result_uses_only_real_cinematic_unlocks():
@@ -68,3 +68,4 @@ def test_game_result_uses_only_real_cinematic_unlocks():
     assert ".cul-cinema.cul-live" in cinema_css
     assert "@media(prefers-reduced-motion:reduce)" in cinema_css
     assert "crew-badge-celebration" not in css
+

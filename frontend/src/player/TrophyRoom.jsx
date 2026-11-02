@@ -184,34 +184,19 @@ export function EquippedProfileBadge({ badge, avatar, size = 'full' }) {
   </div>;
 }
 
-function BadgeCard({ badge, seasonNumber, isEquipped, saving, onSelect, previewMode }) {
-  const hidden = false;
-  const canEquip = previewMode || Boolean(badge.earned && badge.awardId);
-  const Surface = canEquip ? 'button' : 'div';
-  return <article className={'trophy-badge-card trophy-tone-' + toneFor(badge) + ' trophy-rarity-' + badge.rarity + (canEquip ? ' is-earned' : ' is-locked') + (isEquipped ? ' is-equipped' : '') + (hidden ? ' is-mysterious' : '')}>
-    <Surface
-      className="trophy-badge-surface"
-      {...(canEquip ? {
-        type: 'button',
-        disabled: saving,
-        'aria-pressed': isEquipped,
-        'aria-label': isEquipped
-          ? `${badge.name} equipped on your profile. Select again to unequip.`
-          : previewMode
-            ? `${badge.name} available for admin preview. Select to try on your profile.`
-            : `${badge.name} unlocked. Select to equip on your profile.`,
-        onClick: () => onSelect(badge),
-      } : {})}
-    >
-      <span className="trophy-badge-top"><span>{badge.vertical === 'game_mastery' ? 'GAME MASTERY' : badge.vertical === 'leaderboard' ? 'RIVALRY' : badge.vertical.toUpperCase()}</span><span className="trophy-rarity-label">{badge.rarity.toUpperCase()}</span></span>
-      <span className="trophy-badge-art">
-        <BadgeMedallion badge={badge} concealed={hidden} seasonNumber={seasonNumber}/>
-        {isEquipped ? <span className="trophy-equipped-mark" aria-hidden="true">✓</span> : null}
+function BadgeCard({ badge, isSelected, isEquipped, saving, onSelect, previewMode }) {
+  return <li className="trophy-path-item">
+    <button type="button"
+      className={'trophy-path-step'+(isSelected?' is-selected':'')+(isEquipped?' is-equipped':'')}
+      aria-pressed={isSelected} aria-controls="trophy-badge-detail" disabled={saving}
+      aria-label={badge.name+'. '+(badge.earned?'Earned':'Not earned')+'. View details.'}
+      onClick={() => onSelect(badge.code)}>
+      <BadgeMedallion badge={badge}/>
+      <span className="trophy-path-name"><strong>{badge.name}</strong>
+        {isEquipped?<small>{previewMode?'Previewing':'Wearing'}</small>:badge.earned?<small>Earned</small>:null}
       </span>
-      <span className="trophy-badge-copy"><strong>{hidden ? 'Undiscovered achievement' : badge.name}</strong><span className="trophy-badge-description">{hidden ? 'Earn this badge to reveal its identity and story.' : DETAILS[badge.code]}</span></span>
-      <span className="trophy-badge-bottom"><span>{previewMode ? (isEquipped ? '✓ PREVIEWING' : '✦ TRY ON') : isEquipped ? '✓ EQUIPPED' : canEquip ? '✦ EQUIP' : '◇ LOCKED'}</span>{badge.earned && badge.sourceDate ? <time dateTime={badge.sourceDate}>{badge.sourceDate}</time> : null}</span>
-    </Surface>
-  </article>;
+    </button>
+  </li>;
 }
 
 export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
@@ -221,7 +206,13 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [reveal, setReveal] = useState(null);
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get('collection');
+    return FILTERS.some(([key]) => key === requested) ? requested : 'game_mastery';
+  });
+  const [selectedCode, setSelectedCode] = useState(null);
+  const pathsRef = React.useRef(null);
+  const selectedGroupRef = React.useRef(null);
   const badges = data.badges || [];
   const earned = data.earnedCount || 0;
   const season = data.selectedSeason;
@@ -242,12 +233,40 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
     preview: Boolean(previewBadge),
   } : null;
   const liveShell = { ...data.shell, userEquippedBadge: liveBadge };
+  const selectedBadge = filtered.find(badge => badge.code === selectedCode)
+    || filtered.find(badge => previewMode ? badge.code === previewCode : badge.awardId && badge.awardId === equipped?.awardId)
+    || filtered[0];
+  const canEquip = Boolean(selectedBadge && (previewMode || (selectedBadge.earned && selectedBadge.awardId)));
+  const removing = Boolean(selectedBadge && (previewMode ? previewCode === selectedBadge.code : equipped?.awardId === selectedBadge.awardId));
+  const selectedGame = BADGE_SECTIONS.find(group => group.gameKey && group.gameKey === selectedBadge?.gameKey);
+  const selectedAccent = GAME_COLORS[selectedBadge?.gameKey || RIVALRY_GAME[selectedBadge?.code]] || '#55b9ff';
+
+  React.useEffect(() => {
+    const paths = pathsRef.current;
+    const group = selectedGroupRef.current;
+    if (!paths || !group || !window.matchMedia('(max-width: 600px)').matches) return;
+    // Move only the game strip; keep the page and shared detail area in place.
+    paths.scrollTo({ left: paths.scrollLeft + group.getBoundingClientRect().left - paths.getBoundingClientRect().left });
+  }, [filter, selectedBadge?.code]);
 
   React.useEffect(() => {
     if (!reveal) return undefined;
     const timeout = window.setTimeout(() => setReveal(null), 2500);
     return () => window.clearTimeout(timeout);
   }, [reveal]);
+
+  function chooseCollection(key) {
+    if (saving) return;
+    setFilter(key);
+    setFeedback('');
+    const url = new URL(window.location.href);
+    url.searchParams.set('collection', key);
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }
+  function inspectBadge(code) {
+    setSelectedCode(code);
+    setFeedback('');
+  }
 
   async function selectBadge(badge) {
     if (saving || !badge) return;
@@ -259,12 +278,12 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
       if (previewMode) {
         const result = await savePreview(removing ? null : badge.code);
         setPreviewCode(result.badgeCode || null);
-        setFeedback(removing ? 'Preview removed from your profile.' : `Previewing ${badge.name}. Open Profile to see the badge around your avatar.`);
+        setFeedback(removing ? 'Preview removed from your profile.' : 'Previewing '+badge.name+'. Visible only to you.');
         if (!removing) setReveal({ badge: { ...badge, seasonNumber: season?.number, preview: true }, preview: true });
       } else {
         const result = await saveSlot(1, removing ? null : badge.awardId);
         setShowcase(result.showcase || []);
-        setFeedback(removing ? `${badge.name} removed from your profile.` : `${badge.name} equipped on your profile.`);
+        setFeedback(removing ? badge.name+' removed from your profile.' : badge.name+' equipped on your profile.');
         if (!removing) setReveal({ badge: { ...badge, seasonNumber: season?.number }, preview: false });
       }
     } catch (error) {
@@ -283,36 +302,71 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
     </div> : null}
     <main className="trophy-room-main">
       <section className="trophy-collection" aria-labelledby="trophy-collection-title">
-        <header className="crew-page-head trophy-collection-header">
-          <span className="crew-page-kicker">CREW</span>
-          <div className="trophy-collection-title"><h1 id="trophy-collection-title">Badges</h1><span className="trophy-collection-count">{previewMode ? `${badges.length} available to preview · ${earned} earned` : `${earned} / ${badges.length} unlocked`}</span></div>
-          <p>{previewMode ? 'Admin preview: Try on any badge without earning it. This does not affect achievements or rankings.' : equippedBadge ? `Wearing: ${equippedBadge.name} · Season ${equippedBadge.seasonNumber ?? season?.number}. Select another unlocked badge to switch, or select the equipped badge again to remove it.` : 'Select an unlocked badge to wear it on your profile. Select it again to remove it.'}</p>
-          {previewMode && equippedBadge ? <p className="trophy-preview-current">Previewing {equippedBadge.name} · <a href="/profile">View on profile →</a></p> : null}
-          {previewMode ? <a className="cul-staff-link" href="/trophies?unlock_preview=1">✦ Preview cinematic badge unlocks →</a> : null}
+        <header className="trophy-collection-header">
+          <div className="trophy-collection-title"><h1 id="trophy-collection-title">Badges</h1><span className="trophy-collection-count">{earned} / {badges.length} earned</span></div>
+          <div className="trophy-collection-tools">
+            {seasons.length > 0 && <form className="trophy-season-picker" action="/trophies" method="get">
+              <label htmlFor="trophy-season" className="trophy-sr-only">Season</label>
+              <input type="hidden" name="collection" value={filter}/>
+              <select id="trophy-season" name="season" value={season?.id ?? ''} disabled={saving}
+                aria-describedby="trophy-season-help" onChange={event => event.currentTarget.form.requestSubmit()}>
+                {seasons.map(item => <option key={item.id} value={item.id}>Season {item.number}</option>)}
+              </select>
+            </form>}
+            {previewMode && <details className="trophy-preview-tools">
+              <summary>Preview tools</summary>
+              <div>
+                <p>Private admin preview. Try on any badge without changing achievements or rankings.</p>
+                <a className="cul-staff-link" href="/trophies?unlock_preview=1">Preview cinematic badge unlocks</a>
+                {previewBadge && <a href="/profile">View preview on profile</a>}
+              </div>
+            </details>}
+          </div>
+          {equippedBadge && <p className="trophy-wearing">{previewMode?'Previewing: ':'Wearing: '}{equippedBadge.name} · Season {equippedBadge.seasonNumber ?? season?.number}</p>}
         </header>
-        <p className="trophy-editor-feedback trophy-collection-feedback" role="status" aria-live="polite">{feedback}</p>
-        <div className="trophy-filters" aria-label="Filter badges">
-          {seasons.length > 0 && <form className="trophy-season-picker" action="/trophies" method="get">
-            <label htmlFor="trophy-season">Season</label>
-            <select className="trophy-filter" id="trophy-season" name="season" value={season?.id ?? ''} disabled={saving}
-              aria-describedby="trophy-season-help" onChange={event => event.currentTarget.form.requestSubmit()}>
-              {seasons.map(item => <option key={item.id} value={item.id}>Season {item.number}</option>)}
-            </select>
-          </form>}
-          {FILTERS.map(([key,label]) => <button type="button" key={key} className={'trophy-filter' + (key === filter ? ' is-active' : '')} aria-pressed={key === filter} onClick={() => setFilter(key)}>{label}<span>{key === 'all' ? badges.length : badges.filter(b => b.vertical === key).length}</span></button>)}
-        </div>
-        <div className="trophy-badge-sections">
-          {badgeSections.map(group => <section className="trophy-badge-section" key={group.key} aria-labelledby={`trophy-group-${group.key}`}>
+        <nav className="trophy-filters" aria-label="Badge collections">
+          {FILTERS.map(([key,label]) => <button type="button" key={key}
+            className={'trophy-filter'+(key === filter?' is-active':'')} aria-pressed={key === filter}
+            disabled={saving} onClick={() => chooseCollection(key)}>
+            {label}<span>{key === 'all' ? badges.length : badges.filter(b => b.vertical === key).length}</span>
+          </button>)}
+        </nav>
+        <div ref={pathsRef} className={'trophy-paths'+(badgeSections.length === 1?' is-single':'')}>
+          {badgeSections.map(group => <section className="trophy-path-section" key={group.key}
+            ref={group.badges.some(badge => badge.code === selectedBadge?.code) ? selectedGroupRef : null}
+            data-mastery={group.vertical === 'game_mastery'} aria-labelledby={'trophy-group-'+group.key}
+            style={{'--path-color':GAME_COLORS[group.gameKey] || '#55b9ff'}}>
             <header className="trophy-group-heading">
-              <div><span className="trophy-group-kicker">{group.subtitle}</span><h2 id={`trophy-group-${group.key}`}>{group.title}</h2></div>
-              <div className="trophy-group-progress"><strong>{group.badges.filter(badge => badge.earned).length} / {group.badges.length} earned</strong>{group.badges.length > 3 ? <small>Swipe to explore →</small> : null}</div>
+              <h2 id={'trophy-group-'+group.key}>{group.title}</h2>
+              <span>{group.badges.filter(badge => badge.earned).length} / {group.badges.length} earned</span>
             </header>
-            <div className="trophy-badge-grid trophy-badge-rail" role="region" aria-label={`${group.title} achievements`} tabIndex={0}>
-              {group.badges.map(badge => <BadgeCard key={badge.code} badge={badge} seasonNumber={season?.number} isEquipped={previewMode ? previewCode === badge.code : Boolean(equipped?.awardId === badge.awardId)} saving={saving} onSelect={selectBadge} previewMode={previewMode}/>)}
-            </div>
+            <ol className="trophy-path-list">
+              {group.badges.map(badge => <BadgeCard key={badge.code} badge={badge}
+                isSelected={selectedBadge?.code === badge.code}
+                isEquipped={previewMode ? previewCode === badge.code : Boolean(badge.awardId && equipped?.awardId === badge.awardId)}
+                saving={saving} onSelect={inspectBadge} previewMode={previewMode}/>)}
+            </ol>
           </section>)}
         </div>
-        <p id="trophy-season-help" className="trophy-collection-footnote">Changing season loads that collection. Unlocked counts are for the selected season. Earned badges from any season can be worn on your profile. Season championship badges are finalized at season end.</p>
+        {selectedBadge ? <section id="trophy-badge-detail" className="trophy-badge-detail" aria-labelledby="trophy-detail-title"
+          style={{'--detail-accent':selectedAccent}}>
+          <div className="trophy-detail-copy" aria-live="polite" aria-atomic="true">
+            <p className="trophy-detail-kicker">{selectedBadge.rarity} · {selectedGame?.title || (selectedBadge.vertical === 'leaderboard'?'Rivalry & Rankings':selectedBadge.vertical)}</p>
+            <h2 id="trophy-detail-title">{selectedBadge.name}</h2>
+            <p>{DETAILS[selectedBadge.code]}</p>
+            {selectedBadge.earned && selectedBadge.sourceDate && <small>Earned <time dateTime={selectedBadge.sourceDate}>{selectedBadge.sourceDate}</time> · Season {season?.number}</small>}
+          </div>
+          <div className="trophy-detail-action">
+            <span>{selectedBadge.earned?'Earned':'Not earned'}</span>
+            <button type="button" className="trophy-equip-action" disabled={saving || !canEquip}
+              onClick={() => selectBadge(selectedBadge)}>
+              {saving?'Saving…':!canEquip?'Not earned':previewMode?(removing?'Remove preview':'Try on'):(removing?'Remove badge':'Wear badge')}
+            </button>
+            <small>{previewMode?'Private admin preview':canEquip?'Your profile badge':'Earn this badge to wear it.'}</small>
+          </div>
+          <p className="trophy-editor-feedback trophy-collection-feedback" role="status" aria-live="polite">{feedback}</p>
+        </section> : <p className="trophy-empty">No badges in this collection yet.</p>}
+        <p id="trophy-season-help" className="trophy-sr-only">Changing season loads that collection. Earned badges can be worn in any season.</p>
       </section>
     </main>
   </div>;
