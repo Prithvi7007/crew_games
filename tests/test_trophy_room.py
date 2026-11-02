@@ -15,7 +15,7 @@ def collection_contract_after_public_reveal(monkeypatch):
 from werkzeug.security import generate_password_hash
 
 from app.badge_store import award_badges, get_badge_awards, set_showcase_slot
-from app.db import create_profile, get_profile_by_id, get_season_for_date, profile_user_key
+from app.db import create_profile, create_season, get_profile_by_id, get_season_for_date, profile_user_key
 
 
 def _profile(app, name):
@@ -98,6 +98,42 @@ def test_trophy_room_invalid_season_falls_back_to_current(app, client):
     assert data["earnedCount"] == 0
 
 
+def test_prior_season_badge_can_be_worn_while_viewing_current_collection(app, client, monkeypatch):
+    today = date(2026, 11, 2)
+    monkeypatch.setattr("app.main.routes.crew_today", lambda: today)
+    monkeypatch.setattr("app.schedule.crew_today", lambda: today)
+    owner = _profile(app, "SeasonBadgeOwner")
+    with app.app_context():
+        first = get_season_for_date(date(2026, 10, 12))
+        second = get_season_for_date(today) or create_season("Season 2", today, date(2026, 12, 13))
+        award_badges(owner, first["id"], ("case_closed",), source_date="2026-10-12")
+        award_badges(owner, second["id"], ("case_closed",), source_date="2026-11-02")
+        old_award = int(get_badge_awards(owner, first["id"])[0]["id"])
+        new_award = int(get_badge_awards(owner, second["id"])[0]["id"])
+    _signin(client, app, owner)
+    current = _payload(client.get("/trophies"))
+    assert current["selectedSeason"]["id"] == second["id"]
+    assert {season["id"] for season in current["seasons"]} >= {first["id"], second["id"]}
+    historical = _payload(client.get(f'/trophies?season={first["id"]}'))
+    assert historical["selectedSeason"]["id"] == first["id"]
+    assert historical["earnedCount"] == current["earnedCount"] == 1
+    assert next(b["awardId"] for b in historical["badges"] if b["earned"]) == old_award
+    assert next(b["awardId"] for b in current["badges"] if b["earned"]) == new_award
+    assert old_award != new_award
+    with client.session_transaction() as session:
+        token = session["csrf_token"]
+    saved = client.post("/api/trophies/showcase", json={"slot": 1, "awardId": old_award},
+                        headers={"X-CSRFToken": token})
+    assert saved.status_code == 200
+    assert saved.json["showcase"][0]["badge"]["seasonNumber"] == 1
+    for url, season_id in (("/trophies", second["id"]), (f'/trophies?season={first["id"]}', first["id"])):
+        data = _payload(client.get(url))
+        assert data["selectedSeason"]["id"] == season_id
+        assert data["showcase"][0]["awardId"] == old_award
+        assert data["shell"]["userEquippedBadge"]["seasonNumber"] == 1
+    assert _payload(client.get("/profile"))["equippedBadge"]["seasonNumber"] == 1
+
+
 def test_showcase_api_rejects_anonymous_and_missing_csrf(app, client):
     assert client.post("/api/trophies/showcase", json={"slot": 1, "awardId": None}).status_code == 400
     client.get("/login")
@@ -143,3 +179,4 @@ def test_showcase_api_limits_edits_to_own_badges_and_three_slots(app, client):
     assert {item["badgeCode"] for item in response.json["showcase"]} == {"brainiac", "word_wizard"}
     assert send(1, None).status_code == 200
     assert [item["slot"] for item in send(2, owned["word_wizard"]).json["showcase"]] == [2]
+

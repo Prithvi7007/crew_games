@@ -225,6 +225,7 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
   const badges = data.badges || [];
   const earned = data.earnedCount || 0;
   const season = data.selectedSeason;
+  const seasons = data.seasons || [];
   const filtered = useMemo(() => filter === 'all' ? badges : badges.filter(badge => badge.vertical === filter), [badges, filter]);
   const badgeSections = useMemo(() => BADGE_SECTIONS.map(group => ({
     ...group,
@@ -285,12 +286,21 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
         <header className="crew-page-head trophy-collection-header">
           <span className="crew-page-kicker">CREW</span>
           <div className="trophy-collection-title"><h1 id="trophy-collection-title">Badges</h1><span className="trophy-collection-count">{previewMode ? `${badges.length} available to preview · ${earned} earned` : `${earned} / ${badges.length} unlocked`}</span></div>
-          <p>{previewMode ? 'Admin preview: Try on any badge without earning it. This does not affect achievements or rankings.' : equippedBadge ? `Wearing: ${equippedBadge.name}. Select another unlocked badge to switch, or select the equipped badge again to remove it.` : 'Select an unlocked badge to wear it on your profile. Select it again to remove it.'}</p>
+          <p>{previewMode ? 'Admin preview: Try on any badge without earning it. This does not affect achievements or rankings.' : equippedBadge ? `Wearing: ${equippedBadge.name} · Season ${equippedBadge.seasonNumber ?? season?.number}. Select another unlocked badge to switch, or select the equipped badge again to remove it.` : 'Select an unlocked badge to wear it on your profile. Select it again to remove it.'}</p>
           {previewMode && equippedBadge ? <p className="trophy-preview-current">Previewing {equippedBadge.name} · <a href="/profile">View on profile →</a></p> : null}
           {previewMode ? <a className="cul-staff-link" href="/trophies?unlock_preview=1">✦ Preview cinematic badge unlocks →</a> : null}
         </header>
         <p className="trophy-editor-feedback trophy-collection-feedback" role="status" aria-live="polite">{feedback}</p>
-        <div className="trophy-filters" aria-label="Filter badges">{FILTERS.map(([key,label]) => <button type="button" key={key} className={'trophy-filter' + (key === filter ? ' is-active' : '')} aria-pressed={key === filter} onClick={() => setFilter(key)}>{label}<span>{key === 'all' ? badges.length : badges.filter(b => b.vertical === key).length}</span></button>)}</div>
+        <div className="trophy-filters" aria-label="Filter badges">
+          {seasons.length > 0 && <form className="trophy-season-picker" action="/trophies" method="get">
+            <label htmlFor="trophy-season">Season</label>
+            <select className="trophy-filter" id="trophy-season" name="season" value={season?.id ?? ''} disabled={saving}
+              aria-describedby="trophy-season-help" onChange={event => event.currentTarget.form.requestSubmit()}>
+              {seasons.map(item => <option key={item.id} value={item.id}>Season {item.number}</option>)}
+            </select>
+          </form>}
+          {FILTERS.map(([key,label]) => <button type="button" key={key} className={'trophy-filter' + (key === filter ? ' is-active' : '')} aria-pressed={key === filter} onClick={() => setFilter(key)}>{label}<span>{key === 'all' ? badges.length : badges.filter(b => b.vertical === key).length}</span></button>)}
+        </div>
         <div className="trophy-badge-sections">
           {badgeSections.map(group => <section className="trophy-badge-section" key={group.key} aria-labelledby={`trophy-group-${group.key}`}>
             <header className="trophy-group-heading">
@@ -302,8 +312,9 @@ export default function TrophyRoom({ data, Header, saveSlot, savePreview }) {
             </div>
           </section>)}
         </div>
-        <p className="trophy-collection-footnote">Season championship badges are finalized at season end. Previously earned badges remain in your season history.</p>
+        <p id="trophy-season-help" className="trophy-collection-footnote">Changing season loads that collection. Unlocked counts are for the selected season. Earned badges from any season can be worn on your profile. Season championship badges are finalized at season end.</p>
       </section>
     </main>
   </div>;
 }
+
