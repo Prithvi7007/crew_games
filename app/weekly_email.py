@@ -13,7 +13,6 @@ from app.schedule import (
     CREW_WEEK_ONE_DATE,
     GAME_DEFINITIONS,
     crew_today,
-    get_crew_week_number,
     get_week_start,
 )
 
@@ -60,15 +59,17 @@ def _weekly_email_recipients():
 
 
 def build_weekly_kickoff_context(reference_day=None):
-    """Build Monday recap from saved prior-week scores available at generation time."""
+    """Build Monday recap using the active season's boundaries and week numbers."""
     reference_day = reference_day or crew_today()
     current_week_start = get_week_start(reference_day)
     previous_week_start = current_week_start - timedelta(days=7)
     previous_week_end = previous_week_start + timedelta(days=6)
-    current_week_number = get_crew_week_number(current_week_start)
-    previous_week_number = get_crew_week_number(previous_week_start)
-
     active_season = get_season_for_date(current_week_start)
+    current_week_number = active_season["week_number"] if active_season else 0
+    # A new season starts at Week 01, with no previous-week results from this season.
+    previous_week_number = max(0, current_week_number - 1)
+    season_number = active_season["number"] if active_season else None
+    is_new_season_week = bool(active_season and current_week_number == 1)
     is_season_one_final_week = bool(
         active_season
         and active_season["number"] == 1
@@ -95,12 +96,14 @@ def build_weekly_kickoff_context(reference_day=None):
 
     previous_leaders = []
     season_leaders = []
-    if previous_week_number > 0:
+    if active_season and previous_week_number > 0:
         previous_leaders = get_rankings_between(
             previous_week_start, previous_week_end, limit=10
         )
         season_leaders = get_rankings_between(
-            CREW_WEEK_ONE_DATE, previous_week_end, limit=10
+            active_season["start_date"],
+            min(previous_week_end, active_season["end_date"]),
+            limit=10,
         )
 
     # The email has no logged-in viewer: fetch only verified, saved showcases.
@@ -144,6 +147,9 @@ def build_weekly_kickoff_context(reference_day=None):
         "current_week_number_label": _week_number_label(current_week_number),
         "previous_week_number": previous_week_number,
         "previous_week_number_label": _week_number_label(previous_week_number),
+        "active_season": active_season,
+        "season_number": season_number,
+        "is_new_season_week": is_new_season_week,
         "is_season_one_final_week": is_season_one_final_week,
         "prize_heading": prize_heading,
         "prize_body": prize_body,
@@ -162,7 +168,7 @@ def build_weekly_kickoff_context(reference_day=None):
 def _subject(context):
     if context["is_season_one_final_week"]:
         return f"CREW Games Weekly | Season One Finale — Week {context['current_week_number_label']}"
-    return f"CREW Games Weekly | Week {context['current_week_number_label']} is Live"
+    return f"CREW Games Weekly | Season {context['season_number']} — Week {context['current_week_number_label']} is Live"
 
 
 def _plain_text(context):
@@ -173,37 +179,44 @@ def _plain_text(context):
         (
             f"Season One Finale — Week {context['current_week_number_label']}"
             if context["is_season_one_final_week"]
-            else f"Week {context['current_week_number_label']} is Live"
+            else f"Season {context['season_number']} — Week {context['current_week_number_label']} is Live"
         ),
         (
             "The final four games are here. Winners will be finalized next week."
             if context["is_season_one_final_week"]
-            else f"Week {context['previous_week_number_label']} results, season standings, and this week's games."
+            else (
+                f"Season {context['season_number']} begins today. Four fresh games and a clean leaderboard."
+                if context["is_new_season_week"]
+                else f"Week {context['previous_week_number_label']} results, season standings, and this week's games."
+            )
         ),
         "",
     ]
     if context["prize_heading"]:
         lines.extend([context["prize_heading"].upper(), context["prize_body"], ""])
 
-    lines.extend([
-        f"WEEK {context['previous_week_number_label']} FINAL STANDINGS",
-        context["previous_week_range"],
-    ])
+    if context["previous_week_number"] > 0:
+        lines.extend([
+            f"SEASON {context['season_number']} · WEEK {context['previous_week_number_label']} FINAL STANDINGS",
+            context["previous_week_range"],
+        ])
+        if context["previous_leaders"]:
+            for player in context["previous_leaders"]:
+                lines.append(f"{player['rank']}. {player['username']} — {player['points']} pts")
+        else:
+            lines.append("No scores were recorded.")
 
-    if context["previous_leaders"]:
-        for player in context["previous_leaders"]:
-            lines.append(f"{player['rank']}. {player['username']} — {player['points']} pts")
-    else:
-        lines.append("No scores were recorded.")
-
-    lines.extend(["", f"SEASON STANDINGS — THROUGH WEEK {context['previous_week_number_label']}"])
+    season_heading = f"SEASON {context['season_number']} STANDINGS"
+    if context["previous_week_number"] > 0:
+        season_heading += f" — THROUGH WEEK {context['previous_week_number_label']}"
+    lines.extend(["", season_heading])
     if context["season_leaders"]:
         for player in context["season_leaders"]:
             lines.append(f"{player['rank']}. {player['username']} — {player['points']} pts")
     else:
         lines.append("No season scores yet.")
 
-    lines.extend(["", f"WEEK {context['current_week_number_label']} GAMES", "Four games. Up to 400 points available."])
+    lines.extend(["", f"SEASON {context['season_number']} · WEEK {context['current_week_number_label']} GAMES", "Four games. Up to 400 points available."])
     for game in context["games"]:
         lines.append(f"{game['day']} · {game['title']} · {game['status']} · up to {game['points']} pts")
 
@@ -213,10 +226,10 @@ def _plain_text(context):
 
 def render_weekly_kickoff(reference_day=None):
     context = build_weekly_kickoff_context(reference_day)
-    if context["previous_week_number"] < 1:
+    if not context["active_season"]:
         return {
             "status": "skipped",
-            "reason": "There is no completed CREW week to recap yet.",
+            "reason": "There is no active CREW season this week.",
             "context": context,
         }
 

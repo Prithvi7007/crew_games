@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash
 
 from app.db import (
     create_profile,
+    create_season,
     finalize_game_stats,
     get_competitive_rankings_between,
     get_rankings_between,
@@ -105,15 +106,15 @@ def test_weekly_email_renders_outlook_safe_html(app):
         rendered = render_weekly_kickoff(date(2026, 9, 28))
 
     assert rendered["status"] == "ready"
-    assert rendered["subject"] == "CREW Games Weekly | Week 02 is Live"
+    assert rendered["subject"] == "CREW Games Weekly | Season 1 — Week 02 is Live"
     assert "<table" in rendered["html"]
     assert "Alpha" in rendered["html"]
-    assert "Season Standings" in rendered["html"]
+    assert "Season 1 Standings" in rendered["html"]
     assert "Week 02 is" in rendered["html"]
     assert ">Live</span>" in rendered["html"]
     assert "October Prize Update" in rendered["html"]
     assert "randomly selected participant" in rendered["html"]
-    assert "Season Standings" in rendered["html"]
+    assert "Season 1 Standings" in rendered["html"]
     assert "OPEN CREW GAMES" in rendered["html"]
     assert "border:1px solid #4cc4ff" not in rendered["html"]
     assert "border:1px solid #2aa8ff" not in rendered["html"]
@@ -163,7 +164,7 @@ def test_force_resend_keeps_standard_newsletter_without_correction_notice(app):
     assert already_sent["status"] == "already_sent"
     assert result["status"] == "dry_run"
     assert result["recipients"] == ["crew-list@example.com"]
-    assert result["subject"] == "CREW Games Weekly | Week 02 is Live"
+    assert result["subject"] == "CREW Games Weekly | Season 1 — Week 02 is Live"
     assert "CORRECTION" not in result["html"]
     assert "CORRECTION" not in result["text"]
     assert "correction_notice" not in result["html"]
@@ -218,7 +219,7 @@ def test_season_one_finale_week_announces_both_gift_cards(app):
     assert "Winners confirmed next week." in rendered["html"]
     assert "Winners confirmed next week." in rendered["text"]
     assert "Week 05 Final Standings" in rendered["html"]
-    assert "Season Standings" in rendered["html"]
+    assert "Season 1 Standings" in rendered["html"]
     assert "the final four games" in rendered["text"].lower()
     assert "OCTOBER PRIZE UPDATE" not in rendered["text"]
     assert "one by random draw" in rendered["text"]
@@ -227,6 +228,7 @@ def test_season_one_finale_week_announces_both_gift_cards(app):
 def test_finale_announcement_does_not_repeat_after_season(app):
     with app.app_context():
         before = render_weekly_kickoff(date(2026, 10, 19))
+        create_season("November Season", "2026-11-02", "2026-11-27")
         after = render_weekly_kickoff(date(2026, 11, 2))
 
     assert before["context"]["prize_heading"] == "October Prize Update"
@@ -303,3 +305,67 @@ def test_email_uses_real_badge_label_not_detached_icon_or_duplicate_rank(app):
     assert ">✦</td>" not in html
     assert "#{{ player.podium_rank }}" not in html
     assert "email_avatar" not in html
+
+
+def test_weekly_email_skips_when_there_is_no_active_season(app):
+    with app.app_context():
+        rendered = render_weekly_kickoff(date(2026, 11, 2))
+
+    assert rendered["status"] == "skipped"
+    assert "no active CREW season" in rendered["reason"]
+    assert rendered["context"]["active_season"] is None
+
+
+def test_season_two_week_one_resets_newsletter_and_skips_last_season_recap(app):
+    season_one_player = _profile(app, "OldChampion")
+    with app.app_context():
+        finalize_game_stats(
+            profile_user_key(season_one_player), "mystery", "2026-10-26", 100, True
+        )
+        create_season("November Season", "2026-11-02", "2026-11-27")
+        rendered = render_weekly_kickoff(date(2026, 11, 2))
+
+    context = rendered["context"]
+    assert rendered["status"] == "ready"
+    assert rendered["subject"] == "CREW Games Weekly | Season 2 — Week 01 is Live"
+    assert context["season_number"] == 2
+    assert context["current_week_number"] == 1
+    assert context["previous_week_number"] == 0
+    assert context["previous_leaders"] == []
+    assert context["season_leaders"] == []
+    assert "Season 2" in rendered["html"]
+    assert "Week 00" not in rendered["html"]
+    assert "Final Standings" not in rendered["html"]
+    assert "OldChampion" not in rendered["html"]
+    assert "Week 00" not in rendered["text"]
+    assert "SEASON 2 STANDINGS" in rendered["text"]
+
+
+def test_season_two_week_two_recap_uses_only_season_two_scores(app):
+    old_player = _profile(app, "SeasonOneOnly")
+    new_player = _profile(app, "SeasonTwoLeader")
+    with app.app_context():
+        create_season("November Season", "2026-11-02", "2026-11-27")
+        finalize_game_stats(
+            profile_user_key(old_player), "mystery", "2026-10-26", 100, True
+        )
+        finalize_game_stats(
+            profile_user_key(new_player), "mystery", "2026-11-02", 85, True
+        )
+        rendered = render_weekly_kickoff(date(2026, 11, 9))
+
+    context = rendered["context"]
+    assert rendered["status"] == "ready"
+    assert rendered["subject"] == "CREW Games Weekly | Season 2 — Week 02 is Live"
+    assert context["current_week_number"] == 2
+    assert context["previous_week_number"] == 1
+    assert [(row["username"], row["points"]) for row in context["previous_leaders"]] == [
+        ("SeasonTwoLeader", 85)
+    ]
+    assert [(row["username"], row["points"]) for row in context["season_leaders"]] == [
+        ("SeasonTwoLeader", 85)
+    ]
+    assert "Season 2 · Week 01 Final Standings" in rendered["html"]
+    assert "Season 2 Standings" in rendered["html"]
+    assert "SeasonOneOnly" not in rendered["html"]
+    assert "Week 08" not in rendered["html"]
