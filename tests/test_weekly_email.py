@@ -115,7 +115,7 @@ def test_weekly_email_renders_outlook_safe_html(app):
     assert "October Prize Update" in rendered["html"]
     assert "randomly selected participant" in rendered["html"]
     assert "Season 1 Standings" in rendered["html"]
-    assert "OPEN CREW GAMES" in rendered["html"]
+    assert "PLAY THIS WEEK'S GAMES" in rendered["html"]
     assert "border:1px solid #4cc4ff" not in rendered["html"]
     assert "border:1px solid #2aa8ff" not in rendered["html"]
     assert rendered["html"].count("outline:0;box-shadow:none") == 2
@@ -127,13 +127,13 @@ def test_premium_weekly_email_keeps_dynamic_links_and_outlook_fallbacks(app):
 
     html = rendered["html"]
     assert "THE WEEKLY PODIUM" in html
-    assert "THE BIG PICTURE" in html
+    assert "THE RACE FOR THE SEASON" in html
     assert "YOUR NEXT FOUR CHALLENGES" in html
     assert html.count("EXPLORE GAME") == 4
-    assert "OPEN CREW GAMES" in html
+    assert "PLAY THIS WEEK'S GAMES" in html
     assert "VIEW FULL LEADERBOARD" in html
     assert "<!--[if mso]>" in html
-    assert "background:#0c2947" in html
+    assert "background:#0b1e38" in html
     assert "backdrop-filter" not in html
     assert "<script" not in html
 
@@ -386,3 +386,83 @@ def test_season_two_week_two_recap_uses_only_season_two_scores(app):
     assert "Season 2 Standings" in rendered["html"]
     assert "SeasonOneOnly" not in rendered["html"]
     assert "Week 08" not in rendered["html"]
+
+
+def test_editorial_week_two_highlights_real_winner_and_skips_duplicate_standings(app):
+    winner = _profile(app, "WinnerA")
+    runner = _profile(app, "RunnerB")
+    third = _profile(app, "ThirdC")
+    fourth = _profile(app, "FourthD")
+    with app.app_context():
+        create_season("November Season", "2026-11-02", "2026-11-27")
+        for profile_id, score in [(winner, 90), (runner, 70), (third, 60), (fourth, 40)]:
+            finalize_game_stats(
+                profile_user_key(profile_id), "mystery", "2026-11-02", score, True
+            )
+        rendered = render_weekly_kickoff(date(2026, 11, 9))
+
+    context, html = rendered["context"], rendered["html"]
+    assert context["week_champion"]["username"] == "WinnerA"
+    assert [p["username"] for p in context["week_chasers"]] == ["RunnerB", "ThirdC"]
+    assert context["lead_gap"] == 20
+    assert context["season_is_opening_round"] is True
+    assert context["points_available"] == 400
+    assert "WinnerA finished Week 01 with 90 points." in html
+    assert "RunnerB is just 20 points back." in html
+    assert "JUST 20 PTS BETWEEN #1 AND #2" in html
+    assert "NEXT IN LINE" in html
+    assert "FourthD" in html
+    assert "Season 2 Standings" in html
+    assert "SEASON PTS" not in html  # No duplicate leaderboard table in first recap.
+    assert "The opening week sets the first season order." in html
+    assert html.count("EXPLORE GAME") == 4
+    for target in ("/mystery", "/trivia", "/word", "/tick-tock"):
+        assert target in html
+
+
+def test_editorial_weekly_podium_handles_ties_without_false_lead_claim(app):
+    first = _profile(app, "TiedA")
+    second = _profile(app, "TiedB")
+    with app.app_context():
+        create_season("November Season", "2026-11-02", "2026-11-27")
+        finalize_game_stats(profile_user_key(first), "mystery", "2026-11-02", 75, True)
+        finalize_game_stats(profile_user_key(second), "mystery", "2026-11-02", 75, True)
+        rendered = render_weekly_kickoff(date(2026, 11, 9))
+
+    assert rendered["context"]["lead_gap"] == 0
+    assert "JOINT WEEKLY LEAD" in rendered["html"]
+    assert "TIED AT THE TOP" in rendered["html"]
+    assert "just 0 points back" not in rendered["html"]
+
+
+def test_editorial_later_weeks_show_compact_season_rankings(app):
+    alpha = _profile(app, "SeasonAlpha")
+    beta = _profile(app, "SeasonBeta")
+    with app.app_context():
+        create_season("November Season", "2026-11-02", "2026-11-27")
+        finalize_game_stats(profile_user_key(alpha), "mystery", "2026-11-02", 90, True)
+        finalize_game_stats(profile_user_key(beta), "mystery", "2026-11-02", 70, True)
+        finalize_game_stats(profile_user_key(beta), "mystery", "2026-11-09", 100, True)
+        rendered = render_weekly_kickoff(date(2026, 11, 16))
+
+    context, html = rendered["context"], rendered["html"]
+    assert context["previous_week_number"] == 2
+    assert context["season_is_opening_round"] is False
+    assert context["week_champion"]["username"] == "SeasonBeta"
+    assert context["season_top_five"][0]["username"] == "SeasonBeta"
+    assert context["season_top_five"][0]["points"] == 170
+    assert "SEASON PTS" in html
+    assert "Season 2 Standings" in html
+
+
+def test_editorial_new_season_starts_without_podium_or_invented_results(app):
+    with app.app_context():
+        create_season("November Season", "2026-11-02", "2026-11-27")
+        rendered = render_weekly_kickoff(date(2026, 11, 2))
+
+    assert rendered["status"] == "ready"
+    assert rendered["context"]["week_champion"] is None
+    assert rendered["context"]["lead_gap"] is None
+    assert "THE WEEKLY PODIUM" not in rendered["html"]
+    assert "Everyone begins at zero." in rendered["html"]
+    assert rendered["html"].count("EXPLORE GAME") == 4

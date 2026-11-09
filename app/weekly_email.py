@@ -137,7 +137,40 @@ def build_weekly_kickoff_context(reference_day=None):
             player["podium_rank"] = index + 1
             podium.append(player)
 
+    # Editorial email storytelling is generated exclusively from verified ranks.
+    week_champion = previous_leaders[0] if previous_leaders else None
+    week_chasers = previous_leaders[1:3]
+    lead_gap = (
+        int(previous_leaders[0]["points"]) - int(previous_leaders[1]["points"])
+        if len(previous_leaders) > 1 else None
+    )
+    if week_champion:
+        weekly_story = (
+            f"{week_champion['username']} finished Week "
+            f"{_week_number_label(previous_week_number)} with "
+            f"{week_champion['points']} points."
+        )
+        if week_chasers and lead_gap == 0:
+            weekly_story += f" {week_chasers[0]['username']} shares the top score."
+        elif week_chasers:
+            weekly_story += (
+                f" {week_chasers[0]['username']} is just {lead_gap} points back."
+            )
+        else:
+            weekly_story += " Who will challenge them this week?"
+    elif is_new_season_week:
+        weekly_story = "A new season. A fresh leaderboard. Everyone starts level."
+    else:
+        weekly_story = "No scores recorded last week. A new round starts now."
+
     return {
+        "week_champion": week_champion,
+        "week_chasers": week_chasers,
+        "weekly_story": weekly_story,
+        "lead_gap": lead_gap,
+        "season_is_opening_round": previous_week_number == 1,
+        "season_top_five": season_leaders[:5],
+        "points_available": sum(game["points"] for game in games),
         "reference_day": reference_day,
         "reference_date_label": _long_date_label(reference_day),
         "current_week_start": current_week_start,
@@ -199,24 +232,24 @@ def _plain_text(context):
         lines.extend([
             f"SEASON {context['season_number']} · WEEK {context['previous_week_number_label']} FINAL STANDINGS",
             context["previous_week_range"],
+            context["weekly_story"],
         ])
-        if context["previous_leaders"]:
-            for player in context["previous_leaders"]:
-                lines.append(f"{player['rank']}. {player['username']} — {player['points']} pts")
-        else:
-            lines.append("No scores were recorded.")
+        for player in context["previous_leaders"][:3]:
+            lines.append(f"{player['rank']}. {player['username']} — {player['points']} pts")
 
     season_heading = f"SEASON {context['season_number']} STANDINGS"
     if context["previous_week_number"] > 0:
         season_heading += f" — THROUGH WEEK {context['previous_week_number_label']}"
     lines.extend(["", season_heading])
-    if context["season_leaders"]:
-        for player in context["season_leaders"]:
+    if context["season_is_opening_round"]:
+        lines.append("The opening-week podium sets the season race. See the full leaderboard online.")
+    elif context["season_top_five"]:
+        for player in context["season_top_five"]:
             lines.append(f"{player['rank']}. {player['username']} — {player['points']} pts")
     else:
         lines.append("No season scores yet.")
 
-    lines.extend(["", f"SEASON {context['season_number']} · WEEK {context['current_week_number_label']} GAMES", "Four games. Up to 400 points available."])
+    lines.extend(["", f"SEASON {context['season_number']} · WEEK {context['current_week_number_label']} GAMES", f"Four games. Up to {context['points_available']} points available."])
     for game in context["games"]:
         lines.append(f"{game['day']} · {game['title']} · {game['status']} · up to {game['points']} pts")
 
