@@ -37,7 +37,7 @@
   {% endmacro %}
 
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    {% if is_season_one_final_week %}Season One closes Friday. Gift card winners finalized next week.{% else %}Week {{ previous_week_number_label }} results, season standings, and this week's games.{% endif %}
+    {% if is_season_one_final_week %}Season One closes Friday. Gift card winners finalized next week.{% elif is_new_season_week %}Season {{ season_number }} starts today. Fresh games and a clean leaderboard.{% else %}Season {{ season_number }} · Week {{ previous_week_number_label }} results and this week's games.{% endif %}
   </div>
 
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#edf2f7;">
@@ -65,10 +65,10 @@
             <td class="mobile-pad" style="padding:38px 32px 30px;background:#071725;">
               <div class="hero-title"
                    style="font-family:Arial Black,Arial,Helvetica,sans-serif;font-size:42px;line-height:47px;font-weight:900;letter-spacing:-1px;color:#ffffff;">
-                {% if is_season_one_final_week %}Season One <span style="color:#2aa8ff;">Finale</span>{% else %}Week {{ current_week_number_label }} is <span style="color:#2aa8ff;">Live</span>{% endif %}
+                {% if is_season_one_final_week %}Season One <span style="color:#2aa8ff;">Finale</span>{% else %}Season {{ season_number }} · Week {{ current_week_number_label }} is <span style="color:#2aa8ff;">Live</span>{% endif %}
               </div>
               <div style="padding-top:12px;font-size:16px;line-height:24px;color:#adc0d1;max-width:540px;">
-                {% if is_season_one_final_week %}Final week to play. Winners will be finalized next week.{% else %}Week {{ previous_week_number_label }} results, season standings, and this week's games.{% endif %}
+                {% if is_season_one_final_week %}Final week to play. Winners will be finalized next week.{% elif is_new_season_week %}A fresh season begins! Four games, a clean leaderboard, and new chances to climb.{% else %}Season {{ season_number }} · Week {{ previous_week_number_label }} results, season standings, and this week's games.{% endif %}
               </div>
             </td>
           </tr>
@@ -98,6 +98,7 @@
 
           {% endif %}
 
+          {% if previous_week_number > 0 %}
           <tr>
             <td class="mobile-pad" style="padding:0 26px 18px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
@@ -108,7 +109,7 @@
                       <tr>
                         <td>
                           <div style="font-size:18px;font-weight:800;color:#ffffff;">
-                            <span style="padding-right:7px;">🏆</span>Week {{ previous_week_number_label }} Final Standings
+                            <span style="padding-right:7px;">🏆</span>Season {{ season_number }} · Week {{ previous_week_number_label }} Final Standings
                           </div>
                           <div style="padding-top:5px;font-size:11px;line-height:17px;color:#8fa8bf;">
                             Scores as of this email · {{ previous_week_range }}
@@ -189,6 +190,8 @@
             </td>
           </tr>
 
+          {% endif %}
+
           <tr>
             <td class="mobile-pad" style="padding:0 26px 18px;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
@@ -196,10 +199,10 @@
                 <tr>
                   <td style="padding:20px 20px 12px;">
                     <div style="font-size:18px;font-weight:800;color:#ffffff;">
-                      <span style="padding-right:7px;">📊</span>Season Standings
+                      <span style="padding-right:7px;">📊</span>Season {{ season_number }} Standings
                     </div>
                     <div style="padding-top:5px;font-size:11px;line-height:17px;color:#8fa8bf;">
-                      Season rankings through Week {{ previous_week_number_label }}
+                      {% if previous_week_number > 0 %}Season rankings through Week {{ previous_week_number_label }}{% else %}The leaderboard starts fresh this season{% endif %}
                     </div>
                   </td>
                 </tr>
