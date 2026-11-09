@@ -6,118 +6,131 @@
   <meta name="x-apple-disable-message-reformatting">
   <title>CREW Games Weekly</title>
   <style>
-    @media only screen and (max-width: 660px) {
-      .email-shell { width: 100% !important; }
-      .mobile-pad { padding-left: 18px !important; padding-right: 18px !important; }
-      .hero-title { font-size: 34px !important; line-height: 39px !important; }
-      .podium-cell, .game-cell, .cta-cell { display: block !important; width: 100% !important; }
-      .podium-cell, .game-cell { box-sizing: border-box !important; margin-bottom: 10px !important; }
-      .cta-cell { padding: 0 0 10px !important; }
-      .hide-mobile { display: none !important; }
+    /* The table layout and solid backgrounds are the Outlook fallbacks. */
+    @media only screen and (max-width:660px) {
+      .email-shell { width:100% !important; }
+      .mobile-pad { padding-left:18px !important; padding-right:18px !important; }
+      .hero-title { font-size:32px !important; line-height:38px !important; }
+      .podium-cell, .game-cell, .cta-cell { display:block !important; width:100% !important; box-sizing:border-box !important; }
+      .podium-cell, .game-cell { margin-bottom:10px !important; }
+      .cta-cell { padding:0 0 10px !important; }
+      .hide-mobile { display:none !important; }
+      .compact-score { font-size:22px !important; }
     }
   </style>
 </head>
-<body style="margin:0;padding:0;background:#edf2f7;font-family:Arial,Helvetica,sans-serif;color:#f4f8fc;">
-  {# Email-safe avatar with a rarity-colored ring; no invented insignia. #}
-  {% macro email_avatar(player, dimension=28) %}
+<body style="margin:0;padding:0;background:#e9eff5;font-family:Arial,Helvetica,sans-serif;color:#f4f8fc;">
+  {# All player identities and scores are saved CREW data, never decorative mock data. #}
+  {% macro email_avatar(player, dimension=30) %}
     {% set badge = player.equippedBadge %}
     {% set ring = {'common':'#9dafbe','rare':'#35bfff','epic':'#d476ff','legendary':'#ffd05a'}.get(badge.rarity, '#526b81') if badge else '#526b81' %}
     <table role="presentation" align="center" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;">
       <tr>
         <td width="{{ dimension }}" height="{{ dimension }}" align="center" valign="middle"
-            style="width:{{ dimension }}px;height:{{ dimension }}px;border:2px solid {{ ring }};border-radius:50%;background:#182b42;line-height:{{ dimension }}px;font-size:{{ (dimension * 0.52)|int }}px;text-align:center;">
+            style="width:{{ dimension }}px;height:{{ dimension }}px;border:2px solid {{ ring }};border-radius:50%;background:#182b42;font-size:{{ (dimension * 0.49)|int }}px;line-height:{{ dimension }}px;text-align:center;">
           {{ player.avatar or '🎮' }}
         </td>
       </tr>
     </table>
   {% endmacro %}
-
   {% macro email_badge_label(player) %}
-    {% if player.equippedBadge %}{{ player.equippedBadge.name }}<span style="color:#7895ad;"> · S{{ '%02d'|format(player.equippedBadge.seasonNumber) }}</span>{% endif %}
+    {% if player.equippedBadge %}{{ player.equippedBadge.name }}<span style="color:#91a8c2;"> · S{{ '%02d'|format(player.equippedBadge.seasonNumber) }}</span>{% endif %}
   {% endmacro %}
 
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    {% if is_season_one_final_week %}Season One closes Friday. Gift card winners finalized next week.{% elif is_new_season_week %}Season {{ season_number }} starts today. Fresh games and a clean leaderboard.{% else %}Season {{ season_number }} · Week {{ previous_week_number_label }} results and this week's games.{% endif %}
+    {% if is_season_one_final_week %}Season One closes Friday. Gift card winners finalized next week.{% elif is_new_season_week %}Season {{ season_number }} starts today. Fresh games and a clean leaderboard.{% else %}Season {{ season_number }} · Week {{ previous_week_number_label }} results, standings, and four new games.{% endif %}
   </div>
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#edf2f7;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#e9eff5;">
     <tr>
-      <td align="center" style="padding:28px 10px;">
-        <table role="presentation" class="email-shell" width="640" cellspacing="0" cellpadding="0" border="0"
-               style="width:640px;max-width:640px;background:#06111d;border:1px solid #16324d;border-radius:14px;overflow:hidden;">
+      <td align="center" style="padding:26px 10px;">
+        <!--[if mso]><table role="presentation" width="640" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+        <table role="presentation" class="email-shell" align="center" width="640" cellspacing="0" cellpadding="0" border="0"
+               style="width:640px;max-width:640px;border-collapse:separate;background:#071529;border:1px solid #193651;border-radius:12px;overflow:hidden;">
+          <tr><td height="4" bgcolor="#35c7ff" style="height:4px;line-height:4px;font-size:0;background:#35c7ff;">&nbsp;</td></tr>
 
+          <!-- Masthead: compact by design so the scoreboard is above the fold. -->
           <tr>
-            <td class="mobile-pad" style="padding:24px 32px;background:#071725;border-bottom:1px solid #18344f;">
+            <td class="mobile-pad" style="padding:23px 30px 21px;background:#081728;border-bottom:1px solid #1a3a58;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="font-family:Arial Black,Arial,Helvetica,sans-serif;font-size:25px;font-weight:900;letter-spacing:1.4px;color:#ffffff;">
-                    CREW<span style="color:#28a9ff;">+</span>
+                  <td valign="middle">
+                    <div style="font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:26px;font-weight:900;letter-spacing:-.4px;color:#ffffff;">
+                      <span style="color:#42caff;">✦</span> CREW<span style="color:#42caff;">+</span> <span style="font-weight:700;color:#d9e9f9;">Games Weekly</span>
+                    </div>
+                    <div style="padding-top:6px;font-size:10px;line-height:14px;font-weight:700;letter-spacing:1.4px;color:#85a4c1;">PLAY • COMPETE • CELEBRATE</div>
                   </td>
-                  <td align="right" style="font-size:11px;letter-spacing:.3px;color:#8fa6bb;">
-                    {{ reference_date_label }}
+                  <td valign="middle" align="right" style="font-size:11px;line-height:17px;color:#a9bfd4;">
+                    {{ reference_date_label }}<div style="padding-top:5px;font-weight:700;color:#53c8ff;">SEASON {{ season_number }}</div>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
+          <!-- Hero: solid background is deliberate; gradient is progressive enhancement. -->
           <tr>
-            <td class="mobile-pad" style="padding:38px 32px 30px;background:#071725;">
-              <div class="hero-title"
-                   style="font-family:Arial Black,Arial,Helvetica,sans-serif;font-size:42px;line-height:47px;font-weight:900;letter-spacing:-1px;color:#ffffff;">
-                {% if is_season_one_final_week %}Season One <span style="color:#2aa8ff;">Finale</span>{% else %}Season {{ season_number }} · Week {{ current_week_number_label }} is <span style="color:#2aa8ff;">Live</span>{% endif %}
+            <td class="mobile-pad" bgcolor="#0c2947"
+                style="padding:30px 30px 26px;background:#0c2947;background-image:linear-gradient(125deg,#0c2947,#11254a);border-bottom:1px solid #21446a;">
+              <div style="font-size:10px;line-height:16px;font-weight:800;letter-spacing:2.1px;color:#60d4ff;">
+                ● &nbsp; THIS WEEK IN THE CREW
               </div>
-              <div style="padding-top:12px;font-size:16px;line-height:24px;color:#adc0d1;max-width:540px;">
+              <div class="hero-title" style="padding-top:11px;font-family:Arial,Helvetica,sans-serif;font-size:38px;line-height:45px;font-weight:900;letter-spacing:-1.1px;color:#ffffff;">
+                {% if is_season_one_final_week %}Season One <span style="color:#42caff;">Finale</span>{% else %}Season {{ season_number }} · Week {{ current_week_number_label }} is <span style="color:#42caff;">Live</span>{% endif %}
+              </div>
+              <div style="padding-top:13px;max-width:535px;font-size:14px;line-height:23px;color:#d4e4f3;">
                 {% if is_season_one_final_week %}Final week to play. Winners will be finalized next week.{% elif is_new_season_week %}A fresh season begins! Four games, a clean leaderboard, and new chances to climb.{% else %}Season {{ season_number }} · Week {{ previous_week_number_label }} results, season standings, and this week's games.{% endif %}
               </div>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:22px;border-collapse:separate;border:1px solid #2a527a;background:#071c32;border-radius:7px;">
+                <tr>
+                  <td width="33%" align="center" style="padding:12px 4px;border-right:1px solid #294464;">
+                    <div class="compact-score" style="font-size:23px;line-height:27px;font-weight:900;color:#ffffff;">{{ games|length }}</div>
+                    <div style="font-size:9px;line-height:14px;letter-spacing:.5px;color:#a1bdd8;">GAMES THIS WEEK</div>
+                  </td>
+                  <td width="34%" align="center" style="padding:12px 4px;border-right:1px solid #294464;">
+                    <div class="compact-score" style="font-size:23px;line-height:27px;font-weight:900;color:#ffffff;">400</div>
+                    <div style="font-size:9px;line-height:14px;letter-spacing:.5px;color:#a1bdd8;">POINTS AVAILABLE</div>
+                  </td>
+                  <td width="33%" align="center" style="padding:12px 4px;">
+                    <div class="compact-score" style="font-size:23px;line-height:27px;font-weight:900;color:#60d4ff;">{{ '%02d'|format(current_week_number) }}</div>
+                    <div style="font-size:9px;line-height:14px;letter-spacing:.5px;color:#a1bdd8;">CURRENT WEEK</div>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
-
 
           {% if prize_heading %}
           <tr>
-            <td class="mobile-pad" style="padding:0 26px 18px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                     style="border:1px solid #d9a323;background:#151f2c;border-radius:10px;">
+            <td class="mobile-pad" style="padding:20px 24px 0;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;background:#292510;border:1px solid #a4812c;border-radius:8px;">
                 <tr>
-                  <td width="50" valign="top" style="padding:17px 0 17px 18px;font-size:25px;line-height:30px;">
-                    🎁
-                  </td>
-                  <td style="padding:16px 18px 16px 10px;">
-                    <div style="font-size:12px;font-weight:900;letter-spacing:.8px;color:#ffd45e;text-transform:uppercase;">
-                      {{ prize_heading }}
-                    </div>
-                    <div style="padding-top:5px;font-size:13px;line-height:20px;color:#d7e5f1;">
-                      {{ prize_body }}
-                    </div>
+                  <td width="40" valign="top" align="center" style="padding:17px 0 15px 15px;font-size:23px;">🎁</td>
+                  <td style="padding:16px 16px 17px 11px;">
+                    <div style="font-size:12px;letter-spacing:.7px;font-weight:900;color:#ffda82;">{{ prize_heading }}</div>
+                    <div style="padding-top:6px;font-size:13px;line-height:20px;color:#e8dfc5;">{{ prize_body }}</div>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-
           {% endif %}
 
+          <!-- Weekly champions: medals, saved avatars, and equipped badges. -->
           {% if previous_week_number > 0 %}
           <tr>
-            <td class="mobile-pad" style="padding:0 26px 18px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                     style="border:1px solid #1d4c70;background:#081a2a;border-radius:10px;">
+            <td class="mobile-pad" style="padding:25px 24px 0;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;border:1px solid #274762;background:#0b2036;border-radius:9px;">
                 <tr>
-                  <td style="padding:20px 20px 10px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <td style="padding:22px 20px 8px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td>
-                          <div style="font-size:18px;font-weight:800;color:#ffffff;">
-                            <span style="padding-right:7px;">🏆</span>Season {{ season_number }} · Week {{ previous_week_number_label }} Final Standings
-                          </div>
-                          <div style="padding-top:5px;font-size:11px;line-height:17px;color:#8fa8bf;">
-                            Scores as of this email · {{ previous_week_range }}
-                          </div>
+                          <div style="font-size:10px;line-height:14px;letter-spacing:1.5px;font-weight:800;color:#69cfff;">THE WEEKLY PODIUM</div>
+                          <div style="padding-top:6px;font-size:19px;line-height:25px;font-weight:900;color:#ffffff;">🏆 Season {{ season_number }} · Week {{ previous_week_number_label }} Final Standings</div>
+                          <div style="padding-top:5px;font-size:11px;line-height:16px;color:#9ab6d0;">Scores as of this email · {{ previous_week_range }}</div>
                         </td>
-                        <td align="right" class="hide-mobile" style="font-size:10px;font-weight:800;letter-spacing:1px;color:#36b5ff;">
-                          TOP {{ previous_leaders|length }}
-                        </td>
+                        <td class="hide-mobile" align="right" valign="top" style="padding-top:5px;font-size:10px;line-height:17px;letter-spacing:.8px;color:#76cfff;font-weight:800;">TOP {{ previous_leaders|length }}</td>
                       </tr>
                     </table>
                   </td>
@@ -125,25 +138,21 @@
 
                 {% if podium %}
                 <tr>
-                  <td style="padding:8px 14px 14px;">
-                    <table role="presentation" width="100%" cellspacing="8" cellpadding="0" border="0">
+                  <td style="padding:16px 12px 18px;">
+                    <table role="presentation" width="100%" cellspacing="6" cellpadding="0" border="0" style="border-collapse:separate;">
                       <tr>
                         {% for player in podium %}
-                        <td class="podium-cell" width="33.33%" align="center" valign="top"
-                            style="padding:14px 8px;border:1px solid {% if player.podium_rank == 1 %}#b9811b{% elif player.podium_rank == 2 %}#5c7186{% else %}#865b49{% endif %};background:{% if player.podium_rank == 1 %}#211a09{% else %}#0b1723{% endif %};border-radius:8px;">
-                          <div style="font-size:21px;line-height:24px;">
-                            {% if player.podium_rank == 1 %}🥇{% elif player.podium_rank == 2 %}🥈{% else %}🥉{% endif %}
+                        {% set champion = player.podium_rank == 1 %}
+                        {% set podium_color = '#f9ca67' if champion else ('#b8cce2' if player.podium_rank == 2 else '#dca68f') %}
+                        <td class="podium-cell" width="33%" valign="top" align="center"
+                            style="padding:14px 6px 13px;background:{{ '#2c250f' if champion else '#10283e' }};border:1px solid {{ '#a78331' if champion else '#31506b' }};border-top:3px solid {{ podium_color }};border-radius:7px;">
+                          <div style="font-size:11px;line-height:14px;font-weight:900;letter-spacing:.7px;color:{{ podium_color }};">
+                            {% if player.podium_rank == 1 %}🥇 CHAMPION{% elif player.podium_rank == 2 %}🥈 SECOND{% else %}🥉 THIRD{% endif %}
                           </div>
-                          <div style="padding-top:8px;">{{ email_avatar(player, 34) }}</div>
-                          <div style="padding-top:7px;font-size:15px;line-height:19px;font-weight:800;color:#ffffff;">
-                            {{ player.username }}
-                          </div>
-                          <div style="padding-top:5px;font-size:17px;line-height:22px;font-weight:900;color:{% if player.podium_rank == 1 %}#ffc44d{% else %}#ffffff{% endif %};">
-                            {{ player.points }} pts
-                          </div>
-                          <div style="height:17px;padding-top:5px;font-size:10px;line-height:17px;color:#a9bfd0;">
-                            {% if player.equippedBadge %}{{ email_badge_label(player) }}{% else %}&nbsp;{% endif %}
-                          </div>
+                          <div style="padding-top:12px;">{{ email_avatar(player, 38) }}</div>
+                          <div style="padding-top:9px;font-size:14px;line-height:18px;font-weight:900;color:#ffffff;overflow-wrap:anywhere;">{{ player.username }}</div>
+                          <div style="padding-top:7px;font-size:18px;line-height:21px;font-weight:900;color:{{ podium_color }};">{{ player.points }} <span style="font-size:10px;font-weight:700;">pts</span></div>
+                          <div style="min-height:22px;padding-top:7px;font-size:10px;line-height:14px;color:#bed2e3;">{% if player.equippedBadge %}{{ email_badge_label(player) }}{% else %}&nbsp;{% endif %}</div>
                         </td>
                         {% endfor %}
                       </tr>
@@ -153,92 +162,83 @@
                 {% endif %}
 
                 <tr>
-                  <td style="padding:0 16px 18px;">
+                  <td style="padding:0 18px 18px;">
                     {% if previous_rows %}
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;">
-                      <tr style="background:#102b42;">
-                        <td width="44" style="padding:8px 10px;font-size:9px;font-weight:800;letter-spacing:.6px;color:#91a9bf;">RANK</td>
-                        <td style="padding:8px 10px;font-size:9px;font-weight:800;letter-spacing:.6px;color:#91a9bf;">PLAYER</td>
-                        <td align="right" style="padding:8px 10px;font-size:9px;font-weight:800;letter-spacing:.6px;color:#91a9bf;">POINTS</td>
+                      <tr style="background:#17354e;">
+                        <td style="padding:9px 9px;font-size:10px;font-weight:800;color:#b3c9de;">RANK</td>
+                        <td style="padding:9px 9px;font-size:10px;font-weight:800;color:#b3c9de;">PLAYER</td>
+                        <td align="right" style="padding:9px 9px;font-size:10px;font-weight:800;color:#b3c9de;">SCORE</td>
                       </tr>
                       {% for player in previous_rows %}
                       <tr>
-                        <td style="padding:9px 10px;border-bottom:1px solid #173750;font-size:12px;color:#8fa8bf;">{{ player.rank }}</td>
-                        <td style="padding:8px 10px;border-bottom:1px solid #173750;">
+                        <td style="padding:9px;border-bottom:1px solid #21415d;font-size:12px;color:#a2bcd3;">{{ player.rank }}</td>
+                        <td style="padding:8px;border-bottom:1px solid #21415d;">
                           <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                             <tr>
-                              <td valign="middle">{{ email_avatar(player, 26) }}</td>
+                              <td valign="middle">{{ email_avatar(player, 25) }}</td>
                               <td valign="middle" style="padding-left:9px;">
-                                <div style="font-size:13px;font-weight:700;color:#ffffff;">{{ player.username }}</div>
-                                {% if player.equippedBadge %}
-                                <div style="padding-top:2px;font-size:10px;line-height:14px;color:#91a9bf;">{{ email_badge_label(player) }}</div>
-                                {% endif %}
+                                <div style="font-size:13px;font-weight:800;color:#ffffff;">{{ player.username }}</div>
+                                {% if player.equippedBadge %}<div style="padding-top:2px;font-size:10px;line-height:13px;color:#a5bed4;">{{ email_badge_label(player) }}</div>{% endif %}
                               </td>
                             </tr>
                           </table>
                         </td>
-                        <td align="right" style="padding:9px 10px;border-bottom:1px solid #173750;font-size:13px;font-weight:800;color:#ffffff;">{{ player.points }} pts</td>
+                        <td align="right" style="padding:9px;border-bottom:1px solid #21415d;font-size:13px;font-weight:900;color:#ffffff;">{{ player.points }} pts</td>
                       </tr>
                       {% endfor %}
                     </table>
                     {% elif not previous_leaders %}
-                    <div style="padding:12px;color:#8fa8bf;font-size:13px;">No scores were recorded last week.</div>
+                    <div style="padding:12px;font-size:13px;line-height:20px;color:#aec3d9;">No scores were recorded last week. A new chance to climb starts now.</div>
                     {% endif %}
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-
           {% endif %}
 
+          <!-- Season totals use only the active season, not all-time points. -->
           <tr>
-            <td class="mobile-pad" style="padding:0 26px 18px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                     style="border:1px solid #1d4c70;background:#081a2a;border-radius:10px;">
+            <td class="mobile-pad" style="padding:18px 24px 0;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:separate;border:1px solid #274762;background:#0b2036;border-radius:9px;">
                 <tr>
-                  <td style="padding:20px 20px 12px;">
-                    <div style="font-size:18px;font-weight:800;color:#ffffff;">
-                      <span style="padding-right:7px;">📊</span>Season {{ season_number }} Standings
-                    </div>
-                    <div style="padding-top:5px;font-size:11px;line-height:17px;color:#8fa8bf;">
+                  <td style="padding:21px 19px 16px;">
+                    <div style="font-size:10px;line-height:14px;letter-spacing:1.5px;font-weight:800;color:#69cfff;">THE BIG PICTURE</div>
+                    <div style="padding-top:6px;font-size:20px;line-height:25px;font-weight:900;color:#ffffff;">📊 Season {{ season_number }} Standings</div>
+                    <div style="padding-top:5px;font-size:11px;line-height:16px;color:#a7bfd5;">
                       {% if previous_week_number > 0 %}Season rankings through Week {{ previous_week_number_label }}{% else %}The leaderboard starts fresh this season{% endif %}
                     </div>
                   </td>
                 </tr>
-
                 <tr>
-                  <td style="padding:0 16px 18px;">
+                  <td style="padding:0 19px 20px;">
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;">
-                      <tr style="background:#102b42;">
-                        <td width="52" style="padding:8px 10px;font-size:9px;font-weight:800;letter-spacing:.6px;color:#91a9bf;">RANK</td>
-                        <td style="padding:8px 10px;font-size:9px;font-weight:800;letter-spacing:.6px;color:#91a9bf;">PLAYER</td>
-                        <td align="right" style="padding:8px 10px;font-size:9px;font-weight:800;letter-spacing:.6px;color:#91a9bf;">POINTS</td>
+                      <tr style="background:#17354e;">
+                        <td width="50" style="padding:11px 9px;font-size:10px;letter-spacing:.4px;font-weight:900;color:#b6cde3;">RANK</td>
+                        <td style="padding:11px 9px;font-size:10px;letter-spacing:.4px;font-weight:900;color:#b6cde3;">PLAYER</td>
+                        <td align="right" style="padding:11px 9px;font-size:10px;letter-spacing:.4px;font-weight:900;color:#b6cde3;">TOTAL PTS</td>
                       </tr>
                       {% if season_leaders %}
                         {% for player in season_leaders %}
-                        <tr {% if player.rank == 1 %}style="background:#0b3153;"{% endif %}>
-                          <td style="padding:9px 10px;border-bottom:1px solid #173750;font-size:12px;font-weight:800;color:{% if player.rank == 1 %}#36b5ff{% else %}#8fa8bf{% endif %};">{{ player.rank }}</td>
-                          <td style="padding:8px 10px;border-bottom:1px solid #173750;">
+                        <tr style="background:{{ '#113b5d' if player.rank == 1 else '#0b2036' }};">
+                          <td style="padding:9px;border-bottom:1px solid #24445f;font-size:13px;font-weight:900;color:{{ '#fbd278' if player.rank == 1 else '#b7cbe0' }};">{% if player.rank == 1 %}★ {% endif %}{{ player.rank }}</td>
+                          <td style="padding:8px;border-bottom:1px solid #24445f;">
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                               <tr>
                                 <td valign="middle">{{ email_avatar(player, 26) }}</td>
                                 <td valign="middle" style="padding-left:9px;">
-                                  <div style="font-size:13px;font-weight:700;color:#ffffff;">{{ player.username }}</div>
-                                  {% if player.equippedBadge %}
-                                  <div style="padding-top:2px;font-size:10px;line-height:14px;color:#91a9bf;">{{ email_badge_label(player) }}</div>
-                                  {% endif %}
+                                  <div style="font-size:13px;font-weight:800;color:#ffffff;">{{ player.username }}</div>
+                                  {% if player.equippedBadge %}<div style="padding-top:2px;font-size:10px;line-height:13px;color:#abc4da;">{{ email_badge_label(player) }}</div>{% endif %}
                                 </td>
                               </tr>
                             </table>
                           </td>
-                          <td align="right" style="padding:9px 10px;border-bottom:1px solid #173750;font-size:13px;font-weight:800;color:{% if player.rank == 1 %}#36b5ff{% else %}#ffffff{% endif %};">{{ player.points }}</td>
+                          <td align="right" style="padding:9px;border-bottom:1px solid #24445f;font-size:14px;font-weight:900;color:{{ '#71d9ff' if player.rank == 1 else '#ffffff' }};">{{ player.points }}</td>
                         </tr>
                         {% endfor %}
                       {% else %}
-                        <tr>
-                          <td colspan="3" style="padding:14px 10px;font-size:13px;color:#8fa8bf;">No season scores yet.</td>
-                        </tr>
+                        <tr><td colspan="3" style="padding:18px 10px;font-size:13px;line-height:20px;color:#abc3db;">No season scores yet. The leaderboard starts here!</td></tr>
                       {% endif %}
                     </table>
                   </td>
@@ -247,76 +247,59 @@
             </td>
           </tr>
 
+          <!-- Each card is a real, individually linked game with a safe color fallback. -->
           <tr>
-            <td class="mobile-pad" style="padding:0 26px 28px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                     style="border:1px solid #1d4c70;background:#071b2c;border-radius:10px;">
+            <td class="mobile-pad" style="padding:27px 24px 0;">
+              <div style="font-size:10px;line-height:14px;letter-spacing:1.5px;font-weight:800;color:#69cfff;">YOUR NEXT FOUR CHALLENGES</div>
+              <div style="padding-top:6px;font-size:22px;line-height:28px;font-weight:900;color:#ffffff;">🎮 This Week</div>
+              <div style="padding-top:5px;font-size:12px;line-height:19px;color:#a9c1d9;">Four games · <span style="color:#64d2ff;font-weight:800;">Up to 400 points available</span></div>
+
+              <table role="presentation" width="100%" cellspacing="7" cellpadding="0" border="0" style="margin-top:13px;border-collapse:separate;">
+                {% for row in games|batch(2, None) %}
                 <tr>
-                  <td style="padding:20px 20px 8px;">
-                    <div style="font-size:18px;font-weight:800;color:#ffffff;">
-                      <span style="padding-right:7px;">🎮</span>This Week
-                    </div>
-                    <div style="padding-top:5px;font-size:12px;line-height:18px;color:#9fb3c5;">
-                      Four games · <strong style="color:#38b7ff;">Up to 400 points available</strong>
+                  {% for game in row %}
+                  {% if game %}
+                  {% set accent = {'mystery':'#bc9aff','trivia':'#63c7ff','word':'#65dea7','tick_tock':'#eb9fd1'}.get(game.key, '#63c7ff') %}
+                  {% set bg = {'mystery':'#1c1a38','trivia':'#102d45','word':'#10372e','tick_tock':'#301f3e'}.get(game.key, '#102d45') %}
+                  <td class="game-cell" width="50%" valign="top"
+                      style="padding:17px 15px 16px;border:1px solid #335674;border-top:3px solid {{ accent }};border-radius:8px;background:{{ bg }};">
+                    <div style="font-size:10px;line-height:15px;font-weight:900;letter-spacing:1px;color:{{ accent }};">{{ game.day|upper }} · {{ game.date_label }}</div>
+                    <div style="padding-top:9px;font-size:25px;line-height:28px;color:{{ accent }};">{{ game.icon }}</div>
+                    <div style="padding-top:7px;font-size:17px;line-height:22px;font-weight:900;color:#ffffff;">{{ game.title }}</div>
+                    <div style="padding-top:7px;font-size:11px;line-height:17px;color:#c5d6e6;">{{ game.status }} · Up to {{ game.points }} pts</div>
+                    <div style="padding-top:13px;font-size:11px;line-height:16px;font-weight:800;">
+                      <a href="{{ game.url }}" style="color:{{ accent }};text-decoration:underline;">EXPLORE GAME →</a>
                     </div>
                   </td>
+                  {% else %}
+                  <td width="50%"></td>
+                  {% endif %}
+                  {% endfor %}
                 </tr>
+                {% endfor %}
+              </table>
+            </td>
+          </tr>
 
+          <!-- Two high-contrast CTAs; padding and solid fills work in Outlook. -->
+          <tr>
+            <td class="mobile-pad" style="padding:19px 24px 29px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="padding:10px 14px 16px;">
-                    <table role="presentation" width="100%" cellspacing="8" cellpadding="0" border="0">
-                      {% for row in games|batch(2, None) %}
+                  <td class="cta-cell" width="50%" valign="top" style="padding-right:7px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#168cda;border-radius:6px;">
                       <tr>
-                        {% for game in row %}
-                        {% if game %}
-                        <td class="game-cell" width="50%" valign="top"
-                            style="padding:14px;border:1px solid #24547a;background:#0a2134;border-radius:8px;">
-                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                            <tr>
-                              <td width="34" valign="top" style="padding-right:10px;">
-                                <div style="font-size:22px;font-weight:900;line-height:26px;color:#45bbff;text-align:center;">
-                                  {{ game.icon }}
-                                </div>
-                              </td>
-                              <td valign="top">
-                                <div style="font-size:9px;font-weight:800;letter-spacing:.7px;color:#45bbff;text-transform:uppercase;">
-                                  {{ game.day }} · {{ game.date_label }}
-                                </div>
-                                <div style="padding-top:5px;font-size:13px;font-weight:800;color:#ffffff;">
-                                  {{ game.title }}
-                                </div>
-                                <div style="padding-top:4px;font-size:10px;line-height:16px;color:#91a9bf;">
-                                  {{ game.status }} · Up to {{ game.points }} pts
-                                </div>
-                              </td>
-                            </tr>
-                          </table>
+                        <td align="center" bgcolor="#168cda" style="padding:15px 8px;border-radius:6px;">
+                          <a href="{{ play_url }}" style="font-size:12px;font-weight:900;letter-spacing:.3px;text-decoration:none;color:#ffffff;outline:0;box-shadow:none;">OPEN CREW GAMES →</a>
                         </td>
-                        {% else %}
-                        <td></td>
-                        {% endif %}
-                        {% endfor %}
                       </tr>
-                      {% endfor %}
                     </table>
                   </td>
-                </tr>
-
-                <tr>
-                  <td style="padding:0 20px 22px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:0;border-collapse:collapse;">
+                  <td class="cta-cell" width="50%" valign="top" style="padding-left:7px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#15304b;border:1px solid #5997bf;border-radius:6px;">
                       <tr>
-                        <td class="cta-cell" width="50%" style="padding-right:8px;border:0;">
-                          <a href="{{ play_url }}"
-                             style="display:block;padding:15px 10px;text-align:center;text-decoration:none;background:#1599ef;border:0;outline:0;box-shadow:none;border-radius:6px;color:#ffffff;font-size:12px;font-weight:800;letter-spacing:.2px;">
-                            OPEN CREW GAMES →
-                          </a>
-                        </td>
-                        <td class="cta-cell" width="50%" style="padding-left:8px;border:0;">
-                          <a href="{{ leaderboard_url }}"
-                             style="display:block;padding:15px 10px;text-align:center;text-decoration:none;background:transparent;border:0;outline:0;box-shadow:none;color:#55c1ff;font-size:12px;font-weight:800;letter-spacing:.2px;">
-                            VIEW FULL LEADERBOARD
-                          </a>
+                        <td align="center" bgcolor="#15304b" style="padding:14px 8px;border-radius:6px;">
+                          <a href="{{ leaderboard_url }}" style="font-size:12px;font-weight:900;letter-spacing:.2px;text-decoration:none;color:#d7efff;outline:0;box-shadow:none;">VIEW FULL LEADERBOARD →</a>
                         </td>
                       </tr>
                     </table>
@@ -327,14 +310,15 @@
           </tr>
 
           <tr>
-            <td class="mobile-pad" style="padding:20px 30px 24px;background:#071725;border-top:1px solid #18344f;">
+            <td class="mobile-pad" style="padding:20px 30px 23px;background:#081728;border-top:1px solid #26435f;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="font-family:Arial Black,Arial,Helvetica,sans-serif;font-size:12px;font-weight:900;letter-spacing:.8px;color:#8fa6bb;">
-                    CREW<span style="color:#2aa8ff;">+</span>
+                  <td valign="middle">
+                    <div style="font-size:13px;line-height:18px;font-weight:900;color:#ffffff;">One CREW. Four games. Every week.</div>
+                    <div style="padding-top:5px;font-size:11px;line-height:17px;color:#93b1ca;">Bring the energy. We'll bring the challenges.</div>
                   </td>
-                  <td align="right" style="font-size:10px;color:#6f879d;">
-                    <a href="{{ public_url }}" style="color:#2aa8ff;text-decoration:none;">cadacrew.fun</a>
+                  <td valign="middle" align="right" style="font-size:11px;">
+                    <a href="{{ public_url }}" style="text-decoration:underline;color:#65d2ff;">cadacrew.fun</a>
                   </td>
                 </tr>
               </table>
@@ -342,6 +326,7 @@
           </tr>
 
         </table>
+        <!--[if mso]></td></tr></table><![endif]-->
       </td>
     </tr>
   </table>

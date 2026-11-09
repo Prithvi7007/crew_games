@@ -121,6 +121,23 @@ def test_weekly_email_renders_outlook_safe_html(app):
     assert rendered["html"].count("outline:0;box-shadow:none") == 2
 
 
+def test_premium_weekly_email_keeps_dynamic_links_and_outlook_fallbacks(app):
+    with app.app_context():
+        rendered = render_weekly_kickoff(date(2026, 9, 28))
+
+    html = rendered["html"]
+    assert "THE WEEKLY PODIUM" in html
+    assert "THE BIG PICTURE" in html
+    assert "YOUR NEXT FOUR CHALLENGES" in html
+    assert html.count("EXPLORE GAME") == 4
+    assert "OPEN CREW GAMES" in html
+    assert "VIEW FULL LEADERBOARD" in html
+    assert "<!--[if mso]>" in html
+    assert "background:#0c2947" in html
+    assert "backdrop-filter" not in html
+    assert "<script" not in html
+
+
 def test_weekly_email_can_be_disabled_from_admin_setting(app):
     with app.app_context():
         set_setting("email.weekly_kickoff.enabled", "0")
